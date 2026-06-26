@@ -168,7 +168,7 @@ export default function HeroSearch() {
   }, [query]);
 
   return (
-    <div className="w-full flex flex-col items-center mt-[12vh]">
+    <div className="w-full flex flex-col items-center">
       {/* Wordmark */}
       <div className="mb-8 flex flex-col items-center">
         <KineticTextReveal
@@ -177,9 +177,9 @@ export default function HeroSearch() {
           stagger={0.08}
           distance={15}
           staggerFrom="center"
-          className="text-5xl md:text-6xl font-semibold tracking-tight text-white"
+          className="text-5xl md:text-6xl font-semibold tracking-tight text-white drop-shadow-md"
         />
-        <p className="mt-3 text-zinc-400 text-base md:text-lg text-center max-w-[600px] leading-relaxed">
+        <p className="mt-3 text-zinc-300 text-base md:text-lg text-center max-w-[600px] leading-relaxed drop-shadow-md">
           Search millions of scientific papers, discover connections,<br className="hidden sm:block" /> and build AI-powered research maps.
         </p>
       </div>

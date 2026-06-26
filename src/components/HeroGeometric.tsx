@@ -191,8 +191,8 @@ interface HeroGeometricProps {
 }
 
 export default function HeroGeometric({
-    color1 = "#000000", // Pure black
-    color2 = "#0a0a0a", // Very dark charcoal
+    color1 = "#0f172a", // Dark slate blue
+    color2 = "#ffffff", // White
     speed = 1,
     className,
     children
