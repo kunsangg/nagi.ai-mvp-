@@ -1,5 +1,5 @@
 import { NextResponse } from 'next/server';
-import { searchPapers } from '@/lib/semantic';
+import { searchPapers, SemanticAPIError } from '@/lib/semantic';
 
 export async function POST(req: Request) {
   try {
@@ -13,7 +13,15 @@ export async function POST(req: Request) {
     const data = await searchPapers(query.trim());
     return NextResponse.json(data);
   } catch (error: any) {
-    console.log('Search API error:', error.message);
+    if (error instanceof SemanticAPIError) {
+      console.log(`[API Route] Semantic Scholar error (${error.status}):`, error.message);
+      return NextResponse.json(
+        { error: error.message, details: error.details },
+        { status: error.status }
+      );
+    }
+    
+    console.log('[API Route] Unexpected search API error:', error.message);
     return NextResponse.json(
       { error: 'Failed to search papers', details: error.message },
       { status: 500 }
