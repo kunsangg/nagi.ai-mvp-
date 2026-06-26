@@ -1,16 +1,28 @@
-@tailwind base;
-@tailwind components;
-@tailwind utilities;
+@import "tailwindcss";
 
-@layer base {
-  :root {
-    --foreground-rgb: 17, 24, 39;
-    --background-start-rgb: 255, 255, 255;
-    --background-end-rgb: 255, 255, 255;
-  }
+@theme {
+  /* Colors */
+  --color-perplex-bg: #191a1a;
+  --color-perplex-surface: #202222;
+  --color-perplex-hover: #2b2d2d;
+  --color-perplex-border: #2b2d2d;
+  
+  --color-perplex-text: #e8e8e6;
+  --color-perplex-muted: #a0a0a0;
+  
+  --color-perplex-teal: #016a71;
+  --color-perplex-teal-hover: #017a82;
+
+  --font-pplxsans: -apple-system, BlinkMacSystemFont, "SF Pro Text", "SF Pro Icons", "Helvetica Neue", Helvetica, Arial, sans-serif;
 }
 
 body {
-  color: rgb(var(--foreground-rgb));
-  background: rgb(var(--background-start-rgb));
+  background-color: var(--color-perplex-bg);
+  color: var(--color-perplex-text);
+  font-family: var(--font-pplxsans);
+}
+
+.glass-panel {
+  background: var(--color-perplex-surface);
+  border: 1px solid var(--color-perplex-border);
 }
