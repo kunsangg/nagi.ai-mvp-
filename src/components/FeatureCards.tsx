@@ -14,7 +14,7 @@ export default function FeatureCards() {
       {actions.map((action, index) => (
         <button
           key={index}
-          className="flex items-center gap-2 px-3 py-1.5 rounded-[16px] bg-[#202222] border border-[#2b2d2d] text-[#e8e8e6] text-sm font-medium hover:bg-[#2b2d2d] transition-colors"
+          className="flex items-center gap-2 px-3 py-1.5 rounded-[16px] bg-[#202222] border border-[#2b2d2d] text-[#e8e8e6] text-sm font-medium hover:bg-[#2b2d2d] hover:-translate-y-0.5 hover:shadow-lg hover:shadow-black/20 focus:outline-none focus:ring-2 focus:ring-perplex-teal/40 active:translate-y-0 active:scale-95 transition-all duration-200 ease-out"
         >
           <span className="text-[#a0a0a0] flex-shrink-0 flex items-center justify-center">{action.icon}</span>
           <span>{action.label}</span>
