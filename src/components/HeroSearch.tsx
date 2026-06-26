@@ -1,18 +1,14 @@
 "use client";
 
 import { useState, useRef, useEffect } from "react";
-import { Plus, Mic, ArrowUp, Paperclip, Blocks, Folder, ChevronRight, Lock, Loader2, BookOpen, FileText, UserCircle2, MessageSquare } from "lucide-react";
+import { Plus, Mic, ArrowUp, Paperclip, Blocks, Folder, ChevronRight, Lock, Loader2, BookOpen, FileText, UserCircle2, MessageSquare, Search, Monitor, AudioLines, ChevronDown } from "lucide-react";
 import { KineticTextReveal } from "./KineticTextReveal";
 
 const PLACEHOLDERS = [
-  "Search papers on Large Language Models...",
+  "Search papers, authors, topics, or ask a research question...",
   "Find influential papers about Quantum Computing...",
-  "Explain diffusion models...",
-  "Find papers by Geoffrey Hinton...",
   "Generate a research map for Agentic AI...",
-  "Compare AlphaFold and RoseTTAFold...",
-  "Latest research on Reinforcement Learning...",
-  "Search authors, papers, topics, or ask a research question..."
+  "Compare AlphaFold and RoseTTAFold..."
 ];
 
 const LOADING_MESSAGES = [
@@ -115,43 +111,48 @@ export default function HeroSearch() {
     return () => clearInterval(intervalId);
   }, [isLoading]);
 
-  // Click outside attach menu
-  useEffect(() => {
-    function handleClickOutside(event: MouseEvent) {
-      if (menuRef.current && !menuRef.current.contains(event.target as Node)) {
-        setIsMenuOpen(false);
-      }
-    }
-    if (isMenuOpen) {
-      document.addEventListener("mousedown", handleClickOutside);
-    }
-    return () => document.removeEventListener("mousedown", handleClickOutside);
-  }, [isMenuOpen]);
-
-  // Flatten suggestions for index mapping
-  const flatSuggestions = SUGGESTIONS.flatMap(group => group.items);
-
-  const handleSubmit = () => {
+  const handleSubmit = async () => {
     if (!query.trim() || isLoading) return;
     setIsLoading(true);
     setLoadingStep(0);
-    // Here we would typically trigger the actual search action
+    
+    try {
+      const response = await fetch("/api/search", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ query: query.trim() }),
+      });
+
+      const data = await response.json();
+
+      if (!response.ok) {
+        console.warn(`Search API returned an error (${response.status}):`, data);
+        return;
+      }
+
+      console.log("Semantic Scholar Search Results:", data);
+    } catch (error) {
+      console.log("Failed to perform search:", error);
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   // Handle Textarea Keyboard Navigation
   const handleTextareaKeyDown = (e: React.KeyboardEvent) => {
     if (e.key === "Enter" && !e.shiftKey) {
       e.preventDefault();
-      if (selectedIndex >= 0 && selectedIndex < flatSuggestions.length) {
-        setQuery(flatSuggestions[selectedIndex].label);
-        // Using timeout to ensure query state updates before submit
+      if (selectedIndex >= 0 && selectedIndex < SUGGESTIONS.flatMap(g => g.items).length) {
+        setQuery(SUGGESTIONS.flatMap(g => g.items)[selectedIndex].label);
         setTimeout(handleSubmit, 10);
       } else if (query.trim()) {
         handleSubmit();
       }
     } else if (e.key === "ArrowDown") {
       e.preventDefault();
-      setSelectedIndex((prev) => (prev < flatSuggestions.length - 1 ? prev + 1 : prev));
+      setSelectedIndex((prev) => (prev < SUGGESTIONS.flatMap(g => g.items).length - 1 ? prev + 1 : prev));
     } else if (e.key === "ArrowUp") {
       e.preventDefault();
       setSelectedIndex((prev) => (prev > 0 ? prev - 1 : -1));
@@ -168,17 +169,28 @@ export default function HeroSearch() {
   }, [query]);
 
   return (
-    <div className="w-full flex flex-col items-center">
+    <div className="w-full flex flex-col items-center mb-6">
       {/* Wordmark */}
       <div className="mb-8 flex flex-col items-center">
-        <KineticTextReveal
-          text="Research Beyond Search"
-          splitBy="words"
-          stagger={0.08}
-          distance={15}
-          staggerFrom="center"
-          className="text-5xl md:text-6xl font-semibold tracking-tight text-white drop-shadow-md"
-        />
+        <div className="flex items-center gap-3">
+          <KineticTextReveal
+            text="Nagi"
+            splitBy="words"
+            stagger={0.08}
+            distance={15}
+            staggerFrom="center"
+            className="text-5xl md:text-6xl font-semibold tracking-tight text-white drop-shadow-md"
+          />
+          <KineticTextReveal
+            text="海"
+            splitBy="words"
+            stagger={0.08}
+            distance={15}
+            delay={0.1}
+            staggerFrom="center"
+            className="text-5xl md:text-6xl font-semibold tracking-tight text-[#3bc9db] drop-shadow-[0_0_20px_rgba(59,201,219,0.7)]"
+          />
+        </div>
         <p className="mt-3 text-zinc-300 text-base md:text-lg text-center max-w-[600px] leading-relaxed drop-shadow-md">
           Search millions of scientific papers, discover connections,<br className="hidden sm:block" /> and build AI-powered research maps.
         </p>
@@ -188,16 +200,17 @@ export default function HeroSearch() {
       <div className="w-full max-w-[736px] relative">
         {/* Box */}
         <div 
-          className={`w-full bg-perplex-surface rounded-[16px] pt-4 pb-3 px-4 flex flex-col transition-all duration-500 ${
+          className={`w-full rounded-[20px] p-2 pl-5 flex items-center transition-all duration-300 ease-out ${
             isFocused 
-              ? "border border-[#3bc9db]/50 ring-2 ring-[#3bc9db]/40 shadow-[0_0_100px_rgba(10,88,202,0.4),_0_0_40px_rgba(59,201,219,0.5)] bg-[#252828]" 
-              : "border border-perplex-border shadow-sm hover:border-[#3b3d3d]"
+              ? "border border-[#3bc9db]/40 shadow-[0_4px_24px_rgba(59,201,219,0.15)] bg-[#191a1a]/95" 
+              : "border border-[#2b2d2d]/60 shadow-md hover:border-[#3b3d3d] bg-[#191a1a]/70 backdrop-blur-md"
           }`}
         >
-          {/* Textarea */}
-          <div className="relative w-full">
-            <textarea
-              ref={textareaRef}
+          {/* Input Area */}
+          <div className="relative flex-1 flex items-center h-10">
+            <input
+              type="text"
+              ref={textareaRef as any}
               value={query}
               onChange={(e) => setQuery(e.target.value)}
               onFocus={() => setIsFocused(true)}
@@ -207,7 +220,10 @@ export default function HeroSearch() {
               }}
               onKeyDown={handleTextareaKeyDown}
               disabled={isLoading}
-              className={`w-full bg-transparent text-base text-perplex-text focus:outline-none resize-none min-h-[44px] [font-family:inherit] transition-opacity duration-300 ${
+              data-gramm="false"
+              data-gramm_editor="false"
+              data-enable-grammarly="false"
+              className={`w-full bg-transparent text-[15px] text-white focus:outline-none [font-family:inherit] transition-opacity duration-300 ${
                 isLoading ? "opacity-50 cursor-not-allowed" : "opacity-100"
               }`}
               placeholder={isLoading ? LOADING_MESSAGES[loadingStep] : ""}
@@ -215,7 +231,7 @@ export default function HeroSearch() {
             {/* Custom Fade Placeholder (Overlay) */}
             {!query && !isLoading && (
               <div 
-                className={`absolute top-0 left-0 pointer-events-none text-[#6a6a6a] transition-opacity duration-300 ${
+                className={`absolute top-[50%] -translate-y-[50%] left-0 pointer-events-none text-[#8a8a8a] text-[15px] transition-opacity duration-300 ${
                   isFading ? "opacity-0" : "opacity-100"
                 }`}
               >
@@ -224,85 +240,23 @@ export default function HeroSearch() {
             )}
           </div>
 
-          {/* Bottom Controls */}
-          <div className="flex items-center justify-between mt-2">
-            <div className="relative" ref={menuRef}>
-              <button 
-                onClick={() => setIsMenuOpen(!isMenuOpen)}
-                disabled={isLoading}
-                className={`w-8 h-8 flex items-center justify-center rounded-full transition-colors ${
-                  isMenuOpen ? "bg-[#2b2d2d] text-[#e8e8e6]" : "text-[#a0a0a0] hover:bg-[#2b2d2d] hover:text-[#e8e8e6]"
-                } ${isLoading ? "opacity-50 cursor-not-allowed" : ""}`}
-              >
-                <Plus size={18} className={`transition-transform duration-200 ${isMenuOpen ? "rotate-45" : "rotate-0"}`} />
-              </button>
-
-              {/* Attach Dropdown Menu */}
-              {isMenuOpen && !isLoading && (
-                <div className="absolute bottom-full left-0 mb-2 w-[240px] bg-[#202222] border border-[#2b2d2d] rounded-[16px] p-2 shadow-xl flex flex-col z-50">
-                  <div 
-                    className="relative group"
-                    onMouseEnter={() => setActiveHover('upload')}
-                    onMouseLeave={() => setActiveHover(null)}
-                  >
-                    <button className="w-full flex items-center justify-between px-3 py-2.5 rounded-xl hover:bg-[#2b2d2d] text-sm text-[#e8e8e6] transition-colors">
-                      <div className="flex items-center gap-3">
-                        <Paperclip size={16} className="text-[#a0a0a0]" />
-                        <span className="font-medium">Upload files or images</span>
-                      </div>
-                      <Lock size={12} className="text-[#a0a0a0]" />
-                    </button>
-                    
-                    {/* Hover Popover */}
-                    {activeHover === 'upload' && (
-                      <div className="absolute top-0 left-[105%] w-[260px] bg-[#202222] border border-[#2b2d2d] rounded-[16px] p-4 shadow-xl z-50 cursor-default">
-                        <h4 className="text-sm font-semibold text-[#e8e8e6] mb-1">Upload files</h4>
-                        <p className="text-sm text-[#a0a0a0] leading-relaxed">
-                          Attach and analyze any file or photo by <a href="#" className="text-[#3bc9db] hover:underline transition-colors font-medium">signing in</a>
-                        </p>
-                      </div>
-                    )}
-                  </div>
-
-                  <button className="w-full flex items-center justify-between px-3 py-2.5 rounded-xl hover:bg-[#2b2d2d] text-sm text-[#e8e8e6] transition-colors mt-0.5">
-                    <div className="flex items-center gap-3">
-                      <Blocks size={16} className="text-[#a0a0a0]" />
-                      <span className="font-medium">Connectors</span>
-                    </div>
-                    <ChevronRight size={14} className="text-[#a0a0a0]" />
-                  </button>
-
-                  <button className="w-full flex items-center justify-between px-3 py-2.5 rounded-xl hover:bg-[#2b2d2d] text-sm text-[#e8e8e6] transition-colors mt-0.5">
-                    <div className="flex items-center gap-3">
-                      <Folder size={16} className="text-[#a0a0a0]" />
-                      <span className="font-medium">Spaces</span>
-                    </div>
-                    <ChevronRight size={14} className="text-[#a0a0a0]" />
-                  </button>
-                </div>
+          {/* Submit Action */}
+          <div className="flex items-center ml-3">
+            <button 
+              onClick={handleSubmit}
+              disabled={!query.trim() || isLoading}
+              className={`w-9 h-9 rounded-full flex items-center justify-center transition-all duration-300 ${
+                query.trim() && !isLoading
+                  ? "bg-perplex-teal text-white hover:bg-perplex-teal-hover shadow-lg shadow-perplex-teal/20 scale-100" 
+                  : "bg-transparent text-[#a0a0a0] scale-95 opacity-50"
+              }`}
+            >
+              {isLoading ? (
+                <Loader2 size={18} className="animate-spin text-perplex-teal" />
+              ) : (
+                <ArrowUp size={18} className={query.trim() ? "animate-in fade-in zoom-in duration-200 stroke-[2.5]" : "stroke-[2]"} />
               )}
-            </div>
-
-            <div className="flex items-center gap-3">
-              <button disabled={isLoading} className={`text-[#a0a0a0] hover:text-perplex-text transition-colors ${isLoading ? "opacity-50 cursor-not-allowed" : ""}`}>
-                <Mic size={18} />
-              </button>
-              <button 
-                onClick={handleSubmit}
-                disabled={!query.trim() || isLoading}
-                className={`w-8 h-8 rounded-full flex items-center justify-center transition-all duration-300 ${
-                  query.trim() && !isLoading
-                    ? "bg-perplex-teal text-white hover:bg-perplex-teal-hover shadow-md shadow-perplex-teal/20" 
-                    : "bg-[#2b2d2d] text-[#a0a0a0]"
-                }`}
-              >
-                {isLoading ? (
-                  <Loader2 size={16} className="animate-spin text-perplex-teal" />
-                ) : (
-                  <ArrowUp size={16} className={query.trim() ? "animate-in fade-in zoom-in duration-200" : ""} />
-                )}
-              </button>
-            </div>
+            </button>
           </div>
         </div>
 
@@ -316,7 +270,7 @@ export default function HeroSearch() {
                     {group.group}
                   </div>
                   {group.items.map((item) => {
-                    const globalIndex = flatSuggestions.indexOf(item);
+                    const globalIndex = SUGGESTIONS.flatMap(g => g.items).indexOf(item);
                     const isSelected = selectedIndex === globalIndex;
                     return (
                       <button

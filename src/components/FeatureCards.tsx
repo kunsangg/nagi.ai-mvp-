@@ -2,21 +2,20 @@ import { BookOpen, BarChart2, Library, Lightbulb, FileText } from "lucide-react"
 
 export default function FeatureCards() {
   const actions = [
-    { icon: <BookOpen size={15} />, label: "Literature Review" },
-    { icon: <BarChart2 size={15} />, label: "Analyze Data" },
-    { icon: <Library size={15} />, label: "Find Citations" },
-    { icon: <Lightbulb size={15} />, label: "Form Hypothesis" },
-    { icon: <FileText size={15} />, label: "Summarize Paper" },
+    { icon: <BookOpen size={14} />, label: "Literature Review" },
+    { icon: <BarChart2 size={14} />, label: "Research Map" },
+    { icon: <Library size={14} />, label: "Find Citations" },
+    { icon: <FileText size={14} />, label: "Summarize Paper" },
   ];
 
   return (
-    <div className="w-full max-w-[736px] mx-auto mt-4 flex items-center justify-center gap-2 flex-wrap">
+    <div className="w-full max-w-[736px] mx-auto mt-4 flex items-center justify-center gap-2 flex-wrap opacity-80">
       {actions.map((action, index) => (
         <button
           key={index}
-          className="flex items-center gap-2 px-3 py-1.5 rounded-[16px] bg-[#202222] border border-[#2b2d2d] text-[#e8e8e6] text-sm font-medium hover:bg-[#2b2d2d] hover:-translate-y-0.5 hover:shadow-lg hover:shadow-black/20 focus:outline-none focus:ring-2 focus:ring-perplex-teal/40 active:translate-y-0 active:scale-95 transition-all duration-200 ease-out"
+          className="flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-[#1a1b1b]/50 border border-[#2b2d2d]/30 text-[#a0a0a0] text-xs font-medium hover:bg-[#202222] hover:text-[#e8e8e6] hover:border-[#3b3d3d]/50 focus:outline-none focus:ring-1 focus:ring-perplex-teal/40 transition-all duration-200 ease-out"
         >
-          <span className="text-[#a0a0a0] flex-shrink-0 flex items-center justify-center">{action.icon}</span>
+          <span className="flex-shrink-0 flex items-center justify-center">{action.icon}</span>
           <span>{action.label}</span>
         </button>
       ))}
