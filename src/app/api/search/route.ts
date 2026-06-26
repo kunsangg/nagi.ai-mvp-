@@ -1,20 +1,21 @@
 import { NextResponse } from 'next/server';
-import { searchPapers, SemanticAPIError } from '@/lib/semantic';
+import { searchPapers, OpenAlexAPIError } from '@/lib/providers';
 
 export async function POST(req: Request) {
   try {
     const body = await req.json();
     const { query } = body;
+    console.log(`[API Route] Received search request for query: "${query}"`);
 
     if (!query || typeof query !== 'string') {
       return NextResponse.json({ error: 'Valid query string is required' }, { status: 400 });
     }
 
-    const data = await searchPapers(query.trim());
-    return NextResponse.json(data);
+    const papers = await searchPapers(query.trim());
+    return NextResponse.json({ papers });
   } catch (error: any) {
-    if (error instanceof SemanticAPIError) {
-      console.log(`[API Route] Semantic Scholar error (${error.status}):`, error.message);
+    if (error instanceof OpenAlexAPIError) {
+      console.log(`[API Route] OpenAlex error (${error.status}):`, error.message);
       return NextResponse.json(
         { error: error.message, details: error.details },
         { status: error.status }

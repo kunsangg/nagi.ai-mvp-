@@ -2,7 +2,7 @@
 
 import { useState, useRef, useEffect } from "react";
 import { Plus, Mic, ArrowUp, Paperclip, Blocks, Folder, ChevronRight, Lock, Loader2, BookOpen, FileText, UserCircle2, MessageSquare, Search, Monitor, AudioLines, ChevronDown } from "lucide-react";
-import { KineticTextReveal } from "./KineticTextReveal";
+import { KineticTextReveal } from "@/components/ui";
 
 const PLACEHOLDERS = [
   "Search papers, authors, topics, or ask a research question...",
@@ -117,6 +117,7 @@ export default function HeroSearch() {
     setLoadingStep(0);
     
     try {
+      console.log(`[Frontend] Sending search request to /api/search with query: "${query.trim()}"`);
       const response = await fetch("/api/search", {
         method: "POST",
         headers: {

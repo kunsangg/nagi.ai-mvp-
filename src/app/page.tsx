@@ -1,7 +1,6 @@
-import Sidebar from "@/components/Sidebar";
-import HeroSearch from "@/components/HeroSearch";
-import FeatureCards from "@/components/FeatureCards";
-import HeroGeometric from "@/components/HeroGeometric";
+import { Sidebar } from "@/components/layout";
+import { HeroSearch } from "@/components/search";
+import { FeatureCards, HeroGeometric } from "@/components/ui";
 
 export default function Home() {
   return (
