@@ -256,7 +256,7 @@ export default function HeroSearch() {
             hasSearched
               ? "bg-[#111213]/80 backdrop-blur-2xl border border-[#2b2d2d] rounded-2xl px-5 py-3.5 shadow-[0_8px_30px_rgba(0,0,0,0.6)]"
               : isFocused
-              ? "bg-[#191a1a]/95 border border-[#3bc9db]/40 shadow-[0_4px_24px_rgba(59,201,219,0.15)] rounded-2xl px-5 py-3.5"
+              ? "bg-[#161818]/95 border border-[#3bc9db]/80 shadow-[0_0_60px_rgba(59,201,219,0.5)] rounded-2xl px-5 py-3.5"
               : "bg-[#191a1a]/70 border border-[#2b2d2d]/60 backdrop-blur-md rounded-2xl px-5 py-3.5 hover:border-[#3b3d3d]"
           }`}>
             <Search size={16} className="text-[#a0a0a0] shrink-0" />

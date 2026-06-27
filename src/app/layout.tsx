@@ -2,8 +2,8 @@ import type { Metadata } from "next";
 import "@/styles/globals.css";
 
 export const metadata: Metadata = {
-  title: "Perplexity clone",
-  description: "Exact dark mode clone",
+  title: "Nagi Research OS",
+  description: "Navigate the ocean of research",
 };
 
 export default function RootLayout({
