@@ -3,6 +3,7 @@
 import { useState, useRef, useEffect } from "react";
 import { Plus, Mic, ArrowUp, Paperclip, Blocks, Folder, ChevronRight, Lock, Loader2, BookOpen, FileText, UserCircle2, MessageSquare, Search, Monitor, AudioLines, ChevronDown } from "lucide-react";
 import { KineticTextReveal } from "@/components/ui";
+import { Paper } from "@/types/paper";
 
 const PLACEHOLDERS = [
   "Search papers, authors, topics, or ask a research question...",
@@ -18,22 +19,7 @@ const LOADING_MESSAGES = [
   "Preparing research workspace..."
 ];
 
-const SUGGESTIONS = [
-  { group: "Topics", items: [
-    { type: "topic", label: "Large Language Models", icon: <BookOpen size={15} /> },
-    { type: "topic", label: "Quantum Computing", icon: <BookOpen size={15} /> }
-  ]},
-  { group: "Papers", items: [
-    { type: "paper", label: "Attention Is All You Need", icon: <FileText size={15} /> }
-  ]},
-  { group: "Authors", items: [
-    { type: "author", label: "Geoffrey Hinton", icon: <UserCircle2 size={15} /> }
-  ]},
-  { group: "Conferences", items: [
-    { type: "conference", label: "NeurIPS", icon: <MessageSquare size={15} /> },
-    { type: "conference", label: "ICML", icon: <MessageSquare size={15} /> }
-  ]}
-];
+
 
 export default function HeroSearch() {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
@@ -48,6 +34,10 @@ export default function HeroSearch() {
   const [selectedIndex, setSelectedIndex] = useState(-1);
   const [textIndex, setTextIndex] = useState(0);
   const [isFading, setIsFading] = useState(false);
+  const [results, setResults] = useState<Paper[]>([]);
+  const [suggestions, setSuggestions] = useState<string[]>([]);
+  const [isSuggestionsLoading, setIsSuggestionsLoading] = useState(false);
+  const suggestionsDebounceRef = useRef<NodeJS.Timeout | null>(null);
   
   const textareaRef = useRef<HTMLTextAreaElement>(null);
 
@@ -111,8 +101,43 @@ export default function HeroSearch() {
     return () => clearInterval(intervalId);
   }, [isLoading]);
 
+  useEffect(() => {
+    if (query.length < 2) {
+      setSuggestions([]);
+      return;
+    }
+
+    if (suggestionsDebounceRef.current) {
+      clearTimeout(suggestionsDebounceRef.current);
+    }
+
+    suggestionsDebounceRef.current = setTimeout(async () => {
+      setIsSuggestionsLoading(true);
+      try {
+        const res = await fetch(
+          `https://api.openalex.org/autocomplete?q=${encodeURIComponent(query)}`
+        );
+        const data = await res.json();
+        const titles = (data.results || []).slice(0, 6).map((r: any) => r.display_name as string);
+        setSuggestions(titles);
+      } catch {
+        setSuggestions([]);
+      } finally {
+        setIsSuggestionsLoading(false);
+      }
+    }, 300);
+
+    return () => {
+      if (suggestionsDebounceRef.current) {
+        clearTimeout(suggestionsDebounceRef.current);
+      }
+    };
+  }, [query]);
+
   const handleSubmit = async () => {
     if (!query.trim() || isLoading) return;
+    setSuggestions([]);
+    setIsFocused(false);
     setIsLoading(true);
     setLoadingStep(0);
     
@@ -134,6 +159,7 @@ export default function HeroSearch() {
       }
 
       console.log("Semantic Scholar Search Results:", data);
+      setResults(data.papers || []);
     } catch (error) {
       console.log("Failed to perform search:", error);
     } finally {
@@ -145,15 +171,16 @@ export default function HeroSearch() {
   const handleTextareaKeyDown = (e: React.KeyboardEvent) => {
     if (e.key === "Enter" && !e.shiftKey) {
       e.preventDefault();
-      if (selectedIndex >= 0 && selectedIndex < SUGGESTIONS.flatMap(g => g.items).length) {
-        setQuery(SUGGESTIONS.flatMap(g => g.items)[selectedIndex].label);
+      if (selectedIndex >= 0 && selectedIndex < suggestions.length) {
+        setQuery(suggestions[selectedIndex]);
+        setSuggestions([]);
         setTimeout(handleSubmit, 10);
       } else if (query.trim()) {
         handleSubmit();
       }
     } else if (e.key === "ArrowDown") {
       e.preventDefault();
-      setSelectedIndex((prev) => (prev < SUGGESTIONS.flatMap(g => g.items).length - 1 ? prev + 1 : prev));
+      setSelectedIndex((prev) => (prev < suggestions.length - 1 ? prev + 1 : prev));
     } else if (e.key === "ArrowUp") {
       e.preventDefault();
       setSelectedIndex((prev) => (prev > 0 ? prev - 1 : -1));
@@ -161,6 +188,7 @@ export default function HeroSearch() {
       e.preventDefault();
       textareaRef.current?.blur();
       setIsFocused(false);
+      setSuggestions([]);
     }
   };
 
@@ -262,49 +290,104 @@ export default function HeroSearch() {
         </div>
 
         {/* Premium Search Suggestions Dropdown */}
-        {isFocused && query.length > 0 && !isLoading && (
+        {isFocused && query.length >= 2 && !isLoading && (
           <div className="absolute top-[100%] left-0 w-full mt-2 z-50">
             <div className="w-full backdrop-blur-xl bg-[#191a1a]/95 border border-[#2b2d2d] rounded-[16px] shadow-2xl p-2 animate-in fade-in slide-in-from-top-2 duration-200">
-              {SUGGESTIONS.map((group, groupIdx) => (
-                <div key={group.group} className={`${groupIdx > 0 ? "mt-2 pt-2 border-t border-[#2b2d2d]/50" : ""}`}>
-                  <div className="px-3 mb-1.5 flex items-center text-xs font-semibold text-[#808080] uppercase tracking-wider">
-                    {group.group}
-                  </div>
-                  {group.items.map((item) => {
-                    const globalIndex = SUGGESTIONS.flatMap(g => g.items).indexOf(item);
-                    const isSelected = selectedIndex === globalIndex;
-                    return (
-                      <button
-                        key={item.label}
-                        onClick={() => {
-                          setQuery(item.label);
-                          handleSubmit();
-                        }}
-                        onMouseEnter={() => setSelectedIndex(globalIndex)}
-                        className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-xl transition-all duration-150 text-sm ${
-                          isSelected
-                            ? "bg-[#252828] text-[#e8e8e6] border border-[#3b3d3d] shadow-sm"
-                            : "text-[#a0a0a0] hover:bg-[#202222] hover:text-[#e8e8e6] border border-transparent"
-                        }`}
-                      >
-                        <div className={`flex items-center justify-center p-1.5 rounded-lg ${
-                          isSelected ? "bg-[#303333] text-perplex-teal" : "bg-[#202222] text-[#808080]"
-                        }`}>
-                          {item.icon}
-                        </div>
-                        <span className="font-medium text-left flex-1">{item.label}</span>
-                        <span className="text-[11px] text-[#6a6a6a] capitalize tracking-wide bg-[#202222] px-2 py-0.5 rounded-md border border-[#2b2d2d]">
-                          {item.type}
-                        </span>
-                      </button>
-                    );
-                  })}
+              {isSuggestionsLoading ? (
+                <div className="flex items-center gap-2 px-3 py-3 text-[#6a6a6a] text-sm">
+                  <Loader2 size={13} className="animate-spin" />
+                  <span>Finding papers...</span>
                 </div>
-              ))}
+              ) : suggestions.length > 0 ? (
+                <>
+                  <div className="px-3 mb-1.5 text-xs font-semibold text-[#808080] uppercase tracking-wider">
+                    Papers
+                  </div>
+                  {suggestions.map((title, idx) => (
+                    <button
+                      key={idx}
+                      onMouseDown={() => {
+                        setQuery(title);
+                        setSuggestions([]);
+                        setTimeout(handleSubmit, 10);
+                      }}
+                      className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-xl transition-all duration-150 text-sm ${
+                        selectedIndex === idx
+                          ? "bg-[#252828] text-[#e8e8e6] border border-[#3b3d3d]"
+                          : "text-[#a0a0a0] hover:bg-[#202222] hover:text-[#e8e8e6] border border-transparent"
+                      }`}
+                      onMouseEnter={() => setSelectedIndex(idx)}
+                    >
+                      <div className={`flex items-center justify-center p-1.5 rounded-lg ${
+                        selectedIndex === idx ? "bg-[#303333] text-[#3bc9db]" : "bg-[#202222] text-[#808080]"
+                      }`}>
+                        <FileText size={13} />
+                      </div>
+                      <span className="font-medium text-left flex-1 truncate">{title}</span>
+                      <ChevronRight size={13} className="text-[#6a6a6a] shrink-0" />
+                    </button>
+                  ))}
+                </>
+              ) : (
+                <div className="px-3 py-3 text-[#6a6a6a] text-sm">
+                  No suggestions found
+                </div>
+              )}
             </div>
           </div>
         )}
       </div>
+
+      {results.length > 0 && (
+        <div className="w-full max-w-[736px] mt-4 flex flex-col gap-2">
+          {results.map((paper, index) => (
+            <div
+              key={paper.id}
+              className="group p-4 rounded-xl bg-[#1e2020]/80 border border-[#2b2d2d] hover:border-[#3bc9db]/30 hover:bg-[#202424]/90 transition-all duration-200 cursor-pointer"
+            >
+              <div className="flex items-start justify-between gap-3">
+                <div className="flex-1 min-w-0">
+                  <div className="text-[#e8e8e6] font-medium text-sm leading-snug group-hover:text-white transition-colors">
+                    {paper.title}
+                  </div>
+                  <div className="mt-1.5 flex items-center gap-2 flex-wrap">
+                    <span className="text-[#6a6a6a] text-xs">
+                      {paper.authors.slice(0, 2).join(", ")}{paper.authors.length > 2 ? " et al." : ""}
+                    </span>
+                    {paper.publicationYear && (
+                      <>
+                        <span className="text-[#3b3d3d]">·</span>
+                        <span className="text-[#6a6a6a] text-xs">{paper.publicationYear}</span>
+                      </>
+                    )}
+                    {paper.journal && (
+                      <>
+                        <span className="text-[#3b3d3d]">·</span>
+                        <span className="text-[#3bc9db]/70 text-xs truncate max-w-[200px]">{paper.journal}</span>
+                      </>
+                    )}
+                  </div>
+                </div>
+                <div className="flex flex-col items-end gap-1.5 shrink-0">
+                  <div className="flex items-center gap-1 px-2 py-0.5 rounded-md bg-[#2b2d2d] border border-[#3b3d3d]">
+                    <span className="text-[#3bc9db] text-xs font-semibold">
+                      #{index + 1}
+                    </span>
+                  </div>
+                  <span className="text-[#6a6a6a] text-[11px]">
+                    {paper.citationCount.toLocaleString()} citations
+                  </span>
+                </div>
+              </div>
+              {paper.abstract && (
+                <p className="mt-2 text-[#808080] text-xs leading-relaxed line-clamp-2">
+                  {paper.abstract}
+                </p>
+              )}
+            </div>
+          ))}
+        </div>
+      )}
     </div>
   );
 }
