@@ -90,11 +90,7 @@ export default function HeroSearch() {
   const [hasSearched, setHasSearched] = useState(false);
   const [isAnimating, setIsAnimating] = useState(false);
 
-  // Panel state
-  const [selectedPaper, setSelectedPaper] = useState<Paper | null>(null);
-  const [summary, setSummary] = useState("");
-  const [keyFindings, setKeyFindings] = useState<string[]>([]);
-  const [isSummarizing, setIsSummarizing] = useState(false);
+  // Panel state removed
 
   // Filters
   const [filters, setFilters] = useState<SearchFilters>({});
@@ -115,7 +111,6 @@ export default function HeroSearch() {
       }
       if (e.key === "Escape") {
         setIsFocused(false);
-        setSelectedPaper(null);
       }
     };
     window.addEventListener("keydown", handleKeyDown);
@@ -166,7 +161,6 @@ export default function HeroSearch() {
     setIsFocused(false);
     setIsLoading(true);
     setLoadingStep(0);
-    setSelectedPaper(null);
 
     if (!hasSearched) {
       setIsAnimating(true);
@@ -192,23 +186,9 @@ export default function HeroSearch() {
     }
   };
 
-  const handlePaperClick = async (paper: Paper) => {
-    setSelectedPaper(paper);
-    setSummary("");
-    setKeyFindings([]);
-    if (!paper.abstract) return;
-    setIsSummarizing(true);
-    try {
-      const res = await fetch("/api/summarize", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ title: paper.title, abstract: paper.abstract }),
-      });
-      const data = await res.json();
-      setSummary(data.summary || "");
-      setKeyFindings(data.keyFindings || []);
-    } catch { setSummary("Could not generate summary."); }
-    finally { setIsSummarizing(false); }
+  const handlePaperClick = (paper: Paper) => {
+    sessionStorage.setItem(`paper_${paper.id}`, JSON.stringify(paper));
+    window.location.href = `/paper/${paper.id}`;
   };
 
   const handleKeyDown = (e: React.KeyboardEvent) => {
@@ -534,175 +514,7 @@ export default function HeroSearch() {
         </div>
       )}
 
-      {/* Detail Panel */}
-      {selectedPaper && (
-        <div className="fixed inset-0 z-50 flex justify-end" onClick={() => setSelectedPaper(null)}>
-          <div
-            className="relative h-full w-full max-w-[460px] bg-[#111213] border-l border-[#2b2d2d] shadow-2xl overflow-y-auto animate-in slide-in-from-right duration-300"
-            onClick={(e) => e.stopPropagation()}
-          >
-            {/* Panel image header */}
-            <div className="relative w-full h-[180px] overflow-hidden bg-[#1a1b1b]">
-              {getDomainImage(selectedPaper.domain, selectedPaper.field) ? (
-                <img
-                  src={getDomainImage(selectedPaper.domain, selectedPaper.field)!}
-                  alt={selectedPaper.domain || ""}
-                  className="w-full h-full object-cover opacity-40"
-                />
-              ) : (
-                <div className={`w-full h-full bg-gradient-to-br ${getGradientForPaper(selectedPaper.id)} opacity-40`} />
-              )}
-              <div className="absolute inset-0 bg-gradient-to-b from-transparent to-[#111213]" />
-              <button
-                onClick={() => setSelectedPaper(null)}
-                className="absolute top-4 right-4 w-7 h-7 flex items-center justify-center bg-[#111213]/80 border border-[#2b2d2d] rounded-md text-[#808080] hover:text-white transition-colors backdrop-blur-md"
-              >
-                <X size={14} />
-              </button>
-              <div className="absolute bottom-3 left-5 flex items-center gap-2">
-                {selectedPaper.isOpenAccess
-                  ? <span className="text-[9px] font-bold bg-emerald-500/20 text-emerald-400 border border-emerald-500/30 px-2 py-1 rounded-md tracking-wider backdrop-blur-md">OPEN ACCESS</span>
-                  : <span className="text-[9px] font-bold bg-black/40 text-[#808080] border border-white/10 px-2 py-1 rounded-md tracking-wider flex items-center gap-1 backdrop-blur-md"><Lock size={8} /> CLOSED</span>
-                }
-                {selectedPaper.type && (
-                  <span className="text-[9px] font-medium bg-black/40 text-[#a0a0a0] border border-white/10 px-2 py-1 rounded-md capitalize tracking-wider backdrop-blur-md">{selectedPaper.type.replace("-", " ")}</span>
-                )}
-              </div>
-            </div>
-
-            <div className="px-5 pb-8 flex flex-col gap-6 pt-2">
-              {/* Title */}
-              <h2 className="text-[16px] font-bold text-white leading-snug font-sans">
-                {stripHtml(selectedPaper.title)}
-              </h2>
-
-              {/* Authors */}
-              <div>
-                <div className="text-[9px] text-[#a0a0a0] uppercase tracking-widest font-semibold mb-2 font-sans">Authors</div>
-                <div className="flex flex-wrap gap-1.5">
-                  {selectedPaper.authors.map((a, i) => (
-                    <span key={i} className="text-[11px] text-[#a0a0a0] bg-[#1a1b1b] border border-[#2b2d2d] px-2.5 py-1.5 rounded-md font-sans">
-                      {a}
-                    </span>
-                  ))}
-                </div>
-              </div>
-
-              {/* Stats */}
-              <div className="grid grid-cols-3 gap-3">
-                {[
-                  { label: "Citations", value: selectedPaper.citationCount.toLocaleString() },
-                  { label: "References", value: selectedPaper.referencesCount?.toLocaleString() || "—" },
-                  { label: "Year", value: selectedPaper.publicationYear?.toString() || "—" },
-                ].map(stat => (
-                  <div key={stat.label} className="bg-[#1a1b1b] border border-[#2b2d2d] rounded-lg px-3 py-3">
-                    <div className="text-[15px] font-bold text-white font-sans">{stat.value}</div>
-                    <div className="text-[9px] text-[#a0a0a0] uppercase tracking-widest mt-0.5 font-sans">{stat.label}</div>
-                  </div>
-                ))}
-              </div>
-
-              {/* Metadata table */}
-              <div className="border border-[#2b2d2d] rounded-lg divide-y divide-[#2b2d2d] overflow-hidden bg-[#161818]">
-                {[
-                  { label: "Source", value: selectedPaper.journal },
-                  { label: "Language", value: selectedPaper.language?.toUpperCase() },
-                  { label: "Field", value: selectedPaper.field },
-                  { label: "Subfield", value: selectedPaper.subfield },
-                  { label: "Domain", value: selectedPaper.domain },
-                  { label: "DOI", value: selectedPaper.doi, link: selectedPaper.doi ? `https://doi.org/${selectedPaper.doi}` : undefined },
-                ].filter(r => r.value).map(row => (
-                  <div key={row.label} className="flex items-center justify-between px-3 py-2.5">
-                    <span className="text-[10px] text-[#a0a0a0] uppercase tracking-widest font-semibold font-sans">{row.label}</span>
-                    {row.link ? (
-                      <a href={row.link} target="_blank" rel="noopener noreferrer"
-                        className="text-[11px] text-[#3bc9db] hover:underline flex items-center gap-1 font-sans">
-                        <span className="truncate max-w-[200px]">{row.value}</span>
-                        <ExternalLink size={9} />
-                      </a>
-                    ) : (
-                      <span className="text-[11px] text-[#808080] font-sans truncate max-w-[220px]">{row.value}</span>
-                    )}
-                  </div>
-                ))}
-              </div>
-
-              {/* Topics */}
-              {selectedPaper.topics && selectedPaper.topics.length > 0 && (
-                <div>
-                  <div className="text-[9px] text-[#a0a0a0] uppercase tracking-widest font-semibold mb-2 font-sans">Topics</div>
-                  <div className="flex flex-wrap gap-1.5">
-                    {selectedPaper.topics.map((t, i) => (
-                      <span key={i} className="text-[10px] text-[#a0a0a0] bg-[#1a1b1b] border border-[#2b2d2d] px-2.5 py-1.5 rounded-md font-sans flex items-center gap-1.5">
-                        {t.displayName}
-                        <span className="text-[#3bc9db] font-bold">{Math.round(t.score * 100)}%</span>
-                      </span>
-                    ))}
-                  </div>
-                </div>
-              )}
-
-              {/* AI Summary */}
-              <div>
-                <div className="text-[9px] text-[#a0a0a0] uppercase tracking-widest font-semibold mb-2 font-sans flex items-center gap-2">
-                  Plain English Summary
-                  {isSummarizing && <Loader2 size={10} className="animate-spin text-[#3bc9db]" />}
-                </div>
-                {isSummarizing ? (
-                  <div className="space-y-2">
-                    {[...Array(3)].map((_, i) => (
-                      <div key={i} className={`h-2.5 bg-[#1e2020] rounded animate-pulse ${i === 1 ? "w-4/5" : i === 2 ? "w-3/5" : "w-full"}`} />
-                    ))}
-                  </div>
-                ) : summary ? (
-                  <p className="text-[12.5px] text-[#808080] leading-relaxed font-sans">{summary}</p>
-                ) : !selectedPaper.abstract ? (
-                  <p className="text-[11px] text-[#a0a0a0] font-sans">No abstract available.</p>
-                ) : null}
-              </div>
-
-              {/* Key Findings */}
-              {Array.isArray(keyFindings) && keyFindings.length > 0 && (
-                <div>
-                  <div className="text-[9px] text-[#a0a0a0] uppercase tracking-widest font-semibold mb-2 font-sans">Key Findings</div>
-                  <ul className="flex flex-col gap-2.5">
-                    {keyFindings.map((f, i) => (
-                      <li key={i} className="flex gap-2.5 text-[12.5px] text-[#808080] leading-relaxed font-sans">
-                        <span className="text-[#3bc9db] font-bold shrink-0">{i + 1}.</span>
-                        <span>{f}</span>
-                      </li>
-                    ))}
-                  </ul>
-                </div>
-              )}
-
-              {/* Abstract */}
-              {selectedPaper.abstract && (
-                <div>
-                  <div className="text-[9px] text-[#a0a0a0] uppercase tracking-widest font-semibold mb-2 font-sans">Abstract</div>
-                  <p className="text-[11.5px] text-[#808080] leading-relaxed font-sans">{selectedPaper.abstract}</p>
-                </div>
-              )}
-
-              {/* Links */}
-              <div className="flex gap-2 pt-2">
-                {selectedPaper.doi && (
-                  <a href={`https://doi.org/${selectedPaper.doi}`} target="_blank" rel="noopener noreferrer"
-                    className="flex-1 flex items-center justify-center gap-1.5 py-2.5 rounded-lg bg-[#3bc9db]/10 border border-[#3bc9db]/20 text-[#3bc9db] text-[11px] font-bold hover:bg-[#3bc9db]/20 transition-colors font-sans uppercase tracking-wider">
-                    View Paper <ExternalLink size={11} />
-                  </a>
-                )}
-                {selectedPaper.pdfUrl && (
-                  <a href={selectedPaper.pdfUrl} target="_blank" rel="noopener noreferrer"
-                    className="flex-1 flex items-center justify-center gap-1.5 py-2.5 rounded-lg bg-[#1a1b1b] border border-[#2b2d2d] text-[#808080] text-[11px] font-bold hover:text-white hover:border-[#3b3d3d] transition-colors font-sans uppercase tracking-wider">
-                    Open PDF <ExternalLink size={11} />
-                  </a>
-                )}
-              </div>
-            </div>
-          </div>
-        </div>
-      )}
+      {/* Detail Panel moved to /paper/[id] */}
     </div>
   );
 }
