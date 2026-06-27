@@ -1,32 +1,81 @@
 "use client";
 
 import { useState, useRef, useEffect } from "react";
-import { Plus, Mic, ArrowUp, Paperclip, Blocks, Folder, ChevronRight, Lock, Loader2, BookOpen, FileText, UserCircle2, MessageSquare, Search, Monitor, AudioLines, ChevronDown } from "lucide-react";
-import { KineticTextReveal } from "@/components/ui";
-import { Paper } from "@/types/paper";
+import { ArrowUp, ChevronRight, Loader2, FileText, X, ExternalLink, Lock, Unlock, Filter, Search } from "lucide-react";
+import { Paper, SearchFilters } from "@/types/paper";
 
 const PLACEHOLDERS = [
-  "Search papers, authors, topics, or ask a research question...",
+  "Search papers, authors, topics...",
   "Find influential papers about Quantum Computing...",
-  "Generate a research map for Agentic AI...",
-  "Compare AlphaFold and RoseTTAFold..."
+  "Explore transformer architecture research...",
+  "Discover papers on protein folding...",
 ];
 
 const LOADING_MESSAGES = [
   "Searching papers...",
-  "Finding influential authors...",
-  "Analyzing citation network...",
-  "Preparing research workspace..."
+  "Ranking by relevance...",
+  "Fetching metadata...",
+  "Almost there...",
 ];
 
+const PAPER_TYPES = [
+  { label: "All", value: "" },
+  { label: "Article", value: "article" },
+  { label: "Review", value: "review" },
+  { label: "Preprint", value: "preprint" },
+  { label: "Book Chapter", value: "book-chapter" },
+  { label: "Dissertation", value: "dissertation" },
+];
 
+const DOMAIN_IMAGES: Record<string, string> = {
+  "Life Sciences": "https://images.unsplash.com/photo-1530026405186-ed1f139313f8?w=400&q=80",
+  "Health Sciences": "https://images.unsplash.com/photo-1576091160399-112ba8d25d1d?w=400&q=80",
+  "Physical Sciences": "https://images.unsplash.com/photo-1462331940025-496dfbfc7564?w=400&q=80",
+  "Social Sciences": "https://images.unsplash.com/photo-1529156069898-49953e39b3ac?w=400&q=80",
+  "Computer Science": "https://images.unsplash.com/photo-1518770660439-4636190af475?w=400&q=80",
+  "Mathematics": "https://images.unsplash.com/photo-1509228468518-180dd4864904?w=400&q=80",
+  "Engineering": "https://images.unsplash.com/photo-1537462715879-360eeb61a0ad?w=400&q=80",
+  "Economics": "https://images.unsplash.com/photo-1611974789855-9c2a0a7236a3?w=400&q=80",
+  "Medicine": "https://images.unsplash.com/photo-1559757148-5c350d0d3c56?w=400&q=80",
+  "Biology": "https://images.unsplash.com/photo-1530026405186-ed1f139313f8?w=400&q=80",
+  "Chemistry": "https://images.unsplash.com/photo-1532187863486-abf9dbad1b69?w=400&q=80",
+  "Physics": "https://images.unsplash.com/photo-1446776811953-b23d57bd21aa?w=400&q=80",
+  "Psychology": "https://images.unsplash.com/photo-1507413245164-6160d8298b31?w=400&q=80",
+  "Environmental Science": "https://images.unsplash.com/photo-1441974231531-c6227db76b6e?w=400&q=80",
+};
+
+const GRADIENTS = [
+  "from-indigo-500/20 to-purple-500/20",
+  "from-emerald-500/20 to-teal-500/20",
+  "from-blue-500/20 to-cyan-500/20",
+  "from-orange-500/20 to-red-500/20",
+  "from-pink-500/20 to-rose-500/20",
+];
+
+function getGradientForPaper(id: string) {
+  let hash = 0;
+  for (let i = 0; i < id.length; i++) {
+    hash = id.charCodeAt(i) + ((hash << 5) - hash);
+  }
+  return GRADIENTS[Math.abs(hash) % GRADIENTS.length];
+}
+
+function getDomainImage(domain?: string, field?: string): string | null {
+  if (domain && DOMAIN_IMAGES[domain]) return DOMAIN_IMAGES[domain];
+  if (field && DOMAIN_IMAGES[field]) return DOMAIN_IMAGES[field];
+  for (const key of Object.keys(DOMAIN_IMAGES)) {
+    if (domain?.toLowerCase().includes(key.toLowerCase())) return DOMAIN_IMAGES[key];
+    if (field?.toLowerCase().includes(key.toLowerCase())) return DOMAIN_IMAGES[key];
+  }
+  return null;
+}
+
+function stripHtml(str?: string): string {
+  if (!str) return "";
+  return String(str).replace(/<[^>]*>/g, "");
+}
 
 export default function HeroSearch() {
-  const [isMenuOpen, setIsMenuOpen] = useState(false);
-  const [activeHover, setActiveHover] = useState<string | null>(null);
-  const menuRef = useRef<HTMLDivElement>(null);
-  
-  // New Interactive States
   const [isFocused, setIsFocused] = useState(false);
   const [query, setQuery] = useState("");
   const [isLoading, setIsLoading] = useState(false);
@@ -35,357 +84,623 @@ export default function HeroSearch() {
   const [textIndex, setTextIndex] = useState(0);
   const [isFading, setIsFading] = useState(false);
   const [results, setResults] = useState<Paper[]>([]);
+  const [totalResults, setTotalResults] = useState<number>(0);
   const [suggestions, setSuggestions] = useState<string[]>([]);
   const [isSuggestionsLoading, setIsSuggestionsLoading] = useState(false);
-  const suggestionsDebounceRef = useRef<NodeJS.Timeout | null>(null);
-  
-  const textareaRef = useRef<HTMLTextAreaElement>(null);
+  const [hasSearched, setHasSearched] = useState(false);
+  const [isAnimating, setIsAnimating] = useState(false);
 
-  // Auto-focus on load
+  // Panel state
+  const [selectedPaper, setSelectedPaper] = useState<Paper | null>(null);
+  const [summary, setSummary] = useState("");
+  const [keyFindings, setKeyFindings] = useState<string[]>([]);
+  const [isSummarizing, setIsSummarizing] = useState(false);
+
+  // Filters
+  const [filters, setFilters] = useState<SearchFilters>({});
+  const [showFilters, setShowFilters] = useState(false);
+
+  const inputRef = useRef<HTMLInputElement>(null);
+  const suggestionsDebounceRef = useRef<NodeJS.Timeout | null>(null);
+
   useEffect(() => {
-    // Slight delay ensures the layout is ready
-    const timer = setTimeout(() => {
-      textareaRef.current?.focus();
-    }, 100);
-    return () => clearTimeout(timer);
+    setTimeout(() => inputRef.current?.focus(), 100);
   }, []);
 
-  // Global Keyboard Shortcuts
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
-      // Focus on '/'
-      if (e.key === "/" && document.activeElement !== textareaRef.current) {
+      if (e.key === "/" && document.activeElement !== inputRef.current) {
         e.preventDefault();
-        textareaRef.current?.focus();
+        inputRef.current?.focus();
       }
-      // Blur on Escape
       if (e.key === "Escape") {
-        textareaRef.current?.blur();
         setIsFocused(false);
-        setIsMenuOpen(false);
+        setSelectedPaper(null);
       }
     };
     window.addEventListener("keydown", handleKeyDown);
     return () => window.removeEventListener("keydown", handleKeyDown);
   }, []);
 
-  // Smooth Placeholder Rotation
   useEffect(() => {
-    if (isLoading || query.length > 0 || isFocused) return; // Pause rotation if active
-
-    const intervalId = setInterval(() => {
+    if (isLoading || query.length > 0 || isFocused) return;
+    const id = setInterval(() => {
       setIsFading(true);
       setTimeout(() => {
-        setTextIndex((prev) => (prev + 1) % PLACEHOLDERS.length);
+        setTextIndex((p) => (p + 1) % PLACEHOLDERS.length);
         setIsFading(false);
-      }, 300); // 300ms fade transition
-    }, 4000); // 4 seconds interval
-
-    return () => clearInterval(intervalId);
+      }, 300);
+    }, 4000);
+    return () => clearInterval(id);
   }, [isLoading, query.length, isFocused]);
 
-  // Loading Experience Simulation
   useEffect(() => {
     if (!isLoading) return;
-
-    const intervalId = setInterval(() => {
-      setLoadingStep((prev) => {
-        if (prev >= LOADING_MESSAGES.length - 1) {
-          clearInterval(intervalId);
-          return prev;
-        }
-        return prev + 1;
-      });
-    }, 1500); // Change loading message every 1.5s
-
-    return () => clearInterval(intervalId);
+    const id = setInterval(() => {
+      setLoadingStep((p) => (p >= LOADING_MESSAGES.length - 1 ? p : p + 1));
+    }, 1200);
+    return () => clearInterval(id);
   }, [isLoading]);
 
   useEffect(() => {
-    if (query.length < 2) {
-      setSuggestions([]);
-      return;
-    }
-
-    if (suggestionsDebounceRef.current) {
-      clearTimeout(suggestionsDebounceRef.current);
-    }
-
+    if (query.length < 2) { setSuggestions([]); return; }
+    if (suggestionsDebounceRef.current) clearTimeout(suggestionsDebounceRef.current);
     suggestionsDebounceRef.current = setTimeout(async () => {
       setIsSuggestionsLoading(true);
       try {
-        const res = await fetch(
-          `https://api.openalex.org/autocomplete?q=${encodeURIComponent(query)}`
-        );
+        const res = await fetch(`https://api.openalex.org/autocomplete?q=${encodeURIComponent(query)}`);
         const data = await res.json();
-        const titles = (data.results || []).slice(0, 6).map((r: any) => r.display_name as string);
-        setSuggestions(titles);
-      } catch {
-        setSuggestions([]);
-      } finally {
-        setIsSuggestionsLoading(false);
-      }
+        setSuggestions((data.results || []).slice(0, 6).map((r: any) => r.display_name as string));
+      } catch { setSuggestions([]); }
+      finally { setIsSuggestionsLoading(false); }
     }, 300);
-
-    return () => {
-      if (suggestionsDebounceRef.current) {
-        clearTimeout(suggestionsDebounceRef.current);
-      }
-    };
+    return () => { if (suggestionsDebounceRef.current) clearTimeout(suggestionsDebounceRef.current); };
   }, [query]);
 
-  const handleSubmit = async () => {
-    if (!query.trim() || isLoading) return;
+  useEffect(() => { setSelectedIndex(-1); }, [query]);
+
+  const handleSubmit = async (overrideQuery?: string) => {
+    const q = overrideQuery || query;
+    if (!q.trim() || isLoading) return;
     setSuggestions([]);
     setIsFocused(false);
     setIsLoading(true);
     setLoadingStep(0);
-    
+    setSelectedPaper(null);
+
+    if (!hasSearched) {
+      setIsAnimating(true);
+      await new Promise(res => setTimeout(res, 400));
+      setHasSearched(true);
+      setIsAnimating(false);
+    }
+
     try {
-      console.log(`[Frontend] Sending search request to /api/search with query: "${query.trim()}"`);
-      const response = await fetch("/api/search", {
+      const res = await fetch("/api/search", {
         method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({ query: query.trim() }),
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ query: q.trim(), filters }),
       });
-
-      const data = await response.json();
-
-      if (!response.ok) {
-        console.warn(`Search API returned an error (${response.status}):`, data);
-        return;
-      }
-
-      console.log("Semantic Scholar Search Results:", data);
+      const data = await res.json();
+      if (!res.ok) return;
       setResults(data.papers || []);
-    } catch (error) {
-      console.log("Failed to perform search:", error);
+      setTotalResults(data.totalResults || 0);
+    } catch (e) {
+      console.error(e);
     } finally {
       setIsLoading(false);
     }
   };
 
-  // Handle Textarea Keyboard Navigation
-  const handleTextareaKeyDown = (e: React.KeyboardEvent) => {
+  const handlePaperClick = async (paper: Paper) => {
+    setSelectedPaper(paper);
+    setSummary("");
+    setKeyFindings([]);
+    if (!paper.abstract) return;
+    setIsSummarizing(true);
+    try {
+      const res = await fetch("/api/summarize", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ title: paper.title, abstract: paper.abstract }),
+      });
+      const data = await res.json();
+      setSummary(data.summary || "");
+      setKeyFindings(data.keyFindings || []);
+    } catch { setSummary("Could not generate summary."); }
+    finally { setIsSummarizing(false); }
+  };
+
+  const handleKeyDown = (e: React.KeyboardEvent) => {
     if (e.key === "Enter" && !e.shiftKey) {
       e.preventDefault();
       if (selectedIndex >= 0 && selectedIndex < suggestions.length) {
-        setQuery(suggestions[selectedIndex]);
+        const chosen = suggestions[selectedIndex];
+        setQuery(chosen);
         setSuggestions([]);
-        setTimeout(handleSubmit, 10);
+        handleSubmit(chosen);
       } else if (query.trim()) {
         handleSubmit();
       }
     } else if (e.key === "ArrowDown") {
       e.preventDefault();
-      setSelectedIndex((prev) => (prev < suggestions.length - 1 ? prev + 1 : prev));
+      setSelectedIndex((p) => Math.min(p + 1, suggestions.length - 1));
     } else if (e.key === "ArrowUp") {
       e.preventDefault();
-      setSelectedIndex((prev) => (prev > 0 ? prev - 1 : -1));
+      setSelectedIndex((p) => Math.max(p - 1, -1));
     } else if (e.key === "Escape") {
-      e.preventDefault();
-      textareaRef.current?.blur();
       setIsFocused(false);
       setSuggestions([]);
     }
   };
 
-  // Reset selected index when query changes
-  useEffect(() => {
-    setSelectedIndex(-1);
-  }, [query]);
-
   return (
-    <div className="w-full flex flex-col items-center mb-6">
-      {/* Wordmark */}
-      <div className="mb-8 flex flex-col items-center">
-        <div className="flex items-center gap-3">
-          <KineticTextReveal
-            text="Nagi"
-            splitBy="words"
-            stagger={0.08}
-            distance={15}
-            staggerFrom="center"
-            className="text-5xl md:text-6xl font-semibold tracking-tight text-white drop-shadow-md"
-          />
-          <KineticTextReveal
-            text="海"
-            splitBy="words"
-            stagger={0.08}
-            distance={15}
-            delay={0.1}
-            staggerFrom="center"
-            className="text-5xl md:text-6xl font-semibold tracking-tight text-[#3bc9db] drop-shadow-[0_0_20px_rgba(59,201,219,0.7)]"
-          />
-        </div>
-        <p className="mt-3 text-zinc-300 text-base md:text-lg text-center max-w-[600px] leading-relaxed drop-shadow-md">
-          Search millions of scientific papers, discover connections,<br className="hidden sm:block" /> and build AI-powered research maps.
-        </p>
-      </div>
+    <div className={`w-full flex flex-col transition-all duration-500 ease-out ${hasSearched ? "items-start pt-0" : "items-center justify-center flex-1"}`}>
 
-      {/* Search Area */}
-      <div className="w-full max-w-[736px] relative">
-        {/* Box */}
-        <div 
-          className={`w-full rounded-[20px] p-2 pl-5 flex items-center transition-all duration-300 ease-out ${
-            isFocused 
-              ? "border border-[#3bc9db]/40 shadow-[0_4px_24px_rgba(59,201,219,0.15)] bg-[#191a1a]/95" 
-              : "border border-[#2b2d2d]/60 shadow-md hover:border-[#3b3d3d] bg-[#191a1a]/70 backdrop-blur-md"
-          }`}
-        >
-          {/* Input Area */}
-          <div className="relative flex-1 flex items-center h-10">
-            <input
-              type="text"
-              ref={textareaRef as any}
-              value={query}
-              onChange={(e) => setQuery(e.target.value)}
-              onFocus={() => setIsFocused(true)}
-              onBlur={() => {
-                // Delay blur to allow click on dropdown items
-                setTimeout(() => setIsFocused(false), 200);
-              }}
-              onKeyDown={handleTextareaKeyDown}
-              disabled={isLoading}
-              data-gramm="false"
-              data-gramm_editor="false"
-              data-enable-grammarly="false"
-              className={`w-full bg-transparent text-[15px] text-white focus:outline-none [font-family:inherit] transition-opacity duration-300 ${
-                isLoading ? "opacity-50 cursor-not-allowed" : "opacity-100"
-              }`}
-              placeholder={isLoading ? LOADING_MESSAGES[loadingStep] : ""}
-            />
-            {/* Custom Fade Placeholder (Overlay) */}
-            {!query && !isLoading && (
-              <div 
-                className={`absolute top-[50%] -translate-y-[50%] left-0 pointer-events-none text-[#8a8a8a] text-[15px] transition-opacity duration-300 ${
-                  isFading ? "opacity-0" : "opacity-100"
+      {/* Hero — only before search */}
+      {!hasSearched && (
+        <div className={`flex flex-col items-center mb-10 transition-all duration-400 ${isAnimating ? "opacity-0 -translate-y-4" : "opacity-100 translate-y-0"}`}>
+          <h1 className="text-[56px] font-black tracking-tight text-white leading-none mb-3 font-sans">
+            NAGI <span className="text-[#3bc9db]">海</span>
+          </h1>
+          <p className="text-[#a0a0a0] text-sm tracking-widest uppercase font-medium">
+            Navigate the ocean of research
+          </p>
+        </div>
+      )}
+
+      {/* Search Bar — Floating Pill */}
+      <div className={`w-full transition-all duration-500 ease-out ${hasSearched ? "sticky top-6 z-50 mb-8" : "px-0 max-w-[760px] mx-auto"}`}>
+        <div className="relative w-full max-w-[760px] mx-auto px-4 lg:px-0">
+          <div className={`w-full flex items-center gap-3 transition-all duration-300 ${
+            hasSearched
+              ? "bg-[#111213]/80 backdrop-blur-2xl border border-[#2b2d2d] rounded-2xl px-5 py-3.5 shadow-[0_8px_30px_rgba(0,0,0,0.6)]"
+              : isFocused
+              ? "bg-[#191a1a]/95 border border-[#3bc9db]/40 shadow-[0_4px_24px_rgba(59,201,219,0.15)] rounded-2xl px-5 py-3.5"
+              : "bg-[#191a1a]/70 border border-[#2b2d2d]/60 backdrop-blur-md rounded-2xl px-5 py-3.5 hover:border-[#3b3d3d]"
+          }`}>
+            <Search size={16} className="text-[#a0a0a0] shrink-0" />
+            <div className="relative flex-1">
+              <input
+                ref={inputRef}
+                type="text"
+                value={query}
+                onChange={(e) => setQuery(e.target.value)}
+                onFocus={() => setIsFocused(true)}
+                onBlur={() => setTimeout(() => setIsFocused(false), 200)}
+                onKeyDown={handleKeyDown}
+                disabled={isLoading}
+                className={`w-full bg-transparent text-white focus:outline-none transition-all font-sans ${hasSearched ? "text-[14px]" : "text-[15px]"} ${isLoading ? "opacity-40 cursor-not-allowed" : ""}`}
+                placeholder={isLoading ? LOADING_MESSAGES[loadingStep] : ""}
+              />
+              {!query && !isLoading && (
+                <div className={`absolute top-1/2 -translate-y-1/2 left-0 pointer-events-none text-[#a0a0a0] transition-opacity duration-300 font-sans ${hasSearched ? "text-[14px]" : "text-[15px]"} ${isFading ? "opacity-0" : "opacity-100"}`}>
+                  {PLACEHOLDERS[textIndex]}
+                </div>
+              )}
+            </div>
+            <div className="flex items-center gap-2 shrink-0">
+              <button
+                onClick={() => setShowFilters(!showFilters)}
+                className={`p-1.5 rounded-lg transition-all ${showFilters ? "text-[#3bc9db] bg-[#3bc9db]/10" : "text-[#a0a0a0] hover:text-white"}`}
+              >
+                <Filter size={14} />
+              </button>
+              <button
+                onClick={() => handleSubmit()}
+                disabled={!query.trim() || isLoading}
+                className={`w-7 h-7 rounded-lg flex items-center justify-center transition-all ${
+                  query.trim() && !isLoading
+                    ? "bg-[#3bc9db] text-[#121314] hover:bg-[#4dd9eb]"
+                    : "bg-[#2b2d2d] text-[#a0a0a0]"
                 }`}
               >
-                {PLACEHOLDERS[textIndex]}
-              </div>
-            )}
+                {isLoading
+                  ? <Loader2 size={13} className="animate-spin" />
+                  : <ArrowUp size={14} strokeWidth={2.5} />
+                }
+              </button>
+            </div>
           </div>
 
-          {/* Submit Action */}
-          <div className="flex items-center ml-3">
-            <button 
-              onClick={handleSubmit}
-              disabled={!query.trim() || isLoading}
-              className={`w-9 h-9 rounded-full flex items-center justify-center transition-all duration-300 ${
-                query.trim() && !isLoading
-                  ? "bg-perplex-teal text-white hover:bg-perplex-teal-hover shadow-lg shadow-perplex-teal/20 scale-100" 
-                  : "bg-transparent text-[#a0a0a0] scale-95 opacity-50"
-              }`}
-            >
-              {isLoading ? (
-                <Loader2 size={18} className="animate-spin text-perplex-teal" />
-              ) : (
-                <ArrowUp size={18} className={query.trim() ? "animate-in fade-in zoom-in duration-200 stroke-[2.5]" : "stroke-[2]"} />
-              )}
-            </button>
-          </div>
-        </div>
-
-        {/* Premium Search Suggestions Dropdown */}
-        {isFocused && query.length >= 2 && !isLoading && (
-          <div className="absolute top-[100%] left-0 w-full mt-2 z-50">
-            <div className="w-full backdrop-blur-xl bg-[#191a1a]/95 border border-[#2b2d2d] rounded-[16px] shadow-2xl p-2 animate-in fade-in slide-in-from-top-2 duration-200">
-              {isSuggestionsLoading ? (
-                <div className="flex items-center gap-2 px-3 py-3 text-[#6a6a6a] text-sm">
-                  <Loader2 size={13} className="animate-spin" />
-                  <span>Finding papers...</span>
-                </div>
-              ) : suggestions.length > 0 ? (
-                <>
-                  <div className="px-3 mb-1.5 text-xs font-semibold text-[#808080] uppercase tracking-wider">
-                    Papers
-                  </div>
-                  {suggestions.map((title, idx) => (
-                    <button
-                      key={idx}
-                      onMouseDown={() => {
-                        setQuery(title);
-                        setSuggestions([]);
-                        setTimeout(handleSubmit, 10);
-                      }}
-                      className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-xl transition-all duration-150 text-sm ${
-                        selectedIndex === idx
-                          ? "bg-[#252828] text-[#e8e8e6] border border-[#3b3d3d]"
-                          : "text-[#a0a0a0] hover:bg-[#202222] hover:text-[#e8e8e6] border border-transparent"
-                      }`}
-                      onMouseEnter={() => setSelectedIndex(idx)}
-                    >
-                      <div className={`flex items-center justify-center p-1.5 rounded-lg ${
-                        selectedIndex === idx ? "bg-[#303333] text-[#3bc9db]" : "bg-[#202222] text-[#808080]"
+          {/* Filters */}
+          {showFilters && (
+            <div className="absolute top-[calc(100%+12px)] left-0 w-full z-50 bg-[#161818]/95 backdrop-blur-xl border border-[#2b2d2d] rounded-2xl p-5 flex flex-wrap gap-6 shadow-2xl animate-in fade-in slide-in-from-top-2 duration-200">
+              <div>
+                <div className="text-[10px] text-[#a0a0a0] uppercase tracking-widest font-bold mb-3">Type</div>
+                <div className="flex gap-2 flex-wrap">
+                  {PAPER_TYPES.map((t) => (
+                    <button key={t.value}
+                      onClick={() => setFilters((f) => ({ ...f, type: t.value || undefined }))}
+                      className={`px-3 py-1.5 text-[11px] font-medium rounded-lg border transition-all ${
+                        filters.type === (t.value || undefined)
+                          ? "bg-[#3bc9db]/15 text-[#3bc9db] border-[#3bc9db]/30"
+                          : "bg-[#1a1b1b] text-[#a0a0a0] border-[#2b2d2d] hover:text-white hover:border-[#3b3d3d]"
                       }`}>
-                        <FileText size={13} />
-                      </div>
-                      <span className="font-medium text-left flex-1 truncate">{title}</span>
-                      <ChevronRight size={13} className="text-[#6a6a6a] shrink-0" />
+                      {t.label}
                     </button>
                   ))}
-                </>
-              ) : (
-                <div className="px-3 py-3 text-[#6a6a6a] text-sm">
-                  No suggestions found
-                </div>
-              )}
-            </div>
-          </div>
-        )}
-      </div>
-
-      {results.length > 0 && (
-        <div className="w-full max-w-[736px] mt-4 flex flex-col gap-2">
-          {results.map((paper, index) => (
-            <div
-              key={paper.id}
-              className="group p-4 rounded-xl bg-[#1e2020]/80 border border-[#2b2d2d] hover:border-[#3bc9db]/30 hover:bg-[#202424]/90 transition-all duration-200 cursor-pointer"
-            >
-              <div className="flex items-start justify-between gap-3">
-                <div className="flex-1 min-w-0">
-                  <div className="text-[#e8e8e6] font-medium text-sm leading-snug group-hover:text-white transition-colors">
-                    {paper.title}
-                  </div>
-                  <div className="mt-1.5 flex items-center gap-2 flex-wrap">
-                    <span className="text-[#6a6a6a] text-xs">
-                      {paper.authors.slice(0, 2).join(", ")}{paper.authors.length > 2 ? " et al." : ""}
-                    </span>
-                    {paper.publicationYear && (
-                      <>
-                        <span className="text-[#3b3d3d]">·</span>
-                        <span className="text-[#6a6a6a] text-xs">{paper.publicationYear}</span>
-                      </>
-                    )}
-                    {paper.journal && (
-                      <>
-                        <span className="text-[#3b3d3d]">·</span>
-                        <span className="text-[#3bc9db]/70 text-xs truncate max-w-[200px]">{paper.journal}</span>
-                      </>
-                    )}
-                  </div>
-                </div>
-                <div className="flex flex-col items-end gap-1.5 shrink-0">
-                  <div className="flex items-center gap-1 px-2 py-0.5 rounded-md bg-[#2b2d2d] border border-[#3b3d3d]">
-                    <span className="text-[#3bc9db] text-xs font-semibold">
-                      #{index + 1}
-                    </span>
-                  </div>
-                  <span className="text-[#6a6a6a] text-[11px]">
-                    {paper.citationCount.toLocaleString()} citations
-                  </span>
                 </div>
               </div>
-              {paper.abstract && (
-                <p className="mt-2 text-[#808080] text-xs leading-relaxed line-clamp-2">
-                  {paper.abstract}
-                </p>
-              )}
+              <div>
+                <div className="text-[10px] text-[#a0a0a0] uppercase tracking-widest font-bold mb-3">Open Access</div>
+                <button
+                  onClick={() => setFilters((f) => ({ ...f, openAccessOnly: !f.openAccessOnly }))}
+                  className={`px-3 py-1.5 text-[11px] font-medium rounded-lg border transition-all flex items-center gap-2 ${
+                    filters.openAccessOnly
+                      ? "bg-[#3bc9db]/15 text-[#3bc9db] border-[#3bc9db]/30"
+                      : "bg-[#1a1b1b] text-[#a0a0a0] border-[#2b2d2d] hover:text-white hover:border-[#3b3d3d]"
+                  }`}>
+                  <Unlock size={11} /> Open Access Only
+                </button>
+              </div>
+              <div>
+                <div className="text-[10px] text-[#a0a0a0] uppercase tracking-widest font-bold mb-3">Year Range</div>
+                <div className="flex items-center gap-2">
+                  <input type="number" placeholder="From" min={1900} max={2025}
+                    value={filters.yearFrom || ""}
+                    onChange={(e) => setFilters((f) => ({ ...f, yearFrom: e.target.value ? parseInt(e.target.value) : undefined }))}
+                    className="w-20 px-3 py-1.5 text-[12px] bg-[#1a1b1b] border border-[#2b2d2d] rounded-lg text-white focus:outline-none focus:border-[#3bc9db]/40 transition-colors" />
+                  <span className="text-[#a0a0a0] text-xs">—</span>
+                  <input type="number" placeholder="To" min={1900} max={2025}
+                    value={filters.yearTo || ""}
+                    onChange={(e) => setFilters((f) => ({ ...f, yearTo: e.target.value ? parseInt(e.target.value) : undefined }))}
+                    className="w-20 px-3 py-1.5 text-[12px] bg-[#1a1b1b] border border-[#2b2d2d] rounded-lg text-white focus:outline-none focus:border-[#3bc9db]/40 transition-colors" />
+                </div>
+              </div>
             </div>
-          ))}
+          )}
+
+          {/* Suggestions */}
+          {isFocused && query.length >= 2 && !isLoading && (
+            <div className="absolute top-[calc(100%+12px)] left-0 w-full z-50">
+              <div className="bg-[#161818]/95 backdrop-blur-xl border border-[#2b2d2d] rounded-2xl shadow-2xl p-2 animate-in fade-in slide-in-from-top-2 duration-150">
+                {isSuggestionsLoading ? (
+                  <div className="flex items-center gap-3 px-4 py-4 text-[#a0a0a0] text-[13px]">
+                    <Loader2 size={14} className="animate-spin text-[#3bc9db]" />
+                    <span>Finding papers...</span>
+                  </div>
+                ) : suggestions.length > 0 ? (
+                  <>
+                    <div className="px-4 pt-3 pb-2 text-[10px] font-bold text-[#a0a0a0] uppercase tracking-widest">
+                      Suggestions
+                    </div>
+                    {suggestions.map((title, idx) => (
+                      <button key={idx}
+                        onMouseDown={() => { setQuery(title); setSuggestions([]); handleSubmit(title); }}
+                        onMouseEnter={() => setSelectedIndex(idx)}
+                        className={`w-full flex items-center gap-3 px-4 py-2.5 rounded-xl text-[14px] transition-all ${
+                          selectedIndex === idx
+                            ? "bg-[#202222] text-white"
+                            : "text-[#a0a0a0] hover:bg-[#1a1c1c] hover:text-white"
+                        }`}>
+                        <FileText size={14} className={selectedIndex === idx ? "text-white" : "text-[#808080]"} shrink-0 />
+                        <span className="truncate text-left font-medium">{title}</span>
+                        <ChevronRight size={14} className="text-[#6a6a6a] shrink-0 ml-auto" />
+                      </button>
+                    ))}
+                  </>
+                ) : (
+                  <div className="px-4 py-4 text-[#a0a0a0] text-[13px]">No suggestions found</div>
+                )}
+              </div>
+            </div>
+          )}
+        </div>
+      </div>
+
+      {/* Results */}
+      {hasSearched && (
+        <div className="w-full px-4 md:px-6 mt-6 pb-24">
+          {/* Premium Header */}
+          {!isLoading && totalResults > 0 && (
+            <div className="max-w-[1200px] mx-auto mb-8 flex flex-col md:flex-row md:items-end justify-between gap-4 border-b border-[#2b2d2d] pb-5">
+              <div className="flex flex-col gap-1.5">
+                <span className="text-[24px] text-white font-bold tracking-tight font-sans">
+                  {totalResults.toLocaleString()} Research Papers
+                </span>
+                <span className="text-[13px] text-[#a0a0a0] font-sans">
+                  Search: <span className="text-white font-medium">{query}</span>
+                </span>
+              </div>
+              <span className="text-[11px] text-[#808080] uppercase tracking-widest font-medium">
+                Showing top 10 ranked papers
+              </span>
+            </div>
+          )}
+
+          {isLoading ? (
+            /* Skeleton grid */
+            <div className="max-w-[1200px] mx-auto grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+              {[...Array(6)].map((_, i) => (
+                <div key={i} className="flex flex-col bg-[#111213] border border-[#2b2d2d] rounded-xl overflow-hidden h-full">
+                  <div className="w-full aspect-video bg-[#1a1b1b] animate-pulse" />
+                  <div className="p-4 pt-4 flex flex-col gap-3">
+                    <div className="h-4 bg-[#1a1b1b] rounded w-3/4 animate-pulse" />
+                    <div className="h-4 bg-[#1a1b1b] rounded w-full animate-pulse" />
+                    <div className="h-3 bg-[#1a1b1b] rounded w-1/2 animate-pulse mt-1" />
+                    <div className="h-6 bg-[#1a1b1b] rounded w-24 animate-pulse mt-2" />
+                    <div className="flex-1" />
+                    <div className="flex gap-2 pt-3 border-t border-[#2b2d2d]/50">
+                      <div className="h-5 bg-[#1a1b1b] rounded w-16 animate-pulse" />
+                      <div className="h-5 bg-[#1a1b1b] rounded w-20 animate-pulse" />
+                    </div>
+                  </div>
+                </div>
+              ))}
+            </div>
+          ) : (
+            /* Premium Paper Grid */
+            <div className="max-w-[1200px] mx-auto grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+              {results.map((paper, index) => (
+                <div
+                  key={paper.id}
+                  onClick={() => handlePaperClick(paper)}
+                  className="group flex flex-col cursor-pointer bg-[#111213] border border-[#2b2d2d] rounded-xl overflow-hidden hover:-translate-y-1 hover:shadow-[0_8px_30px_rgba(0,0,0,0.4)] hover:border-[#3bc9db]/30 transition-all duration-300 h-full"
+                  style={{ animationDelay: `${index * 60}ms` }}
+                >
+                  {/* Image/Gradient Thumbnail (16:9) */}
+                  <div className="relative w-full aspect-video overflow-hidden bg-[#1a1b1b] shrink-0">
+                    {getDomainImage(paper.domain, paper.field) ? (
+                      <img
+                        src={getDomainImage(paper.domain, paper.field)!}
+                        alt={paper.domain || paper.field || "Research"}
+                        className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105 opacity-70 group-hover:opacity-90"
+                      />
+                    ) : (
+                      <div className={`w-full h-full bg-gradient-to-br ${getGradientForPaper(paper.id)} opacity-50 transition-transform duration-700 group-hover:scale-105`} />
+                    )}
+                    <div className="absolute inset-0 bg-gradient-to-t from-[#111213] via-[#111213]/20 to-transparent" />
+                    
+                    {/* Rank Badge */}
+                    <div className="absolute top-3 left-3 flex items-center">
+                      <span className="text-[10px] font-bold text-white bg-black/40 backdrop-blur-md px-2 py-1 rounded-md tracking-wider border border-white/10">
+                        #{index + 1}
+                      </span>
+                    </div>
+
+                    {/* Paper Type Pill */}
+                    <div className="absolute top-3 right-3 flex items-center gap-2">
+                      {paper.isOpenAccess && (
+                        <span className="text-[10px] font-bold bg-emerald-500/20 text-emerald-400 border border-emerald-500/30 px-2 py-1 rounded-md tracking-wider backdrop-blur-md">
+                          OA
+                        </span>
+                      )}
+                      {paper.type && (
+                        <span className="text-[10px] font-medium bg-black/40 text-[#a0a0a0] border border-white/10 px-2 py-1 rounded-md capitalize backdrop-blur-md">
+                          {paper.type.replace("-", " ")}
+                        </span>
+                      )}
+                    </div>
+                  </div>
+
+                  {/* Card Metadata Content */}
+                  <div className="flex flex-col flex-1 p-5 pt-4 gap-3">
+                    {/* Title */}
+                    <div className="text-[15px] font-bold text-white leading-snug group-hover:text-[#3bc9db] transition-colors line-clamp-2 font-sans">
+                      {stripHtml(paper.title)}
+                    </div>
+
+                    {/* Authors & Venue & Year */}
+                    <div className="flex flex-col gap-1.5">
+                      {paper.authors && paper.authors.length > 0 && (
+                        <div className="text-[12px] text-[#a0a0a0] font-sans line-clamp-1">
+                          {paper.authors.slice(0, 3).join(", ")}{paper.authors.length > 3 ? " et al." : ""}
+                        </div>
+                      )}
+                      <div className="flex items-center gap-2 text-[11px] text-[#808080] font-sans font-medium">
+                        {paper.journal && (
+                          <span className="truncate max-w-[180px]">{paper.journal}</span>
+                        )}
+                        {paper.journal && paper.publicationYear && <span>·</span>}
+                        {paper.publicationYear && (
+                          <span>{paper.publicationYear}</span>
+                        )}
+                      </div>
+                    </div>
+
+                    {/* Citation Count Badge */}
+                    <div className="flex items-center mt-0.5">
+                      <span className="inline-flex items-center text-[10px] font-bold bg-[#3bc9db]/10 text-[#3bc9db] border border-[#3bc9db]/20 px-2 py-1 rounded-md font-sans tracking-wide">
+                        {paper.citationCount.toLocaleString()} Citations
+                      </span>
+                    </div>
+
+                    {/* Abstract Preview */}
+                    {paper.abstract && (
+                      <div className="text-[12px] text-[#808080] leading-relaxed line-clamp-3 font-sans mt-1">
+                        {paper.abstract}
+                      </div>
+                    )}
+
+                    {/* Spacer to push tags to bottom */}
+                    <div className="flex-1" />
+
+                    {/* Research Tags */}
+                    {paper.topics && paper.topics.length > 0 && (
+                      <div className="flex gap-1.5 flex-wrap pt-4 border-t border-[#2b2d2d]/50">
+                        {paper.topics.slice(0, 2).map((t, i) => (
+                          <span key={i} className="text-[9px] text-[#a0a0a0] bg-[#1a1b1b] border border-[#2b2d2d] px-2 py-1 rounded-md font-sans uppercase tracking-widest hover:text-white transition-colors">
+                            {t.displayName}
+                          </span>
+                        ))}
+                      </div>
+                    )}
+                  </div>
+                </div>
+              ))}
+            </div>
+          )}
+        </div>
+      )}
+
+      {/* Detail Panel */}
+      {selectedPaper && (
+        <div className="fixed inset-0 z-50 flex justify-end" onClick={() => setSelectedPaper(null)}>
+          <div
+            className="relative h-full w-full max-w-[460px] bg-[#111213] border-l border-[#2b2d2d] shadow-2xl overflow-y-auto animate-in slide-in-from-right duration-300"
+            onClick={(e) => e.stopPropagation()}
+          >
+            {/* Panel image header */}
+            <div className="relative w-full h-[180px] overflow-hidden bg-[#1a1b1b]">
+              {getDomainImage(selectedPaper.domain, selectedPaper.field) ? (
+                <img
+                  src={getDomainImage(selectedPaper.domain, selectedPaper.field)!}
+                  alt={selectedPaper.domain || ""}
+                  className="w-full h-full object-cover opacity-40"
+                />
+              ) : (
+                <div className={`w-full h-full bg-gradient-to-br ${getGradientForPaper(selectedPaper.id)} opacity-40`} />
+              )}
+              <div className="absolute inset-0 bg-gradient-to-b from-transparent to-[#111213]" />
+              <button
+                onClick={() => setSelectedPaper(null)}
+                className="absolute top-4 right-4 w-7 h-7 flex items-center justify-center bg-[#111213]/80 border border-[#2b2d2d] rounded-md text-[#808080] hover:text-white transition-colors backdrop-blur-md"
+              >
+                <X size={14} />
+              </button>
+              <div className="absolute bottom-3 left-5 flex items-center gap-2">
+                {selectedPaper.isOpenAccess
+                  ? <span className="text-[9px] font-bold bg-emerald-500/20 text-emerald-400 border border-emerald-500/30 px-2 py-1 rounded-md tracking-wider backdrop-blur-md">OPEN ACCESS</span>
+                  : <span className="text-[9px] font-bold bg-black/40 text-[#808080] border border-white/10 px-2 py-1 rounded-md tracking-wider flex items-center gap-1 backdrop-blur-md"><Lock size={8} /> CLOSED</span>
+                }
+                {selectedPaper.type && (
+                  <span className="text-[9px] font-medium bg-black/40 text-[#a0a0a0] border border-white/10 px-2 py-1 rounded-md capitalize tracking-wider backdrop-blur-md">{selectedPaper.type.replace("-", " ")}</span>
+                )}
+              </div>
+            </div>
+
+            <div className="px-5 pb-8 flex flex-col gap-6 pt-2">
+              {/* Title */}
+              <h2 className="text-[16px] font-bold text-white leading-snug font-sans">
+                {stripHtml(selectedPaper.title)}
+              </h2>
+
+              {/* Authors */}
+              <div>
+                <div className="text-[9px] text-[#a0a0a0] uppercase tracking-widest font-semibold mb-2 font-sans">Authors</div>
+                <div className="flex flex-wrap gap-1.5">
+                  {selectedPaper.authors.map((a, i) => (
+                    <span key={i} className="text-[11px] text-[#a0a0a0] bg-[#1a1b1b] border border-[#2b2d2d] px-2.5 py-1.5 rounded-md font-sans">
+                      {a}
+                    </span>
+                  ))}
+                </div>
+              </div>
+
+              {/* Stats */}
+              <div className="grid grid-cols-3 gap-3">
+                {[
+                  { label: "Citations", value: selectedPaper.citationCount.toLocaleString() },
+                  { label: "References", value: selectedPaper.referencesCount?.toLocaleString() || "—" },
+                  { label: "Year", value: selectedPaper.publicationYear?.toString() || "—" },
+                ].map(stat => (
+                  <div key={stat.label} className="bg-[#1a1b1b] border border-[#2b2d2d] rounded-lg px-3 py-3">
+                    <div className="text-[15px] font-bold text-white font-sans">{stat.value}</div>
+                    <div className="text-[9px] text-[#a0a0a0] uppercase tracking-widest mt-0.5 font-sans">{stat.label}</div>
+                  </div>
+                ))}
+              </div>
+
+              {/* Metadata table */}
+              <div className="border border-[#2b2d2d] rounded-lg divide-y divide-[#2b2d2d] overflow-hidden bg-[#161818]">
+                {[
+                  { label: "Source", value: selectedPaper.journal },
+                  { label: "Language", value: selectedPaper.language?.toUpperCase() },
+                  { label: "Field", value: selectedPaper.field },
+                  { label: "Subfield", value: selectedPaper.subfield },
+                  { label: "Domain", value: selectedPaper.domain },
+                  { label: "DOI", value: selectedPaper.doi, link: selectedPaper.doi ? `https://doi.org/${selectedPaper.doi}` : undefined },
+                ].filter(r => r.value).map(row => (
+                  <div key={row.label} className="flex items-center justify-between px-3 py-2.5">
+                    <span className="text-[10px] text-[#a0a0a0] uppercase tracking-widest font-semibold font-sans">{row.label}</span>
+                    {row.link ? (
+                      <a href={row.link} target="_blank" rel="noopener noreferrer"
+                        className="text-[11px] text-[#3bc9db] hover:underline flex items-center gap-1 font-sans">
+                        <span className="truncate max-w-[200px]">{row.value}</span>
+                        <ExternalLink size={9} />
+                      </a>
+                    ) : (
+                      <span className="text-[11px] text-[#808080] font-sans truncate max-w-[220px]">{row.value}</span>
+                    )}
+                  </div>
+                ))}
+              </div>
+
+              {/* Topics */}
+              {selectedPaper.topics && selectedPaper.topics.length > 0 && (
+                <div>
+                  <div className="text-[9px] text-[#a0a0a0] uppercase tracking-widest font-semibold mb-2 font-sans">Topics</div>
+                  <div className="flex flex-wrap gap-1.5">
+                    {selectedPaper.topics.map((t, i) => (
+                      <span key={i} className="text-[10px] text-[#a0a0a0] bg-[#1a1b1b] border border-[#2b2d2d] px-2.5 py-1.5 rounded-md font-sans flex items-center gap-1.5">
+                        {t.displayName}
+                        <span className="text-[#3bc9db] font-bold">{Math.round(t.score * 100)}%</span>
+                      </span>
+                    ))}
+                  </div>
+                </div>
+              )}
+
+              {/* AI Summary */}
+              <div>
+                <div className="text-[9px] text-[#a0a0a0] uppercase tracking-widest font-semibold mb-2 font-sans flex items-center gap-2">
+                  Plain English Summary
+                  {isSummarizing && <Loader2 size={10} className="animate-spin text-[#3bc9db]" />}
+                </div>
+                {isSummarizing ? (
+                  <div className="space-y-2">
+                    {[...Array(3)].map((_, i) => (
+                      <div key={i} className={`h-2.5 bg-[#1e2020] rounded animate-pulse ${i === 1 ? "w-4/5" : i === 2 ? "w-3/5" : "w-full"}`} />
+                    ))}
+                  </div>
+                ) : summary ? (
+                  <p className="text-[12.5px] text-[#808080] leading-relaxed font-sans">{summary}</p>
+                ) : !selectedPaper.abstract ? (
+                  <p className="text-[11px] text-[#a0a0a0] font-sans">No abstract available.</p>
+                ) : null}
+              </div>
+
+              {/* Key Findings */}
+              {Array.isArray(keyFindings) && keyFindings.length > 0 && (
+                <div>
+                  <div className="text-[9px] text-[#a0a0a0] uppercase tracking-widest font-semibold mb-2 font-sans">Key Findings</div>
+                  <ul className="flex flex-col gap-2.5">
+                    {keyFindings.map((f, i) => (
+                      <li key={i} className="flex gap-2.5 text-[12.5px] text-[#808080] leading-relaxed font-sans">
+                        <span className="text-[#3bc9db] font-bold shrink-0">{i + 1}.</span>
+                        <span>{f}</span>
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+              )}
+
+              {/* Abstract */}
+              {selectedPaper.abstract && (
+                <div>
+                  <div className="text-[9px] text-[#a0a0a0] uppercase tracking-widest font-semibold mb-2 font-sans">Abstract</div>
+                  <p className="text-[11.5px] text-[#808080] leading-relaxed font-sans">{selectedPaper.abstract}</p>
+                </div>
+              )}
+
+              {/* Links */}
+              <div className="flex gap-2 pt-2">
+                {selectedPaper.doi && (
+                  <a href={`https://doi.org/${selectedPaper.doi}`} target="_blank" rel="noopener noreferrer"
+                    className="flex-1 flex items-center justify-center gap-1.5 py-2.5 rounded-lg bg-[#3bc9db]/10 border border-[#3bc9db]/20 text-[#3bc9db] text-[11px] font-bold hover:bg-[#3bc9db]/20 transition-colors font-sans uppercase tracking-wider">
+                    View Paper <ExternalLink size={11} />
+                  </a>
+                )}
+                {selectedPaper.pdfUrl && (
+                  <a href={selectedPaper.pdfUrl} target="_blank" rel="noopener noreferrer"
+                    className="flex-1 flex items-center justify-center gap-1.5 py-2.5 rounded-lg bg-[#1a1b1b] border border-[#2b2d2d] text-[#808080] text-[11px] font-bold hover:text-white hover:border-[#3b3d3d] transition-colors font-sans uppercase tracking-wider">
+                    Open PDF <ExternalLink size={11} />
+                  </a>
+                )}
+              </div>
+            </div>
+          </div>
         </div>
       )}
     </div>
