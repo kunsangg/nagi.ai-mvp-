@@ -6,7 +6,12 @@ export async function POST(req: Request) {
   if (!abstract) return NextResponse.json({ summary: '', keyFindings: [] });
 
   const apiKey = process.env.GROQ_API_KEY;
-  if (!apiKey) return NextResponse.json({ error: 'Missing GROQ_API_KEY' }, { status: 500 });
+  if (!apiKey) {
+    return NextResponse.json({ 
+      summary: "AI Summarization is currently disabled. Please add a GROQ_API_KEY to your environment variables to enable this feature.", 
+      keyFindings: ["Feature disabled (Missing API Key)"] 
+    });
+  }
 
   const response = await fetch('https://api.groq.com/openai/v1/chat/completions', {
     method: 'POST',

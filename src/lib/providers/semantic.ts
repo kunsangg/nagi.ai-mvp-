@@ -19,7 +19,7 @@ export async function searchPapers(query: string) {
   console.log('[Semantic Scholar API] API key exists:', !!apiKey);
 
   if (!apiKey) {
-    throw new SemanticAPIError('Missing SEMANTIC_SCHOLAR_API_KEY in environment variables.', 500);
+    console.warn('[Semantic Scholar API] Missing SEMANTIC_SCHOLAR_API_KEY. Using unauthenticated rate limits.');
   }
 
   const endpoint = 'https://api.semanticscholar.org/graph/v1/paper/search';
@@ -30,9 +30,10 @@ export async function searchPapers(query: string) {
   url.searchParams.set('fields', fields);
   url.searchParams.set('limit', '10');
 
-  const headers: Record<string, string> = {
-    'x-api-key': apiKey,
-  };
+  const headers: Record<string, string> = {};
+  if (apiKey) {
+    headers['x-api-key'] = apiKey;
+  }
 
   console.log(`[Semantic Scholar API] Request URL: ${url.toString()}`);
   console.log(`[Semantic Scholar API] Request headers:`, {
