@@ -40,6 +40,14 @@ Abstract: ${abstract}`,
   });
 
   const data = await response.json();
+  
+  if (!response.ok) {
+    return NextResponse.json({
+      summary: `Groq API Error: ${data.error?.message || response.statusText || 'Unknown error'}`,
+      keyFindings: ["Please check your API key or Groq usage limits."]
+    });
+  }
+
   const text = data.choices?.[0]?.message?.content || '{}';
 
   try {
