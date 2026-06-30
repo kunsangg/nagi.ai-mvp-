@@ -90,7 +90,7 @@ export default function HeroSearch() {
   const [isSuggestionsLoading, setIsSuggestionsLoading] = useState(false);
   const [hasSearched, setHasSearched] = useState(false);
   const [isAnimating, setIsAnimating] = useState(false);
-
+  const [displayCount, setDisplayCount] = useState(8);
   // Panel state removed
 
   // Filters
@@ -179,6 +179,7 @@ export default function HeroSearch() {
       const data = await res.json();
       if (!res.ok) return;
       setResults(data.papers || []);
+      setDisplayCount(8);
       setTotalResults(data.totalResults || 0);
     } catch (e) {
       console.error(e);
@@ -429,7 +430,7 @@ export default function HeroSearch() {
             /* Premium Paper Grid */
             /* Retro Card Grid */
             <div className="max-w-[1200px] mx-auto grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-              {results.map((paper, index) => (
+              {results.slice(0, displayCount).map((paper, index) => (
                 <div
                   key={paper.id}
                   onClick={() => handlePaperClick(paper)}
@@ -445,7 +446,7 @@ export default function HeroSearch() {
 
                   {/* Title */}
                   <div className="flex-1 w-full flex flex-col items-center justify-center">
-                    <h2 className="font-sans text-[20px] font-bold leading-snug text-white text-center tracking-tight line-clamp-6 group-hover:text-[#3bc9db] transition-colors">
+                    <h2 className="font-sans text-[22px] font-black leading-[1.1] uppercase text-white text-center tracking-wide line-clamp-6 group-hover:text-[#3bc9db] transition-colors">
                       {stripHtml(paper.title)}
                     </h2>
                   </div>
@@ -456,6 +457,23 @@ export default function HeroSearch() {
                   </div>
                 </div>
               ))}
+            </div>
+          )}
+
+          {/* Load More Section */}
+          {!isLoading && results.length > displayCount && (
+            <div className="max-w-[1200px] mx-auto mt-24 relative flex items-center justify-center">
+              <div className="absolute inset-0 flex items-center">
+                <div className="w-full border-t border-[#2b2d2d]" />
+              </div>
+              <div className="relative bg-perplex-bg px-6">
+                <button 
+                  onClick={() => setDisplayCount(prev => prev + 8)}
+                  className="text-[10px] font-bold text-[#a0a0a0] hover:text-white transition-colors tracking-[0.2em] uppercase"
+                >
+                  Load More
+                </button>
+              </div>
             </div>
           )}
         </div>
