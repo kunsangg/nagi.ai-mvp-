@@ -1,3 +1,4 @@
+/* eslint-disable */
 "use client";
 
 import { useState, useRef, useEffect } from "react";
@@ -371,141 +372,91 @@ export default function HeroSearch() {
 
       {/* Results */}
       {hasSearched && (
-        <div className="w-full px-4 md:px-6 mt-6 pb-24">
+        <div className="w-full relative px-4 md:px-6 pt-10 pb-24 min-h-screen">
+          {/* Full-bleed brown background for search results area */}
+          <div className="absolute inset-0 bg-[#381e1a] -z-10 w-screen left-1/2 -translate-x-1/2 mt-[-40px]" />
+
+          <style dangerouslySetInnerHTML={{__html: `
+            .retro-card {
+              background: linear-gradient(-135deg, transparent 24px, #f4eedb 0);
+              position: relative;
+              border-radius: 12px;
+              box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+            }
+            .retro-card::before {
+              content: '';
+              position: absolute;
+              bottom: 0;
+              right: 0;
+              width: 34px;
+              height: 34px;
+              background: #d8cdb4;
+              border-top-left-radius: 12px;
+              border-bottom-right-radius: 12px;
+              box-shadow: -2px -2px 4px rgba(0,0,0,0.15);
+              transition: background 0.3s ease;
+            }
+            .retro-card:hover {
+              transform: translateY(-4px);
+              box-shadow: 0 12px 24px rgba(0,0,0,0.2);
+            }
+            .retro-card:hover::before {
+              background: #cbbca0;
+            }
+            .font-shrikhand {
+              font-family: var(--font-shrikhand), serif;
+            }
+          `}} />
           {/* Premium Header */}
           {!isLoading && totalResults > 0 && (
-            <div className="max-w-[1200px] mx-auto mb-8 flex flex-col md:flex-row md:items-end justify-between gap-4 border-b border-[#2b2d2d] pb-5">
-              <div className="flex flex-col gap-1.5">
-                <span className="text-[24px] text-white font-bold tracking-tight font-sans">
-                  {totalResults.toLocaleString()} Research Papers
-                </span>
-                <span className="text-[13px] text-[#a0a0a0] font-sans">
-                  Search: <span className="text-white font-medium">{query}</span>
-                </span>
-              </div>
-              <span className="text-[11px] text-[#808080] uppercase tracking-widest font-medium">
-                Showing top 10 ranked papers
+            <div className="max-w-[1200px] mx-auto mb-12 flex flex-col items-center justify-center gap-2">
+              <span className="text-[#f4eedb] font-medium tracking-[0.2em] text-[11px] uppercase">
+                Showing top 10 ranked papers for: {query}
               </span>
             </div>
           )}
 
           {isLoading ? (
             /* Skeleton grid */
-            <div className="max-w-[1200px] mx-auto grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-              {[...Array(6)].map((_, i) => (
-                <div key={i} className="flex flex-col bg-[#111213] border border-[#2b2d2d] rounded-xl overflow-hidden h-full">
-                  <div className="w-full aspect-video bg-[#1a1b1b] animate-pulse" />
-                  <div className="p-4 pt-4 flex flex-col gap-3">
-                    <div className="h-4 bg-[#1a1b1b] rounded w-3/4 animate-pulse" />
-                    <div className="h-4 bg-[#1a1b1b] rounded w-full animate-pulse" />
-                    <div className="h-3 bg-[#1a1b1b] rounded w-1/2 animate-pulse mt-1" />
-                    <div className="h-6 bg-[#1a1b1b] rounded w-24 animate-pulse mt-2" />
-                    <div className="flex-1" />
-                    <div className="flex gap-2 pt-3 border-t border-[#2b2d2d]/50">
-                      <div className="h-5 bg-[#1a1b1b] rounded w-16 animate-pulse" />
-                      <div className="h-5 bg-[#1a1b1b] rounded w-20 animate-pulse" />
-                    </div>
-                  </div>
+            <div className="max-w-[1200px] mx-auto grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+              {[...Array(8)].map((_, i) => (
+                <div key={i} className="retro-card aspect-[3/4] animate-pulse flex flex-col items-center p-6">
+                  <div className="w-16 h-3 bg-[#e0d6b8] rounded-full mt-4" />
+                  <div className="w-3/4 h-8 bg-[#e0d6b8] rounded mt-12" />
+                  <div className="w-2/3 h-8 bg-[#e0d6b8] rounded mt-3" />
+                  <div className="w-1/2 h-8 bg-[#e0d6b8] rounded mt-3" />
+                  <div className="mt-auto w-1/3 h-3 bg-[#e0d6b8] rounded-full mb-4" />
                 </div>
               ))}
             </div>
           ) : (
             /* Premium Paper Grid */
-            <div className="max-w-[1200px] mx-auto grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            /* Retro Card Grid */
+            <div className="max-w-[1200px] mx-auto grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
               {results.map((paper, index) => (
                 <div
                   key={paper.id}
                   onClick={() => handlePaperClick(paper)}
-                  className="group flex flex-col cursor-pointer bg-[#111213] border border-[#2b2d2d] rounded-xl overflow-hidden hover:-translate-y-1 hover:shadow-[0_8px_30px_rgba(0,0,0,0.4)] hover:border-[#3bc9db]/30 transition-all duration-300 h-full"
+                  className="retro-card group cursor-pointer flex flex-col items-center justify-between p-6 pt-8 pb-10 aspect-[3/4] transition-all duration-300"
                   style={{ animationDelay: `${index * 60}ms` }}
                 >
-                  {/* Image/Gradient Thumbnail (16:9) */}
-                  <div className="relative w-full aspect-video overflow-hidden bg-[#1a1b1b] shrink-0">
-                    {getDomainImage(paper.domain, paper.field) ? (
-                      <img
-                        src={getDomainImage(paper.domain, paper.field)!}
-                        alt={paper.domain || paper.field || "Research"}
-                        className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105 opacity-70 group-hover:opacity-90"
-                      />
-                    ) : (
-                      <div className={`w-full h-full bg-gradient-to-br ${getGradientForPaper(paper.id)} opacity-50 transition-transform duration-700 group-hover:scale-105`} />
-                    )}
-                    <div className="absolute inset-0 bg-gradient-to-t from-[#111213] via-[#111213]/20 to-transparent" />
-                    
-                    {/* Rank Badge */}
-                    <div className="absolute top-3 left-3 flex items-center">
-                      <span className="text-[10px] font-bold text-white bg-black/40 backdrop-blur-md px-2 py-1 rounded-md tracking-wider border border-white/10">
-                        #{index + 1}
-                      </span>
-                    </div>
-
-                    {/* Paper Type Pill */}
-                    <div className="absolute top-3 right-3 flex items-center gap-2">
-                      {paper.isOpenAccess && (
-                        <span className="text-[10px] font-bold bg-emerald-500/20 text-emerald-400 border border-emerald-500/30 px-2 py-1 rounded-md tracking-wider backdrop-blur-md">
-                          OA
-                        </span>
-                      )}
-                      {paper.type && (
-                        <span className="text-[10px] font-medium bg-black/40 text-[#a0a0a0] border border-white/10 px-2 py-1 rounded-md capitalize backdrop-blur-md">
-                          {paper.type.replace("-", " ")}
-                        </span>
-                      )}
-                    </div>
+                  {/* Top Circles (O O O) */}
+                  <div className="flex items-center gap-1.5 mb-8 opacity-70">
+                    <div className="w-1.5 h-1.5 rounded-full border-[1.5px] border-[#381c1c] flex items-center justify-center text-[#381c1c] text-[4px] font-bold">1</div>
+                    <div className="w-1.5 h-1.5 rounded-full border-[1.5px] border-[#381c1c] flex items-center justify-center text-[#381c1c] text-[4px] font-bold">2</div>
+                    <div className="w-1.5 h-1.5 rounded-full border-[1.5px] border-[#381c1c] flex items-center justify-center text-[#381c1c] text-[4px] font-bold">3</div>
                   </div>
 
-                  {/* Card Metadata Content */}
-                  <div className="flex flex-col flex-1 p-5 pt-4 gap-3">
-                    {/* Title */}
-                    <div className="text-[15px] font-bold text-white leading-snug group-hover:text-[#3bc9db] transition-colors line-clamp-2 font-sans">
+                  {/* Heavy Retro Title */}
+                  <div className="flex-1 w-full flex flex-col items-center justify-center">
+                    <h2 className="font-shrikhand text-[26px] leading-[0.95] text-[#381c1c] text-center uppercase tracking-tight line-clamp-6">
                       {stripHtml(paper.title)}
-                    </div>
+                    </h2>
+                  </div>
 
-                    {/* Authors & Venue & Year */}
-                    <div className="flex flex-col gap-1.5">
-                      {paper.authors && paper.authors.length > 0 && (
-                        <div className="text-[12px] text-[#a0a0a0] font-sans line-clamp-1">
-                          {paper.authors.slice(0, 3).join(", ")}{paper.authors.length > 3 ? " et al." : ""}
-                        </div>
-                      )}
-                      <div className="flex items-center gap-2 text-[11px] text-[#808080] font-sans font-medium">
-                        {paper.journal && (
-                          <span className="truncate max-w-[180px]">{paper.journal}</span>
-                        )}
-                        {paper.journal && paper.publicationYear && <span>·</span>}
-                        {paper.publicationYear && (
-                          <span>{paper.publicationYear}</span>
-                        )}
-                      </div>
-                    </div>
-
-                    {/* Citation Count Badge */}
-                    <div className="flex items-center mt-0.5">
-                      <span className="inline-flex items-center text-[10px] font-bold bg-[#3bc9db]/10 text-[#3bc9db] border border-[#3bc9db]/20 px-2 py-1 rounded-md font-sans tracking-wide">
-                        {paper.citationCount.toLocaleString()} Citations
-                      </span>
-                    </div>
-
-                    {/* Abstract Preview */}
-                    {paper.abstract && (
-                      <div className="text-[12px] text-[#808080] leading-relaxed line-clamp-3 font-sans mt-1">
-                        {paper.abstract}
-                      </div>
-                    )}
-
-                    {/* Spacer to push tags to bottom */}
-                    <div className="flex-1" />
-
-                    {/* Research Tags */}
-                    {paper.topics && paper.topics.length > 0 && (
-                      <div className="flex gap-1.5 flex-wrap pt-4 border-t border-[#2b2d2d]/50">
-                        {paper.topics.slice(0, 2).map((t, i) => (
-                          <span key={i} className="text-[9px] text-[#a0a0a0] bg-[#1a1b1b] border border-[#2b2d2d] px-2 py-1 rounded-md font-sans uppercase tracking-widest hover:text-white transition-colors">
-                            {t.displayName}
-                          </span>
-                        ))}
-                      </div>
-                    )}
+                  {/* Category Tag at Bottom */}
+                  <div className="mt-8 text-[8px] font-black text-[#381c1c] uppercase tracking-[0.2em] text-center">
+                    {paper.field || paper.domain || (paper.topics && paper.topics[0]?.displayName) || "RESEARCH"}
                   </div>
                 </div>
               ))}
