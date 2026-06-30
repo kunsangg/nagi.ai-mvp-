@@ -373,15 +373,13 @@ export default function HeroSearch() {
       {/* Results */}
       {hasSearched && (
         <div className="w-full relative px-4 md:px-6 pt-10 pb-24 min-h-screen">
-          {/* Full-bleed brown background for search results area */}
-          <div className="absolute inset-0 bg-[#381e1a] -z-10 w-screen left-1/2 -translate-x-1/2 mt-[-40px]" />
-
           <style dangerouslySetInnerHTML={{__html: `
             .retro-card {
-              background: linear-gradient(-135deg, transparent 24px, #f4eedb 0);
+              background: linear-gradient(-135deg, transparent 24px, #161818 0);
               position: relative;
               border-radius: 12px;
-              box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+              box-shadow: 0 4px 6px rgba(0,0,0,0.2);
+              border: 1px solid #2b2d2d;
             }
             .retro-card::before {
               content: '';
@@ -390,27 +388,25 @@ export default function HeroSearch() {
               right: 0;
               width: 34px;
               height: 34px;
-              background: #d8cdb4;
+              background: #202222;
               border-top-left-radius: 12px;
               border-bottom-right-radius: 12px;
-              box-shadow: -2px -2px 4px rgba(0,0,0,0.15);
+              box-shadow: -2px -2px 4px rgba(0,0,0,0.3);
               transition: background 0.3s ease;
             }
             .retro-card:hover {
               transform: translateY(-4px);
-              box-shadow: 0 12px 24px rgba(0,0,0,0.2);
+              box-shadow: 0 12px 24px rgba(0,0,0,0.5);
+              border-color: rgba(59, 201, 219, 0.4);
             }
             .retro-card:hover::before {
-              background: #cbbca0;
-            }
-            .font-shrikhand {
-              font-family: var(--font-shrikhand), serif;
+              background: #2b2d2d;
             }
           `}} />
           {/* Premium Header */}
           {!isLoading && totalResults > 0 && (
             <div className="max-w-[1200px] mx-auto mb-12 flex flex-col items-center justify-center gap-2">
-              <span className="text-[#f4eedb] font-medium tracking-[0.2em] text-[11px] uppercase">
+              <span className="text-[#a0a0a0] font-medium tracking-[0.2em] text-[11px] uppercase">
                 Showing top 10 ranked papers for: {query}
               </span>
             </div>
@@ -421,11 +417,11 @@ export default function HeroSearch() {
             <div className="max-w-[1200px] mx-auto grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
               {[...Array(8)].map((_, i) => (
                 <div key={i} className="retro-card aspect-[3/4] animate-pulse flex flex-col items-center p-6">
-                  <div className="w-16 h-3 bg-[#e0d6b8] rounded-full mt-4" />
-                  <div className="w-3/4 h-8 bg-[#e0d6b8] rounded mt-12" />
-                  <div className="w-2/3 h-8 bg-[#e0d6b8] rounded mt-3" />
-                  <div className="w-1/2 h-8 bg-[#e0d6b8] rounded mt-3" />
-                  <div className="mt-auto w-1/3 h-3 bg-[#e0d6b8] rounded-full mb-4" />
+                  <div className="w-16 h-3 bg-[#2b2d2d] rounded-full mt-4" />
+                  <div className="w-3/4 h-8 bg-[#2b2d2d] rounded mt-12" />
+                  <div className="w-2/3 h-8 bg-[#2b2d2d] rounded mt-3" />
+                  <div className="w-1/2 h-8 bg-[#2b2d2d] rounded mt-3" />
+                  <div className="mt-auto w-1/3 h-3 bg-[#2b2d2d] rounded-full mb-4" />
                 </div>
               ))}
             </div>
@@ -442,20 +438,20 @@ export default function HeroSearch() {
                 >
                   {/* Top Circles (O O O) */}
                   <div className="flex items-center gap-1.5 mb-8 opacity-70">
-                    <div className="w-1.5 h-1.5 rounded-full border-[1.5px] border-[#381c1c] flex items-center justify-center text-[#381c1c] text-[4px] font-bold">1</div>
-                    <div className="w-1.5 h-1.5 rounded-full border-[1.5px] border-[#381c1c] flex items-center justify-center text-[#381c1c] text-[4px] font-bold">2</div>
-                    <div className="w-1.5 h-1.5 rounded-full border-[1.5px] border-[#381c1c] flex items-center justify-center text-[#381c1c] text-[4px] font-bold">3</div>
+                    <div className="w-1.5 h-1.5 rounded-full border-[1.5px] border-[#404040] flex items-center justify-center text-[#404040] text-[4px] font-bold">1</div>
+                    <div className="w-1.5 h-1.5 rounded-full border-[1.5px] border-[#404040] flex items-center justify-center text-[#404040] text-[4px] font-bold">2</div>
+                    <div className="w-1.5 h-1.5 rounded-full border-[1.5px] border-[#404040] flex items-center justify-center text-[#404040] text-[4px] font-bold">3</div>
                   </div>
 
-                  {/* Heavy Retro Title */}
+                  {/* Title */}
                   <div className="flex-1 w-full flex flex-col items-center justify-center">
-                    <h2 className="font-shrikhand text-[26px] leading-[0.95] text-[#381c1c] text-center uppercase tracking-tight line-clamp-6">
+                    <h2 className="font-sans text-[20px] font-bold leading-snug text-white text-center tracking-tight line-clamp-6 group-hover:text-[#3bc9db] transition-colors">
                       {stripHtml(paper.title)}
                     </h2>
                   </div>
 
                   {/* Category Tag at Bottom */}
-                  <div className="mt-8 text-[8px] font-black text-[#381c1c] uppercase tracking-[0.2em] text-center">
+                  <div className="mt-8 text-[9px] font-bold text-[#3bc9db] uppercase tracking-[0.2em] text-center">
                     {paper.field || paper.domain || (paper.topics && paper.topics[0]?.displayName) || "RESEARCH"}
                   </div>
                 </div>
