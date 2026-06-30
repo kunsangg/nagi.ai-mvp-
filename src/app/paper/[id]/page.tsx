@@ -239,7 +239,7 @@ export default function PaperPage() {
           </div>
           
           {/* Main Title */}
-          <h1 className="text-white text-[48px] md:text-[64px] lg:text-[76px] font-bold tracking-tight leading-[1.05] max-w-[1000px]" style={{ fontFamily: "'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif" }}>
+          <h1 className="text-white text-[48px] md:text-[60px] lg:text-[68px] font-bold tracking-tight leading-[1.1] max-w-[900px] text-balance" style={{ fontFamily: "'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif" }}>
             {stripHtml(paper.title)}
           </h1>
           
@@ -274,7 +274,41 @@ export default function PaperPage() {
       </section>
 
       {/* Content Sections */}
-      <div className="max-w-[860px] mx-auto px-6 py-24 flex flex-col gap-32 relative z-10">
+      <div className="max-w-[860px] mx-auto px-6 py-24 flex flex-col gap-24 relative z-10">
+
+        {/* Nagi Tools Section */}
+        <section>
+          <div className="mb-6 flex items-center gap-3">
+            <span className="text-[#3bc9db] text-xl">海</span>
+            <h2 className="text-[20px] text-white tracking-wider font-semibold">Nagi Tools</h2>
+          </div>
+          
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            {/* Generate Research Map */}
+            <button className="group flex items-center justify-center gap-3 py-4 px-6 rounded-full border border-[#0c8599]/40 bg-[#0b2b2f]/40 hover:bg-[#0b2b2f]/80 transition-all text-[#22b8cf] text-[13px] tracking-widest uppercase">
+              <Map size={16} className="opacity-80 group-hover:scale-110 transition-transform" />
+              Generate Research Map
+            </button>
+            
+            {/* Literature Review */}
+            <button className="group flex items-center justify-center gap-3 py-4 px-6 rounded-full border border-[#a61e4d]/40 bg-[#340c24]/40 hover:bg-[#340c24]/80 transition-all text-[#fcc2d7] text-[13px] tracking-widest uppercase">
+              <BookOpen size={16} className="opacity-80 group-hover:scale-110 transition-transform" />
+              Literature Review
+            </button>
+            
+            {/* Find Citations */}
+            <button className="group flex items-center justify-center gap-3 py-4 px-6 rounded-full border border-[#08a045]/40 bg-[#0a291a]/40 hover:bg-[#0a291a]/80 transition-all text-[#20c997] text-[13px] tracking-widest uppercase">
+              <Quote size={16} className="opacity-80 group-hover:scale-110 transition-transform" />
+              Find Citations
+            </button>
+            
+            {/* Compare Papers */}
+            <button className="group flex items-center justify-center gap-3 py-4 px-6 rounded-full border border-[#e8590c]/30 bg-[#2b1008]/40 hover:bg-[#2b1008]/80 transition-all text-[#ffd8a8] text-[13px] tracking-widest uppercase">
+              <Layers size={16} className="opacity-80 group-hover:scale-110 transition-transform" />
+              Compare Papers
+            </button>
+          </div>
+        </section>
 
         {/* Abstract Section */}
         {paper.abstract && (
