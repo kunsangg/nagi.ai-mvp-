@@ -188,6 +188,11 @@ export default function MapPage() {
     if (selectedNode?.id === nodeId) setSelectedNode(null);
   }, [selectedNode]);
 
+  const removeEdge = useCallback((edgeId: string) => {
+    setEdges(p => p.filter(e => e.id !== edgeId));
+    if (selectedEdge?.id === edgeId) setSelectedEdge(null);
+  }, [selectedEdge]);
+
   const addQuickNote = useCallback((sourceId: string) => {
     const source = nodes.find(n => n.id === sourceId);
     if (!source) return;
