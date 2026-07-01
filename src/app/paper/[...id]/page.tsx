@@ -286,7 +286,7 @@ export default function PaperPage() {
           
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             {/* Generate Research Map */}
-            <button className="group flex items-center justify-center gap-3 py-4 px-6 rounded-full border border-[#0c8599]/40 bg-[#0b2b2f]/40 hover:bg-[#0b2b2f]/80 transition-all text-[#22b8cf] text-[13px] tracking-widest uppercase">
+            <button onClick={() => { window.location.href = `/map/${paper.id}`; }} className="group flex items-center justify-center gap-3 py-4 px-6 rounded-full border border-[#0c8599]/40 bg-[#0b2b2f]/40 hover:bg-[#0b2b2f]/80 transition-all text-[#22b8cf] text-[13px] tracking-widest uppercase">
               <Map size={16} className="opacity-80 group-hover:scale-110 transition-transform" />
               Generate Research Map
             </button>
