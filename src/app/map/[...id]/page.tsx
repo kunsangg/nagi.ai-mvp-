@@ -667,6 +667,13 @@ export default function MapPage() {
     }
   }
 
+  function updateEdge(id: string, updates: Partial<MapEdge>) {
+    setEdges(p => p.map(e => e.id === id ? { ...e, ...updates } : e));
+    if (selectedEdge?.id === id) {
+      setSelectedEdge(p => p ? { ...p, ...updates } : null);
+    }
+  }
+
   function autoLayout() {
     const positioned = assignPositions(
       nodes.map(n => ({ ...n, type: n.type })),
