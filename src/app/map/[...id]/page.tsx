@@ -400,8 +400,11 @@ export default function MapPage() {
           .attr("font-family", FONT).attr("font-size", "10px").attr("fill", "#38bdf8").text(d.label);
         
         try {
-          const bbox = txt.node().getBBox();
-          lbl.select("rect").attr("x", bbox.x - 10).attr("y", bbox.y - 4).attr("width", bbox.width + 20).attr("height", bbox.height + 8);
+          const node = txt.node();
+          if (node) {
+            const bbox = node.getBBox();
+            lbl.select("rect").attr("x", bbox.x - 10).attr("y", bbox.y - 4).attr("width", bbox.width + 20).attr("height", bbox.height + 8);
+          }
         } catch(e) {}
       }
     });
