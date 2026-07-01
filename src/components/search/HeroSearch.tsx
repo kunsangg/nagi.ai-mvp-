@@ -91,6 +91,7 @@ export default function HeroSearch() {
   const [hasSearched, setHasSearched] = useState(false);
   const [isAnimating, setIsAnimating] = useState(false);
   const [displayCount, setDisplayCount] = useState(8);
+  const [error, setError] = useState<string | null>(null);
   // Panel state removed
 
   // Filters
@@ -159,6 +160,7 @@ export default function HeroSearch() {
     const q = overrideQuery || query;
     if (!q.trim() || isLoading) return;
     setSuggestions([]);
+    setError(null);
     setIsFocused(false);
     setIsLoading(true);
     setLoadingStep(0);
@@ -177,12 +179,18 @@ export default function HeroSearch() {
         body: JSON.stringify({ query: q.trim(), filters }),
       });
       const data = await res.json();
-      if (!res.ok) return;
+      if (!res.ok) {
+        setError(data.error || 'Failed to search');
+        setResults([]);
+        return;
+      }
       setResults(data.papers || []);
       setDisplayCount(8);
       setTotalResults(data.totalResults || 0);
-    } catch (e) {
+    } catch (e: any) {
       console.error(e);
+      setError(e.message || 'An unexpected error occurred');
+      setResults([]);
     } finally {
       setIsLoading(false);
     }
@@ -425,6 +433,25 @@ export default function HeroSearch() {
                   <div className="mt-auto w-1/3 h-3 bg-[#2b2d2d] rounded-full mb-4" />
                 </div>
               ))}
+            </div>
+          ) : error ? (
+            /* Error state */
+            <div className="max-w-[800px] mx-auto text-center mt-20">
+              <div className="inline-block border border-[#3bc9db]/30 bg-[#3bc9db]/10 rounded-2xl p-6 px-10">
+                <h3 className="text-[#3bc9db] font-bold text-[18px] mb-2">Search Unavailable</h3>
+                <p className="text-[#a0a0a0] text-[14px] leading-relaxed max-w-[500px]">{error}</p>
+                <button 
+                  onClick={() => handleSubmit(query)}
+                  className="mt-6 px-6 py-2 bg-[#3bc9db] text-[#161818] font-bold rounded-lg hover:bg-white transition-colors"
+                >
+                  Try Again
+                </button>
+              </div>
+            </div>
+          ) : results.length === 0 ? (
+            /* Empty state */
+            <div className="max-w-[800px] mx-auto text-center mt-20">
+              <p className="text-[#a0a0a0] text-[15px]">No research papers found for your query. Try different keywords.</p>
             </div>
           ) : (
             /* Premium Paper Grid */

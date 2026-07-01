@@ -77,6 +77,7 @@ export async function searchPapers(
   const fetchCount = 25;
 
   const url = new URL('https://api.openalex.org/works');
+  url.searchParams.set('mailto', 'kunsangdorjay6@gmail.com');
   url.searchParams.set('search', query);
   url.searchParams.set('per-page', String(fetchCount));
   url.searchParams.set('sort', 'relevance_score:desc');
