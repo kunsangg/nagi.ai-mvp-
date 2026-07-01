@@ -318,7 +318,7 @@ export default function MapPage() {
       nodeSel.attr("transform", (d: any) => `translate(${d.x ?? 0},${d.y ?? 0})`);
     });
 
-    return () => sim.stop();
+    return () => { sim.stop(); };
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [nodes, edges]);
 
