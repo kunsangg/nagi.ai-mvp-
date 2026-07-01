@@ -1,5 +1,5 @@
 import { NextResponse } from 'next/server';
-import { searchPapers, CrossrefAPIError } from '@/lib/providers/crossref';
+import { searchPapers, OpenAlexAPIError } from '@/lib/providers/openalex';
 import { SearchFilters } from '@/types/paper';
 
 export async function POST(req: Request) {
@@ -14,7 +14,7 @@ export async function POST(req: Request) {
     const { papers, totalResults } = await searchPapers(query.trim(), filters);
     return NextResponse.json({ papers, totalResults });
   } catch (error: any) {
-    if (error instanceof CrossrefAPIError) {
+    if (error instanceof OpenAlexAPIError) {
       return NextResponse.json(
         { error: error.message, details: error.details },
         { status: error.status }
