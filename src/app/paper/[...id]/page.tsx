@@ -86,7 +86,8 @@ export default function PaperPage() {
   const [isLoading, setIsLoading] = useState(true);
   const [isSummarizing, setIsSummarizing] = useState(false);
 
-  const id = params?.id as string;
+  const idParam = params?.id;
+  const id = Array.isArray(idParam) ? idParam.map(decodeURIComponent).join("/") : (idParam as string);
 
   useEffect(() => {
     if (!id) return;

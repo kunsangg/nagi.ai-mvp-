@@ -77,7 +77,6 @@ export async function searchPapers(
   const fetchCount = 25;
 
   const url = new URL('https://api.openalex.org/works');
-  url.searchParams.set('mailto', 'kunsangdorjay6@gmail.com');
   url.searchParams.set('search', query);
   url.searchParams.set('per-page', String(fetchCount));
   url.searchParams.set('sort', 'relevance_score:desc');
@@ -99,8 +98,13 @@ export async function searchPapers(
     url.searchParams.set('filter', filterParts.join(','));
   }
 
-  // Add polite pool email if available
-  url.searchParams.set('mailto', 'nagi@research.ai');
+  const apiKey = process.env.OPENALEX_API_KEY;
+  if (apiKey) {
+    url.searchParams.set('api_key', apiKey);
+  } else {
+    // Add polite pool email if available and no API key is used
+    url.searchParams.set('mailto', 'nagi@research.ai');
+  }
 
   const response = await fetch(url.toString(), {
     headers: { 'User-Agent': 'Nagi/1.0 (https://nagi.ai; mailto:nagi@research.ai)' },
