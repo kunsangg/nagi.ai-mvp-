@@ -11,7 +11,8 @@ import {
   Circle, Square, Minus, ExternalLink, AlignLeft,
   Hand, Sparkles, Play, CheckCircle2, Upload, BoxSelect,
   Database, Phone, Megaphone, Users, LineChart, Webhook, Link, Code,
-  MessageSquare, FileText, Terminal, Settings2, Download, MessageCircle, ArrowUpRight
+  MessageSquare, FileText, Terminal, Settings2, Download, MessageCircle, ArrowUpRight,
+  History, MoreHorizontal, Paperclip, Mic, ChevronDown, User, Send
 } from "lucide-react";
 
 const SF   = "-apple-system, BlinkMacSystemFont, 'SF Pro Text', 'Helvetica Neue', sans-serif";
@@ -1221,64 +1222,113 @@ export default function MapPage() {
 
 
 
-      {/* ── AI Chat Bot Panel (Right Side) ── */}
-      {activeTool === "ai" && (
-        <aside className="absolute right-4 top-24 bottom-24 w-[340px] flex flex-col overflow-hidden nagi-glass-panel z-50 pointer-events-auto transition-transform">
-          {/* Header */}
-          <div className="flex items-center justify-between px-5 py-4 nagi-glass-header">
-            <div className="flex items-center gap-2">
-              <Sparkles size={14} color="#3bc9db" className={isProcessingAI ? "animate-pulse" : ""} />
-              <span className="text-[12px] font-bold tracking-widest uppercase" style={{ color: "#3bc9db", fontFamily: MONO }}>
-                AI Assistant
-              </span>
-            </div>
-            <button onClick={() => setActiveTool("select")} style={{ color: "#3bc9db" }} className="hover:text-white hover:scale-110 active:scale-95 transition-all">
-              <X size={14} />
+      {/* ── Fixed AI Copilot Panel (Right Side) ── */}
+      <aside className="w-[360px] flex-shrink-0 h-full flex flex-col z-40" style={{ background: "#11131A", borderLeft: "1px solid rgba(255,255,255,0.05)" }}>
+        {/* Header */}
+        <div className="flex items-center justify-between px-4 py-3" style={{ borderBottom: "1px solid rgba(255,255,255,0.05)" }}>
+          <span className="text-[10px] font-semibold tracking-widest text-gray-400" style={{ fontFamily: SF }}>CHAT</span>
+          <div className="flex items-center gap-1">
+            <button className="p-1.5 hover:bg-[rgba(255,255,255,0.1)] rounded text-gray-400 hover:text-white transition-colors">
+              <Plus size={14} />
+            </button>
+            <button className="p-1.5 hover:bg-[rgba(255,255,255,0.1)] rounded text-gray-400 hover:text-white transition-colors">
+              <History size={14} />
+            </button>
+            <button className="p-1.5 hover:bg-[rgba(255,255,255,0.1)] rounded text-gray-400 hover:text-white transition-colors">
+              <MoreHorizontal size={14} />
             </button>
           </div>
+        </div>
 
-          {/* Chat History */}
-          <div className="flex-1 overflow-y-auto px-5 py-5 flex flex-col gap-4" style={{ WebkitOverflowScrolling: "touch" }}>
-            {chatMessages.map((msg, i) => (
-              <div key={i} className={`flex flex-col ${msg.role === "user" ? "items-end" : "items-start"}`}>
-                <div className={`px-4 py-2.5 rounded-2xl max-w-[85%] text-[13px] leading-relaxed ${
-                  msg.role === "user" 
-                    ? "bg-[#3bc9db] text-black rounded-tr-sm" 
-                    : "bg-[rgba(255,255,255,0.05)] text-[#e2e8f0] rounded-tl-sm border border-[rgba(255,255,255,0.05)]"
-                }`}>
-                  {msg.text}
+        {/* Chat History */}
+        <div className="flex-1 overflow-y-auto px-4 py-4 flex flex-col gap-6" style={{ WebkitOverflowScrolling: "touch" }}>
+          {chatMessages.length === 0 && !isProcessingAI && (
+            <div className="text-gray-500 text-[13px] px-2" style={{ fontFamily: SF }}>
+              I'll help you create or modify the canvas. Let me know what you need.
+            </div>
+          )}
+          
+          {chatMessages.map((msg, i) => (
+            <div key={i} className="flex gap-3">
+              <div className="shrink-0 mt-0.5">
+                {msg.role === "user" ? (
+                  <div className="w-6 h-6 rounded-full bg-[#1e293b] flex items-center justify-center">
+                    <User size={12} className="text-gray-300" />
+                  </div>
+                ) : (
+                  <div className="w-6 h-6 rounded flex items-center justify-center bg-[#2563eb]">
+                    <Sparkles size={12} className="text-white" />
+                  </div>
+                )}
+              </div>
+              <div className="flex-1 text-[13px] leading-relaxed text-gray-300 whitespace-pre-wrap" style={{ fontFamily: SF }}>
+                {msg.text}
+              </div>
+            </div>
+          ))}
+          {isProcessingAI && (
+            <div className="flex gap-3">
+              <div className="shrink-0 mt-0.5">
+                <div className="w-6 h-6 rounded flex items-center justify-center bg-[#2563eb]">
+                  <Sparkles size={12} className="text-white" />
                 </div>
               </div>
-            ))}
-            {isProcessingAI && (
-              <div className="flex items-start">
-                <div className="px-4 py-3 rounded-2xl rounded-tl-sm bg-[rgba(255,255,255,0.05)] border border-[rgba(255,255,255,0.05)]">
-                  <Loader2 size={14} className="animate-spin text-[#3bc9db]" />
-                </div>
+              <div className="flex-1 flex items-center h-6">
+                <Loader2 size={14} className="animate-spin text-gray-400" />
               </div>
-            )}
-          </div>
+            </div>
+          )}
+        </div>
 
-          {/* Input Area */}
-          <form onSubmit={handleAIChatSubmit} className="p-4" style={{ borderTop: "1px solid rgba(255,255,255,0.05)", background: "rgba(0,0,0,0.2)" }}>
-            <div className="relative flex items-center">
-              <input
-                autoFocus
-                type="text"
-                value={aiCommand}
-                onChange={(e) => setAiCommand(e.target.value)}
-                disabled={isProcessingAI}
-                placeholder="Ask me to build or modify..."
-                className="w-full bg-[rgba(0,0,0,0.5)] border border-[rgba(255,255,255,0.1)] rounded-xl pl-4 pr-10 py-3 text-[13px] outline-none placeholder-gray-500 focus:border-[#3bc9db] transition-colors"
-                style={{ color: "#fff", fontFamily: SF }}
-              />
-              <button type="submit" disabled={isProcessingAI || !aiCommand.trim()} className="absolute right-2 p-1.5 rounded-lg text-[#3bc9db] hover:bg-[rgba(59,201,219,0.1)] transition-colors disabled:opacity-50 disabled:hover:bg-transparent">
-                <ArrowUpRight size={16} />
+        {/* Input Area */}
+        <div className="p-4 pt-2">
+          <div className="bg-[#1e1e1e] border border-[rgba(255,255,255,0.1)] rounded-lg overflow-hidden flex flex-col transition-colors focus-within:border-gray-500">
+            
+            {/* Context Pill */}
+            <div className="px-3 py-2 flex items-center" style={{ borderBottom: "1px solid rgba(255,255,255,0.05)" }}>
+              <button className="flex items-center gap-1.5 px-2 py-1 rounded bg-[rgba(255,255,255,0.05)] hover:bg-[rgba(255,255,255,0.1)] text-gray-400 hover:text-gray-200 transition-colors text-[11px]" style={{ fontFamily: SF }}>
+                <Paperclip size={12} /> Add Context...
               </button>
             </div>
-          </form>
-        </aside>
-      )}
+
+            {/* Textarea */}
+            <form onSubmit={handleAIChatSubmit} className="flex flex-col">
+              <textarea
+                value={aiCommand}
+                onChange={(e) => setAiCommand(e.target.value)}
+                onKeyDown={(e) => {
+                  if (e.key === 'Enter' && !e.shiftKey) {
+                    e.preventDefault();
+                    handleAIChatSubmit(e as any);
+                  }
+                }}
+                disabled={isProcessingAI}
+                placeholder="Ask Copilot or type / for commands"
+                className="w-full bg-transparent resize-none outline-none px-3 py-2 text-[13px] text-gray-300 placeholder-gray-500 min-h-[60px]"
+                style={{ fontFamily: SF }}
+              />
+              
+              {/* Bottom Row Controls */}
+              <div className="flex items-center justify-between px-2 py-2 border-t border-[rgba(255,255,255,0.05)]">
+                <div className="flex items-center gap-1">
+                  <button type="button" className="p-1.5 rounded hover:bg-[rgba(255,255,255,0.1)] text-gray-400 transition-colors">
+                    <Mic size={14} />
+                  </button>
+                  <button type="button" className="flex items-center gap-1 px-2 py-1 rounded hover:bg-[rgba(255,255,255,0.1)] text-gray-400 transition-colors text-[11px]" style={{ fontFamily: SF }}>
+                    Agent <ChevronDown size={12} />
+                  </button>
+                  <button type="button" className="flex items-center gap-1 px-2 py-1 rounded hover:bg-[rgba(255,255,255,0.1)] text-gray-400 transition-colors text-[11px]" style={{ fontFamily: SF }}>
+                    Claude 3.7 Sonnet <ChevronDown size={12} />
+                  </button>
+                </div>
+                <button type="submit" disabled={isProcessingAI || !aiCommand.trim()} className="p-1.5 rounded hover:bg-[rgba(255,255,255,0.1)] text-gray-400 hover:text-white transition-colors disabled:opacity-50 disabled:hover:bg-transparent disabled:hover:text-gray-400">
+                  <Send size={14} />
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      </aside>
 
       {/* ── Floating Bottom Center Toolbar (Glassmorphism Dock) ── */}
       <div className="absolute bottom-6 left-1/2 -translate-x-1/2 z-30 flex flex-col items-center gap-4 pointer-events-none">
@@ -1295,8 +1345,6 @@ export default function MapPage() {
             { t: "connect", icon: <ArrowUpRight size={15} />, tip: "Connection" },
             { t: "comment", icon: <MessageCircle size={15} />, tip: "Comment" },
             { t: "frame",   icon: <Square       size={15} />, tip: "Frame" },
-            { divider: true },
-            { t: "ai",      icon: <Sparkles     size={15} />, tip: "AI Assistant" },
             { divider: true },
             { t: "export",  icon: <Download     size={15} />, tip: "Export" },
           ] as any[]).map((item, i) => (
