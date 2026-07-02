@@ -1220,15 +1220,6 @@ export default function MapPage() {
       </div>
 
 
-      <div className="absolute top-6 right-6 z-30 flex items-center gap-3 pointer-events-none">
-        <div className="flex items-center gap-1.5 pointer-events-auto" style={{ color: "#10b981", marginRight: "8px" }}>
-          <CheckCircle2 size={13} />
-          <span className="text-[11px] font-medium">Auto Saved</span>
-        </div>
-        <button className="px-4 py-1.5 rounded-lg text-[12px] font-semibold bg-[#2563EB] text-white hover:bg-[#1D4ED8] transition-colors pointer-events-auto flex items-center gap-2 shadow-[0_0_15px_rgba(37,99,235,0.3)]">
-          <Sparkles size={13} /> Run AI
-        </button>
-      </div>
 
       {/* ── AI Chat Bot Panel (Right Side) ── */}
       {activeTool === "ai" && (
