@@ -49,24 +49,24 @@ const NODE_W = 220;
 const NODE_H = 88;
 
 const PRIORITY_COLOR: Record<Priority, string> = {
-  normal:   "#3bc9db",
+  normal:   "#555555",
   high:     "#f59e0b",
   critical: "#ef4444",
 };
 
 const TYPE_COLOR: Record<NodeType, string> = {
-  center:    "#3bc9db",
-  reference: "#8b5cf6",
-  citing:    "#f59e0b",
-  related:   "#475569",
-  custom:    "#10b981",
+  center:    "#e8e8e6",
+  reference: "#808080",
+  citing:    "#808080",
+  related:   "#808080",
+  custom:    "#808080",
 };
 
 const EDGE_COLOR: Record<EdgeType, string> = {
-  reference: "#8b5cf6",
-  citing:    "#f59e0b",
-  related:   "#243044",
-  custom:    "#10b981",
+  reference: "#444444",
+  citing:    "#444444",
+  related:   "#444444",
+  custom:    "#444444",
 };
 
 const TYPE_LABEL: Record<NodeType, string> = {
@@ -284,7 +284,7 @@ export default function MapPage() {
       d3.select(this).append("rect")
         .attr("x", mx - 40).attr("y", my - 11)
         .attr("width", 80).attr("height", 20).attr("rx", 4)
-        .attr("fill", "#0d1520").attr("stroke", "#1a2535");
+        .attr("fill", "#121212").attr("stroke", "#2b2d2d");
       d3.select(this).append("text")
         .text(d.label)
         .attr("x", mx).attr("y", my + 4)
@@ -324,38 +324,35 @@ export default function MapPage() {
       .attr("class", "card-body")
       .attr("x", -NODE_W / 2).attr("y", -NODE_H / 2)
       .attr("width", NODE_W).attr("height", NODE_H).attr("rx", 8)
-      .attr("fill", (d: MapNode) => d.type === "center" ? "#0f1e30" : "#0d1520")
-      .attr("stroke", (d: MapNode) => {
-        if (d.id === stateRef.current.selectedNode?.id) return "#fff";
-        return PRIORITY_COLOR[d.priority] ?? TYPE_COLOR[d.type];
-      })
+      .attr("fill", "#121212")
+      .attr("stroke", (d: MapNode) => d.id === stateRef.current.selectedNode?.id ? "#e8e8e6" : "#2b2d2d")
       .attr("stroke-width", (d: MapNode) => d.id === stateRef.current.selectedNode?.id ? 2 : 1)
       .on("mouseover", function(_ev, d) {
         if (d.id !== stateRef.current.selectedNode?.id)
-          d3.select(this).attr("fill", "#111f30");
+          d3.select(this).attr("fill", "#1a1a1a");
       })
       .on("mouseout", function(_ev, d) {
-        d3.select(this).attr("fill", d.type === "center" ? "#0f1e30" : "#0d1520");
+        d3.select(this).attr("fill", "#121212");
       });
 
-    // Left accent
+    // Left accent (subtle now)
     nodeSel.append("rect")
       .attr("x", -NODE_W / 2).attr("y", -NODE_H / 2)
       .attr("width", 3).attr("height", NODE_H).attr("rx", 2)
-      .attr("fill", (d: MapNode) => PRIORITY_COLOR[d.priority] ?? TYPE_COLOR[d.type]);
+      .attr("fill", (d: MapNode) => d.type === "center" ? "#e8e8e6" : "#2b2d2d");
 
     // Type badge
     nodeSel.append("rect")
       .attr("x", -NODE_W / 2 + 14).attr("y", -NODE_H / 2 + 10)
       .attr("width", 76).attr("height", 15).attr("rx", 3)
-      .attr("fill", (d: MapNode) => TYPE_COLOR[d.type] + "18");
+      .attr("fill", "#1a1c1d");
     nodeSel.append("text")
       .text((d: MapNode) => TYPE_LABEL[d.type])
       .attr("x", -NODE_W / 2 + 52).attr("y", -NODE_H / 2 + 21)
       .attr("text-anchor", "middle")
       .attr("font-size", "7px").attr("font-weight", "700")
       .attr("letter-spacing", "0.1em").attr("font-family", MONO)
-      .attr("fill", (d: MapNode) => TYPE_COLOR[d.type])
+      .attr("fill", (d: MapNode) => d.type === "center" ? "#e8e8e6" : "#808080")
       .attr("pointer-events", "none");
 
     // Priority badge (if not normal)
@@ -405,7 +402,7 @@ export default function MapPage() {
       .attr("x", 10).attr("y", NODE_H / 2 - 11)
       .attr("text-anchor", "middle")
       .attr("font-size", "9px").attr("font-family", MONO)
-      .attr("fill", "#2d3f55").attr("pointer-events", "none")
+      .attr("fill", "#808080").attr("pointer-events", "none")
       .text((d: MapNode) =>
         [d.year, d.citations ? `${d.citations.toLocaleString()} cit.` : ""].filter(Boolean).join("  ·  ")
       );
@@ -413,15 +410,15 @@ export default function MapPage() {
     // Port dots
     [-NODE_W / 2, NODE_W / 2].forEach(px => {
       nodeSel.append("circle")
-        .attr("cx", px).attr("cy", 0).attr("r", 4)
-        .attr("fill", "#0d1520").attr("stroke", "#243044").attr("stroke-width", 1.5);
+        .attr("cx", px).attr("cy", 0).attr("r", 3.5)
+        .attr("fill", "#fff").attr("stroke", "none");
     });
 
     // Plus button (add child node)
     nodeSel.append("circle")
       .attr("cx", 0).attr("cy", NODE_H / 2 + 16)
-      .attr("r", 10).attr("fill", "#0d1520")
-      .attr("stroke", "#243044").attr("stroke-width", 1.5)
+      .attr("r", 10).attr("fill", "#1a1a1a")
+      .attr("stroke", "#2b2d2d").attr("stroke-width", 1)
       .attr("cursor", "pointer")
       .on("click", (ev, d) => {
         ev.stopPropagation();
@@ -688,9 +685,9 @@ export default function MapPage() {
       {/* ── Floating Right Panel ── */}
       {selectedNode && activeTool === "select" && (
         <aside className="absolute top-24 right-6 w-72 max-h-[70vh] flex flex-col overflow-hidden rounded-2xl shadow-2xl z-40 pointer-events-auto"
-          style={{ background: "#0a0a0a", border: "1px solid #1a2535" }}>
+          style={{ background: "#0a0a0a", border: "1px solid #2b2d2d" }}>
           <div className="flex items-center justify-between px-4 py-3 shrink-0"
-            style={{ borderBottom: "1px solid #1a2535" }}>
+            style={{ borderBottom: "1px solid #2b2d2d" }}>
             <div className="flex items-center gap-2">
               <div className="w-2 h-2 rounded-sm" style={{ background: TYPE_COLOR[selectedNode.type] }} />
               <span className="text-[9px] font-bold tracking-widest uppercase"
@@ -709,7 +706,7 @@ export default function MapPage() {
             </p>
 
             {/* Meta */}
-            <div className="flex flex-col gap-2.5 pt-3" style={{ borderTop: "1px solid #1a2535" }}>
+            <div className="flex flex-col gap-2.5 pt-3" style={{ borderTop: "1px solid #2b2d2d" }}>
               {[
                 { label: "Author",    value: selectedNode.author },
                 { label: "Year",      value: selectedNode.year?.toString() },
@@ -718,34 +715,34 @@ export default function MapPage() {
               ].filter(r => r.value).map(row => (
                 <div key={row.label} className="flex items-start justify-between gap-2">
                   <span className="text-[9px] font-bold uppercase tracking-widest shrink-0"
-                    style={{ color: "#334155", fontFamily: MONO }}>{row.label}</span>
+                    style={{ color: "#808080", fontFamily: MONO }}>{row.label}</span>
                   <span className="text-[11px] font-medium text-right leading-snug"
-                    style={{ color: row.accent ? "#3bc9db" : "#64748b" }}>{row.value}</span>
+                    style={{ color: row.accent ? "#e8e8e6" : "#a0a0a0" }}>{row.value}</span>
                 </div>
               ))}
             </div>
 
             {/* Note */}
             {selectedNode.note && (
-              <div className="rounded-lg px-3 py-2.5" style={{ background: "#111", border: "1px solid #1a2535" }}>
+              <div className="rounded-lg px-3 py-2.5" style={{ background: "#111", border: "1px solid #2b2d2d" }}>
                 <div className="text-[9px] font-bold uppercase tracking-widest mb-1.5"
-                  style={{ color: "#334155", fontFamily: MONO }}>Note</div>
-                <p className="text-[12px] leading-relaxed" style={{ color: "#64748b" }}>{selectedNode.note}</p>
+                  style={{ color: "#808080", fontFamily: MONO }}>Note</div>
+                <p className="text-[12px] leading-relaxed" style={{ color: "#a0a0a0" }}>{selectedNode.note}</p>
               </div>
             )}
 
             {/* Priority */}
-            <div style={{ borderTop: "1px solid #1a2535", paddingTop: 12 }}>
+            <div style={{ borderTop: "1px solid #2b2d2d", paddingTop: 12 }}>
               <div className="text-[9px] font-bold uppercase tracking-widest mb-2"
-                style={{ color: "#334155", fontFamily: MONO }}>Priority</div>
+                style={{ color: "#808080", fontFamily: MONO }}>Priority</div>
               <div className="flex gap-1.5">
                 {(["normal", "high", "critical"] as Priority[]).map(p => (
                   <button key={p} onClick={() => updateNodePriority(p)}
                     className="flex-1 py-1.5 rounded-lg text-[10px] font-semibold capitalize transition-all hover:opacity-80"
                     style={{
                       background: selectedNode.priority === p ? PRIORITY_COLOR[p] + "18" : "#111",
-                      border: `1px solid ${selectedNode.priority === p ? PRIORITY_COLOR[p] + "40" : "#1a2535"}`,
-                      color: selectedNode.priority === p ? PRIORITY_COLOR[p] : "#334155",
+                      border: `1px solid ${selectedNode.priority === p ? PRIORITY_COLOR[p] + "40" : "#2b2d2d"}`,
+                      color: selectedNode.priority === p ? PRIORITY_COLOR[p] : "#808080",
                     }}>
                     {p}
                   </button>
@@ -757,32 +754,32 @@ export default function MapPage() {
             <div className="flex gap-2">
               <button onClick={() => { setNoteInput(selectedNode.note || ""); setShowNoteModal(true); }}
                 className="flex-1 flex items-center justify-center gap-1.5 py-2 rounded-lg text-[11px] font-medium transition-all hover:opacity-80"
-                style={{ background: "#111", border: "1px solid #1a2535", color: "#64748b" }}>
+                style={{ background: "#111", border: "1px solid #2b2d2d", color: "#a0a0a0" }}>
                 <AlignLeft size={12} /> Note
               </button>
               <button onClick={() => { setUrlInput(selectedNode.url || ""); setShowUrlModal(true); }}
                 className="flex-1 flex items-center justify-center gap-1.5 py-2 rounded-lg text-[11px] font-medium transition-all hover:opacity-80"
-                style={{ background: "#111", border: "1px solid #1a2535", color: "#64748b" }}>
+                style={{ background: "#111", border: "1px solid #2b2d2d", color: "#a0a0a0" }}>
                 <ExternalLink size={12} /> Link
               </button>
             </div>
 
             {/* Actions */}
-            <div className="flex flex-col gap-2 pt-3" style={{ borderTop: "1px solid #1a2535" }}>
+            <div className="flex flex-col gap-2 pt-3" style={{ borderTop: "1px solid #2b2d2d" }}>
               <button onClick={() => { window.location.href = `/paper/${selectedNode.id}`; }}
                 className="w-full flex items-center justify-center gap-2 py-2.5 rounded-xl text-[11px] font-semibold transition-all hover:opacity-80"
-                style={{ background: "rgba(16,185,129,0.07)", border: "1px solid rgba(16,185,129,0.18)", color: "#10b981" }}>
+                style={{ background: "#111", border: "1px solid #2b2d2d", color: "#e8e8e6" }}>
                 <BookOpen size={12} /> View Full Paper
               </button>
               <button onClick={() => { window.location.href = `/map/${selectedNode.id}`; }}
                 className="w-full flex items-center justify-center gap-2 py-2.5 rounded-xl text-[11px] font-semibold transition-all hover:opacity-80"
-                style={{ background: "rgba(59,201,219,0.05)", border: "1px solid rgba(59,201,219,0.15)", color: "#3bc9db" }}>
+                style={{ background: "#1a1a1a", border: "1px solid #333", color: "#e8e8e6" }}>
                 <Map size={12} /> Map This Paper
               </button>
               {selectedNode.url && (
                 <a href={selectedNode.url} target="_blank" rel="noopener noreferrer"
                   className="w-full flex items-center justify-center gap-2 py-2.5 rounded-xl text-[11px] font-semibold transition-all hover:opacity-80"
-                  style={{ background: "#111", border: "1px solid #1a2535", color: "#64748b" }}>
+                  style={{ background: "#111", border: "1px solid #2b2d2d", color: "#a0a0a0" }}>
                   <ExternalLink size={12} /> Open Source Link
                 </a>
               )}
