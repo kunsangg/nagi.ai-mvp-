@@ -622,13 +622,13 @@ export default function MapPage() {
       <div className="absolute bottom-6 left-1/2 -translate-x-1/2 z-30 flex flex-col items-center gap-3 pointer-events-none">
         {/* AI Pill */}
         <button className="flex items-center gap-1.5 px-3 py-1.5 rounded-full text-[11px] font-medium pointer-events-auto transition-opacity hover:opacity-80"
-          style={{ background: "#11151c", border: "1px solid #1e2430", color: "#8b9db1" }}>
+          style={{ background: "#131620", border: "1px solid #1f2432", color: "#8290ac" }}>
           Build with AI <Sparkles size={11} />
         </button>
 
         {/* Main Toolbar */}
         <div className="flex items-center gap-1.5 px-2 py-1.5 rounded-2xl pointer-events-auto shadow-2xl"
-          style={{ background: "#0a0d14", border: "1px solid #161a23" }}>
+          style={{ background: "#0c0e14", border: "1px solid #171a24" }}>
           {([
             { t: "select"  as Tool, icon: <MousePointer size={15} />, tip: "Select"  },
             { t: "pan"     as Tool, icon: <Hand         size={15} />, tip: "Pan"     },
@@ -648,19 +648,19 @@ export default function MapPage() {
                   setConnectSource(null);
                 }
               }}
-              className="w-10 h-10 rounded-[14px] flex items-center justify-center transition-all"
+              className="w-10 h-10 rounded-[12px] flex items-center justify-center transition-all"
               style={{
-                background: activeTool === t && t !== "upload" ? "#1e2532" : "transparent",
-                color:      activeTool === t && t !== "upload" ? "#e2e8f0" : "#6b7c93",
+                background: activeTool === t && t !== "upload" ? "#222733" : "transparent",
+                color:      activeTool === t && t !== "upload" ? "#ffffff" : "#656d84",
               }}>
               {icon}
             </button>
           ))}
           
-          <div className="w-[1px] h-6 mx-1.5" style={{ background: "#1e2532" }} />
+          <div className="w-[1px] h-6 mx-1.5" style={{ background: "#181b26" }} />
           
           <button title="Test / Run"
-            className="w-11 h-11 rounded-[14px] flex items-center justify-center bg-white text-black hover:bg-gray-100 transition-colors shadow-lg">
+            className="w-11 h-11 rounded-[12px] flex items-center justify-center bg-white text-black hover:bg-gray-100 transition-colors shadow-lg">
             <Play size={16} className="fill-black" />
           </button>
         </div>
@@ -675,7 +675,7 @@ export default function MapPage() {
         ]).map((z, i) => (
           <button key={i} title={z.tip} onClick={z.fn}
             className="w-10 h-10 flex items-center justify-center rounded-[12px] transition-opacity hover:opacity-80 pointer-events-auto shadow-lg"
-            style={{ background: "#0a0d14", border: "1px solid #161a23", color: "#6b7c93" }}>
+            style={{ background: "#0c0e14", border: "1px solid #171a24", color: "#656d84" }}>
             {z.icon}
           </button>
         ))}
