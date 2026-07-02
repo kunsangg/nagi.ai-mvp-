@@ -112,7 +112,7 @@ export default function PaperPage() {
   };
 
   if (isLoading) return (
-    <div className="min-h-screen flex items-center justify-center"
+    <div className="flex-1 w-full h-full flex items-center justify-center"
       style={{ background: "#050810", fontFamily: SF }}>
       <div style={{ color: "#3bc9db" }} className="text-[14px] animate-pulse">
         Loading paper…
@@ -121,14 +121,14 @@ export default function PaperPage() {
   );
 
   if (!paper) return (
-    <div className="min-h-screen flex items-center justify-center"
+    <div className="flex-1 w-full h-full flex items-center justify-center"
       style={{ background: "#050810", fontFamily: SF }}>
       <div style={{ color: "#64748b" }} className="text-[14px]">Paper not found.</div>
     </div>
   );
 
   return (
-    <div className="min-h-screen" style={{ background: "#050810", fontFamily: SF }}>
+    <div className="flex-1 w-full h-full overflow-y-auto" style={{ background: "#050810", fontFamily: SF }}>
 
       {/* ── Sticky nav ── */}
       <header className="sticky top-0 z-40 flex items-center justify-between px-8 py-3"
