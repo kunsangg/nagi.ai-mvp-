@@ -1,18 +1,26 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Plus, Compass, Network, Folder, Library, MessageSquare, Settings, UserCircle2, FileText, PanelLeftClose, PanelLeft, X, Users, Database } from "lucide-react";
 
 export default function Sidebar() {
   const [isCollapsed, setIsCollapsed] = useState(false);
-  const [recentItems, setRecentItems] = useState([
-    "Agentic AI Systems",
-    "Protein Folding",
-    "Diffusion Models"
-  ]);
+  const [recentItems, setRecentItems] = useState<string[]>([]);
+
+  useEffect(() => {
+    const loadRecent = () => {
+      setRecentItems(JSON.parse(localStorage.getItem("recentSearches") || "[]"));
+    };
+    loadRecent();
+    window.addEventListener("recentSearchesUpdated", loadRecent);
+    return () => window.removeEventListener("recentSearchesUpdated", loadRecent);
+  }, []);
 
   const removeRecentItem = (labelToRemove: string) => {
-    setRecentItems(prev => prev.filter(item => item !== labelToRemove));
+    const updated = recentItems.filter(item => item !== labelToRemove);
+    setRecentItems(updated);
+    localStorage.setItem("recentSearches", JSON.stringify(updated));
+    window.dispatchEvent(new Event("recentSearchesUpdated"));
   };
 
   return (

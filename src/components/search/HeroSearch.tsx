@@ -129,6 +129,12 @@ export default function HeroSearch() {
     }
 
     try {
+      const queryTrimmed = q.trim();
+      const existing = JSON.parse(localStorage.getItem("recentSearches") || "[]");
+      const updated = [queryTrimmed, ...existing.filter((i: string) => i !== queryTrimmed)].slice(0, 10);
+      localStorage.setItem("recentSearches", JSON.stringify(updated));
+      window.dispatchEvent(new Event("recentSearchesUpdated"));
+
       const res = await fetch("/api/search", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
