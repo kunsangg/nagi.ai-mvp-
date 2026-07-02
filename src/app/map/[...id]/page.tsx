@@ -1222,113 +1222,7 @@ export default function MapPage() {
 
 
 
-      {/* ── Fixed AI Copilot Panel (Right Side) ── */}
-      <aside className="w-[360px] flex-shrink-0 h-full flex flex-col z-40" style={{ background: "#11131A", borderLeft: "1px solid rgba(255,255,255,0.05)" }}>
-        {/* Header */}
-        <div className="flex items-center justify-between px-4 py-3" style={{ borderBottom: "1px solid rgba(255,255,255,0.05)" }}>
-          <span className="text-[10px] font-semibold tracking-widest text-gray-400" style={{ fontFamily: SF }}>CHAT</span>
-          <div className="flex items-center gap-1">
-            <button className="p-1.5 hover:bg-[rgba(255,255,255,0.1)] rounded text-gray-400 hover:text-white transition-colors">
-              <Plus size={14} />
-            </button>
-            <button className="p-1.5 hover:bg-[rgba(255,255,255,0.1)] rounded text-gray-400 hover:text-white transition-colors">
-              <History size={14} />
-            </button>
-            <button className="p-1.5 hover:bg-[rgba(255,255,255,0.1)] rounded text-gray-400 hover:text-white transition-colors">
-              <MoreHorizontal size={14} />
-            </button>
-          </div>
-        </div>
 
-        {/* Chat History */}
-        <div className="flex-1 overflow-y-auto px-4 py-4 flex flex-col gap-6" style={{ WebkitOverflowScrolling: "touch" }}>
-          {chatMessages.length === 0 && !isProcessingAI && (
-            <div className="text-gray-500 text-[13px] px-2" style={{ fontFamily: SF }}>
-              I'll help you create or modify the canvas. Let me know what you need.
-            </div>
-          )}
-          
-          {chatMessages.map((msg, i) => (
-            <div key={i} className="flex gap-3">
-              <div className="shrink-0 mt-0.5">
-                {msg.role === "user" ? (
-                  <div className="w-6 h-6 rounded-full bg-[#1e293b] flex items-center justify-center">
-                    <User size={12} className="text-gray-300" />
-                  </div>
-                ) : (
-                  <div className="w-6 h-6 rounded flex items-center justify-center bg-[#2563eb]">
-                    <Sparkles size={12} className="text-white" />
-                  </div>
-                )}
-              </div>
-              <div className="flex-1 text-[13px] leading-relaxed text-gray-300 whitespace-pre-wrap" style={{ fontFamily: SF }}>
-                {msg.text}
-              </div>
-            </div>
-          ))}
-          {isProcessingAI && (
-            <div className="flex gap-3">
-              <div className="shrink-0 mt-0.5">
-                <div className="w-6 h-6 rounded flex items-center justify-center bg-[#2563eb]">
-                  <Sparkles size={12} className="text-white" />
-                </div>
-              </div>
-              <div className="flex-1 flex items-center h-6">
-                <Loader2 size={14} className="animate-spin text-gray-400" />
-              </div>
-            </div>
-          )}
-        </div>
-
-        {/* Input Area */}
-        <div className="p-4 pt-2">
-          <div className="bg-[#1e1e1e] border border-[rgba(255,255,255,0.1)] rounded-lg overflow-hidden flex flex-col transition-colors focus-within:border-gray-500">
-            
-            {/* Context Pill */}
-            <div className="px-3 py-2 flex items-center" style={{ borderBottom: "1px solid rgba(255,255,255,0.05)" }}>
-              <button className="flex items-center gap-1.5 px-2 py-1 rounded bg-[rgba(255,255,255,0.05)] hover:bg-[rgba(255,255,255,0.1)] text-gray-400 hover:text-gray-200 transition-colors text-[11px]" style={{ fontFamily: SF }}>
-                <Paperclip size={12} /> Add Context...
-              </button>
-            </div>
-
-            {/* Textarea */}
-            <form onSubmit={handleAIChatSubmit} className="flex flex-col">
-              <textarea
-                value={aiCommand}
-                onChange={(e) => setAiCommand(e.target.value)}
-                onKeyDown={(e) => {
-                  if (e.key === 'Enter' && !e.shiftKey) {
-                    e.preventDefault();
-                    handleAIChatSubmit(e as any);
-                  }
-                }}
-                disabled={isProcessingAI}
-                placeholder="Ask Copilot or type / for commands"
-                className="w-full bg-transparent resize-none outline-none px-3 py-2 text-[13px] text-gray-300 placeholder-gray-500 min-h-[60px]"
-                style={{ fontFamily: SF }}
-              />
-              
-              {/* Bottom Row Controls */}
-              <div className="flex items-center justify-between px-2 py-2 border-t border-[rgba(255,255,255,0.05)]">
-                <div className="flex items-center gap-1">
-                  <button type="button" className="p-1.5 rounded hover:bg-[rgba(255,255,255,0.1)] text-gray-400 transition-colors">
-                    <Mic size={14} />
-                  </button>
-                  <button type="button" className="flex items-center gap-1 px-2 py-1 rounded hover:bg-[rgba(255,255,255,0.1)] text-gray-400 transition-colors text-[11px]" style={{ fontFamily: SF }}>
-                    Agent <ChevronDown size={12} />
-                  </button>
-                  <button type="button" className="flex items-center gap-1 px-2 py-1 rounded hover:bg-[rgba(255,255,255,0.1)] text-gray-400 transition-colors text-[11px]" style={{ fontFamily: SF }}>
-                    Claude 3.7 Sonnet <ChevronDown size={12} />
-                  </button>
-                </div>
-                <button type="submit" disabled={isProcessingAI || !aiCommand.trim()} className="p-1.5 rounded hover:bg-[rgba(255,255,255,0.1)] text-gray-400 hover:text-white transition-colors disabled:opacity-50 disabled:hover:bg-transparent disabled:hover:text-gray-400">
-                  <Send size={14} />
-                </button>
-              </div>
-            </form>
-          </div>
-        </div>
-      </aside>
 
       {/* ── Floating Bottom Center Toolbar (Glassmorphism Dock) ── */}
       <div className="absolute bottom-6 left-1/2 -translate-x-1/2 z-30 flex flex-col items-center gap-4 pointer-events-none">
@@ -1937,6 +1831,114 @@ export default function MapPage() {
           </div>
         </div>
       )}
+
+      {/* ── Fixed AI Copilot Panel (Right Side) ── */}
+      <aside className="absolute right-0 top-0 bottom-0 w-[360px] flex-shrink-0 flex flex-col z-40" style={{ background: "#11131A", borderLeft: "1px solid rgba(255,255,255,0.05)" }}>
+        {/* Header */}
+        <div className="flex items-center justify-between px-4 py-3" style={{ borderBottom: "1px solid rgba(255,255,255,0.05)" }}>
+          <span className="text-[10px] font-semibold tracking-widest text-gray-400" style={{ fontFamily: SF }}>CHAT</span>
+          <div className="flex items-center gap-1">
+            <button className="p-1.5 hover:bg-[rgba(255,255,255,0.1)] rounded text-gray-400 hover:text-white transition-colors">
+              <Plus size={14} />
+            </button>
+            <button className="p-1.5 hover:bg-[rgba(255,255,255,0.1)] rounded text-gray-400 hover:text-white transition-colors">
+              <History size={14} />
+            </button>
+            <button className="p-1.5 hover:bg-[rgba(255,255,255,0.1)] rounded text-gray-400 hover:text-white transition-colors">
+              <MoreHorizontal size={14} />
+            </button>
+          </div>
+        </div>
+
+        {/* Chat History */}
+        <div className="flex-1 overflow-y-auto px-4 py-4 flex flex-col gap-6" style={{ WebkitOverflowScrolling: "touch" }}>
+          {chatMessages.length === 0 && !isProcessingAI && (
+            <div className="text-gray-500 text-[13px] px-2" style={{ fontFamily: SF }}>
+              I'll help you create or modify the canvas. Let me know what you need.
+            </div>
+          )}
+          
+          {chatMessages.map((msg, i) => (
+            <div key={i} className="flex gap-3">
+              <div className="shrink-0 mt-0.5">
+                {msg.role === "user" ? (
+                  <div className="w-6 h-6 rounded-full bg-[#1e293b] flex items-center justify-center">
+                    <User size={12} className="text-gray-300" />
+                  </div>
+                ) : (
+                  <div className="w-6 h-6 rounded flex items-center justify-center bg-[#2563eb]">
+                    <Sparkles size={12} className="text-white" />
+                  </div>
+                )}
+              </div>
+              <div className="flex-1 text-[13px] leading-relaxed text-gray-300 whitespace-pre-wrap" style={{ fontFamily: SF }}>
+                {msg.text}
+              </div>
+            </div>
+          ))}
+          {isProcessingAI && (
+            <div className="flex gap-3">
+              <div className="shrink-0 mt-0.5">
+                <div className="w-6 h-6 rounded flex items-center justify-center bg-[#2563eb]">
+                  <Sparkles size={12} className="text-white" />
+                </div>
+              </div>
+              <div className="flex-1 flex items-center h-6">
+                <Loader2 size={14} className="animate-spin text-gray-400" />
+              </div>
+            </div>
+          )}
+        </div>
+
+        {/* Input Area */}
+        <div className="p-4 pt-2">
+          <div className="bg-[#1e1e1e] border border-[rgba(255,255,255,0.1)] rounded-lg overflow-hidden flex flex-col transition-colors focus-within:border-gray-500">
+            
+            {/* Context Pill */}
+            <div className="px-3 py-2 flex items-center" style={{ borderBottom: "1px solid rgba(255,255,255,0.05)" }}>
+              <button className="flex items-center gap-1.5 px-2 py-1 rounded bg-[rgba(255,255,255,0.05)] hover:bg-[rgba(255,255,255,0.1)] text-gray-400 hover:text-gray-200 transition-colors text-[11px]" style={{ fontFamily: SF }}>
+                <Paperclip size={12} /> Add Context...
+              </button>
+            </div>
+
+            {/* Textarea */}
+            <form onSubmit={handleAIChatSubmit} className="flex flex-col">
+              <textarea
+                value={aiCommand}
+                onChange={(e) => setAiCommand(e.target.value)}
+                onKeyDown={(e) => {
+                  if (e.key === 'Enter' && !e.shiftKey) {
+                    e.preventDefault();
+                    handleAIChatSubmit(e as any);
+                  }
+                }}
+                disabled={isProcessingAI}
+                placeholder="Ask Copilot or type / for commands"
+                className="w-full bg-transparent resize-none outline-none px-3 py-2 text-[13px] text-gray-300 placeholder-gray-500 min-h-[60px]"
+                style={{ fontFamily: SF }}
+              />
+              
+              {/* Bottom Row Controls */}
+              <div className="flex items-center justify-between px-2 py-2 border-t border-[rgba(255,255,255,0.05)]">
+                <div className="flex items-center gap-1">
+                  <button type="button" className="p-1.5 rounded hover:bg-[rgba(255,255,255,0.1)] text-gray-400 transition-colors">
+                    <Mic size={14} />
+                  </button>
+                  <button type="button" className="flex items-center gap-1 px-2 py-1 rounded hover:bg-[rgba(255,255,255,0.1)] text-gray-400 transition-colors text-[11px]" style={{ fontFamily: SF }}>
+                    Agent <ChevronDown size={12} />
+                  </button>
+                  <button type="button" className="flex items-center gap-1 px-2 py-1 rounded hover:bg-[rgba(255,255,255,0.1)] text-gray-400 transition-colors text-[11px]" style={{ fontFamily: SF }}>
+                    Claude 3.7 Sonnet <ChevronDown size={12} />
+                  </button>
+                </div>
+                <button type="submit" disabled={isProcessingAI || !aiCommand.trim()} className="p-1.5 rounded hover:bg-[rgba(255,255,255,0.1)] text-gray-400 hover:text-white transition-colors disabled:opacity-50 disabled:hover:bg-transparent disabled:hover:text-gray-400">
+                  <Send size={14} />
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      </aside>
     </div>
   );
 }
