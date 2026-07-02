@@ -791,7 +791,7 @@ export default function MapPage() {
       .append("xhtml:div")
       .attr("class", "flex flex-col h-full p-4 pointer-events-none")
       .html(d => `
-        <div class="text-[13px] text-[#E2E8F0] whitespace-pre-wrap leading-relaxed overflow-hidden" style="font-family: ${SF}">${d.content || d.title}</div>
+        <div class="text-[13px] text-[#E2E8F0] whitespace-pre-wrap leading-relaxed overflow-hidden" style="font-family: ${SF}">${d.note || d.title}</div>
       `);
 
     // Question Nodes
@@ -1313,7 +1313,13 @@ export default function MapPage() {
               <div key={`div-${i}`} className="w-[1px] h-6 mx-1.5" style={{ background: "rgba(255,255,255,0.1)" }} />
             ) : (
               <button key={item.t} title={item.tip}
-                onClick={() => setActiveTool(item.t as Tool)}
+                onClick={() => {
+                  if (item.t === "paper") {
+                    setShowAdd(true);
+                  } else {
+                    setActiveTool(item.t as Tool);
+                  }
+                }}
                 className="w-10 h-10 rounded-[14px] flex items-center justify-center transition-all hover:bg-[rgba(255,255,255,0.1)] active:scale-95"
                 style={{
                   background: activeTool === item.t ? "rgba(255,255,255,0.15)" : "transparent",
