@@ -7,7 +7,8 @@ import {
   ArrowLeft, Plus, Trash2, Link2, MousePointer,
   X, Search, Loader2, ZoomIn, ZoomOut, Maximize2,
   BookOpen, Map, LayoutGrid, StickyNote, Diamond,
-  Circle, Square, Minus, ExternalLink, AlignLeft
+  Circle, Square, Minus, ExternalLink, AlignLeft,
+  Hand, Sparkles, Play, CheckCircle2, Upload, BoxSelect
 } from "lucide-react";
 
 const SF   = "-apple-system, BlinkMacSystemFont, 'SF Pro Text', 'Helvetica Neue', sans-serif";
@@ -17,7 +18,7 @@ type NodeType    = "center" | "reference" | "citing" | "related" | "custom";
 type NodeShape   = "card" | "diamond" | "circle" | "pill";
 type Priority    = "normal" | "high" | "critical";
 type EdgeType    = "reference" | "citing" | "related" | "custom";
-type Tool        = "select" | "connect" | "delete" | "note";
+type Tool        = "select" | "connect" | "delete" | "note" | "pan" | "ai" | "upload" | "box";
 
 interface MapNode {
   id: string;
@@ -539,277 +540,260 @@ export default function MapPage() {
   const centerPaper = nodes.find(n => n.id === centerId);
 
   return (
-    <div className="w-full h-full flex flex-col overflow-hidden"
+    <div className="w-full h-full relative overflow-hidden"
       style={{ background: "#050810", fontFamily: SF }}>
 
-      {/* ── Top bar ── */}
-      <header className="flex items-center justify-between px-5 py-2 shrink-0 z-30"
-        style={{ background: "#0a0f1a", borderBottom: "1px solid #1a2535" }}>
-        <div className="flex items-center gap-3 min-w-0">
-          <button onClick={() => router.back()}
-            className="flex items-center gap-1.5 text-[12px] font-medium hover:opacity-70 transition-opacity shrink-0"
-            style={{ color: "#64748b" }}>
-            <ArrowLeft size={13} /> Back
-          </button>
-          <div style={{ width: 1, height: 16, background: "#1a2535" }} />
-          {centerPaper && (
-            <span className="text-[12px] font-medium truncate max-w-[320px]" style={{ color: "#475569" }}>
-              {truncate(centerPaper.title, 60)}
-            </span>
-          )}
-        </div>
-
-        <div className="flex items-center gap-5 shrink-0">
-          <span className="text-[11px]" style={{ color: "#243044" }}>
-            <span style={{ color: "#e2e8f0" }} className="font-semibold">{nodes.length}</span> nodes
-          </span>
-          <span className="text-[11px]" style={{ color: "#243044" }}>
-            <span style={{ color: "#e2e8f0" }} className="font-semibold">{edges.length}</span> edges
-          </span>
-        </div>
-
-        <div className="flex items-center gap-2 shrink-0">
-          {editMode ? (
-            <>
-              <button onClick={() => setShowAdd(true)}
-                className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-[11px] font-semibold transition-opacity hover:opacity-80"
-                style={{ background: "rgba(16,185,129,0.08)", border: "1px solid rgba(16,185,129,0.2)", color: "#10b981" }}>
-                <Plus size={12} /> Add Paper
-              </button>
-              <button onClick={autoLayout}
-                className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-[11px] font-semibold transition-opacity hover:opacity-80"
-                style={{ background: "#0d1520", border: "1px solid #1a2535", color: "#64748b" }}>
-                <LayoutGrid size={12} /> Auto Layout
-              </button>
-              <button onClick={() => { setEditMode(false); setActiveTool("select"); setConnectSource(null); }}
-                className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-[11px] font-semibold transition-opacity hover:opacity-80"
-                style={{ background: "#0d1520", border: "1px solid #1a2535", color: "#94a3b8" }}>
-                <X size={12} /> Done
-              </button>
-            </>
-          ) : (
-            <button onClick={() => setEditMode(true)}
-              className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-[11px] font-semibold transition-opacity hover:opacity-80"
-              style={{ background: "rgba(59,201,219,0.07)", border: "1px solid rgba(59,201,219,0.2)", color: "#3bc9db" }}>
-              <Plus size={12} /> Edit Map
-            </button>
-          )}
-        </div>
-      </header>
-
-      {/* ── Body ── */}
-      <div className="flex flex-1 overflow-hidden">
-
-        {/* Left toolbar */}
-        {editMode && (
-          <div className="flex flex-col gap-1 px-2 py-3 shrink-0"
-            style={{ background: "#0a0f1a", borderRight: "1px solid #1a2535", width: 48 }}>
-            {([
-              { t: "select"  as Tool, icon: <MousePointer size={14} />, tip: "Select"  },
-              { t: "connect" as Tool, icon: <Link2        size={14} />, tip: "Connect" },
-              { t: "note"    as Tool, icon: <StickyNote   size={14} />, tip: "Add Note"},
-              { t: "delete"  as Tool, icon: <Trash2       size={14} />, tip: "Delete"  },
-            ] as const).map(({ t, icon, tip }) => (
-              <button key={t} title={tip}
-                onClick={() => { setActiveTool(t); setConnectSource(null); }}
-                className="w-8 h-8 rounded-lg flex items-center justify-center transition-all"
-                style={{
-                  background: activeTool === t ? "#1a2535" : "transparent",
-                  color:      activeTool === t ? "#3bc9db" : "#334155",
-                  border:     `1px solid ${activeTool === t ? "#243044" : "transparent"}`,
-                }}>
-                {icon}
-              </button>
-            ))}
+      {/* ── Floating Canvas ── */}
+      <div ref={containerRef} className="absolute inset-0">
+        {activeTool === "connect" && (
+          <div className="absolute top-24 left-1/2 -translate-x-1/2 z-20 px-4 py-1.5 rounded-full text-[11px] font-medium pointer-events-none"
+            style={{
+              background: "#0a0f1a",
+              border: `1px solid ${connectSource ? "#f59e0b" : "#3bc9db"}`,
+              color:  connectSource ? "#f59e0b" : "#3bc9db",
+            }}>
+            {connectSource ? `Click target node to connect from "${truncate(connectSource.title, 28)}"` : "Click source node"}
           </div>
         )}
 
-        {/* Canvas */}
-        <div ref={containerRef} className="flex-1 relative overflow-hidden">
-          {activeTool === "connect" && (
-            <div className="absolute top-3 left-1/2 -translate-x-1/2 z-20 px-4 py-1.5 rounded-full text-[11px] font-medium pointer-events-none"
-              style={{
-                background: "#0a0f1a",
-                border: `1px solid ${connectSource ? "#f59e0b" : "#3bc9db"}`,
-                color:  connectSource ? "#f59e0b" : "#3bc9db",
-              }}>
-              {connectSource ? `Click target node to connect from "${truncate(connectSource.title, 28)}"` : "Click source node"}
-            </div>
-          )}
+        {isLoading && (
+          <div className="absolute inset-0 flex flex-col items-center justify-center gap-4 z-10">
+            <Loader2 size={18} className="animate-spin" style={{ color: "#3bc9db" }} />
+            <p className="text-[13px] font-medium animate-pulse" style={{ color: "#3bc9db" }}>Building research map…</p>
+            <p className="text-[10px] uppercase tracking-widest" style={{ color: "#1a2535", fontFamily: MONO }}>
+              citations · references · related works
+            </p>
+          </div>
+        )}
+        {error && (
+          <div className="absolute inset-0 flex items-center justify-center z-10">
+            <p className="text-[14px]" style={{ color: "#ef4444" }}>Error: {error}</p>
+          </div>
+        )}
+        {!isLoading && !error && <svg ref={svgRef} className="w-full h-full" />}
+      </div>
 
-          {isLoading && (
-            <div className="absolute inset-0 flex flex-col items-center justify-center gap-4">
-              <Loader2 size={18} className="animate-spin" style={{ color: "#3bc9db" }} />
-              <p className="text-[13px] font-medium animate-pulse" style={{ color: "#3bc9db" }}>Building research map…</p>
-              <p className="text-[10px] uppercase tracking-widest" style={{ color: "#1a2535", fontFamily: MONO }}>
-                citations · references · related works
-              </p>
+      {/* ── Floating Top Left ── */}
+      <div className="absolute top-6 left-6 z-30 flex flex-col gap-4 pointer-events-none">
+        <button onClick={() => router.back()}
+          className="flex items-center gap-1.5 text-[12px] font-medium transition-opacity pointer-events-auto w-max"
+          style={{ color: "#94a3b8" }}>
+          <ArrowLeft size={13} /> Back to papers
+        </button>
+        
+        <div className="flex items-center gap-3">
+          <div className="w-9 h-9 rounded-full flex items-center justify-center font-bold text-[14px] bg-white text-black shrink-0 shadow-lg pointer-events-auto">
+            {centerPaper?.title?.charAt(0) || "P"}
+          </div>
+          <div className="flex flex-col gap-0.5">
+            <div className="flex items-center gap-2.5 pointer-events-auto">
+              <span className="text-[17px] font-semibold text-white tracking-tight">
+                {centerPaper ? truncate(centerPaper.title, 45) : "Research Map"}
+              </span>
+              <span className="px-2 py-0.5 rounded-full text-[10px] font-medium"
+                style={{ background: "#1a2535", border: "1px solid #243044", color: "#94a3b8" }}>
+                Draft
+              </span>
             </div>
-          )}
-          {error && (
-            <div className="absolute inset-0 flex items-center justify-center">
-              <p className="text-[14px]" style={{ color: "#ef4444" }}>Error: {error}</p>
-            </div>
-          )}
-          {!isLoading && !error && <svg ref={svgRef} className="w-full h-full" />}
+            <span className="text-[11px] pointer-events-auto" style={{ color: "#64748b" }}>
+              last updates on: 05 May, 2026
+            </span>
+          </div>
         </div>
+      </div>
 
-        {/* Right panel */}
-        {selectedNode && activeTool === "select" && (
-          <aside className="w-72 shrink-0 flex flex-col overflow-hidden"
-            style={{ background: "#0a0f1a", borderLeft: "1px solid #1a2535" }}>
-            <div className="flex items-center justify-between px-4 py-3 shrink-0"
-              style={{ borderBottom: "1px solid #1a2535" }}>
-              <div className="flex items-center gap-2">
-                <div className="w-2 h-2 rounded-sm" style={{ background: TYPE_COLOR[selectedNode.type] }} />
-                <span className="text-[9px] font-bold tracking-widest uppercase"
-                  style={{ color: TYPE_COLOR[selectedNode.type], fontFamily: MONO }}>
-                  {TYPE_LABEL[selectedNode.type]}
-                </span>
+      {/* ── Floating Top Right ── */}
+      <div className="absolute top-6 right-6 z-30 flex items-center gap-4 pointer-events-none">
+        <div className="flex items-center gap-1.5 pointer-events-auto" style={{ color: "#10b981" }}>
+          <CheckCircle2 size={13} />
+          <span className="text-[11px] font-medium">Auto saved</span>
+        </div>
+        <button className="px-4 py-2 rounded-lg text-[12px] font-semibold bg-white text-black hover:bg-gray-100 transition-colors pointer-events-auto shadow-lg">
+          Publish Changes
+        </button>
+      </div>
+
+      {/* ── Floating Bottom Center Toolbar ── */}
+      <div className="absolute bottom-6 left-1/2 -translate-x-1/2 z-30 flex flex-col items-center gap-3 pointer-events-none">
+        {/* AI Pill */}
+        <button className="flex items-center gap-1.5 px-3 py-1.5 rounded-full text-[10px] font-medium pointer-events-auto transition-opacity hover:opacity-80"
+          style={{ background: "#0d1520", border: "1px solid #1a2535", color: "#94a3b8" }}>
+          Build with AI <Sparkles size={11} />
+        </button>
+
+        {/* Main Toolbar */}
+        <div className="flex items-center gap-2 px-3 py-2 rounded-2xl pointer-events-auto shadow-2xl"
+          style={{ background: "#0a0f1a", border: "1px solid #1a2535" }}>
+          {([
+            { t: "select"  as Tool, icon: <MousePointer size={14} />, tip: "Select"  },
+            { t: "pan"     as Tool, icon: <Hand         size={14} />, tip: "Pan"     },
+            { t: "ai"      as Tool, icon: <Sparkles     size={14} />, tip: "AI Actions" },
+            { t: "note"    as Tool, icon: <StickyNote   size={14} />, tip: "Add Note"},
+            { t: "upload"  as Tool, icon: <Upload       size={14} />, tip: "Add Papers"  },
+            { t: "delete"  as Tool, icon: <Trash2       size={14} />, tip: "Delete"  },
+            { t: "connect" as Tool, icon: <Link2        size={14} />, tip: "Connect Nodes" },
+            { t: "box"     as Tool, icon: <BoxSelect    size={14} />, tip: "Box Select"},
+          ] as const).map(({ t, icon, tip }) => (
+            <button key={t} title={tip}
+              onClick={() => {
+                if (t === "upload") {
+                  setShowAdd(true);
+                } else {
+                  setActiveTool(t);
+                  setConnectSource(null);
+                }
+              }}
+              className="w-10 h-10 rounded-xl flex items-center justify-center transition-all"
+              style={{
+                background: activeTool === t && t !== "upload" ? "#1a2535" : "transparent",
+                color:      activeTool === t && t !== "upload" ? "#f1f5f9" : "#64748b",
+                border:     `1px solid ${activeTool === t && t !== "upload" ? "#243044" : "transparent"}`,
+              }}>
+              {icon}
+            </button>
+          ))}
+          
+          <div className="w-[1px] h-6 mx-1" style={{ background: "#1a2535" }} />
+          
+          <button title="Test / Run"
+            className="w-10 h-10 rounded-xl flex items-center justify-center bg-white text-black hover:bg-gray-100 transition-colors shadow-lg">
+            <Play size={14} className="fill-black" />
+          </button>
+        </div>
+      </div>
+
+      {/* ── Floating Bottom Right (Zoom) ── */}
+      <div className="absolute bottom-6 right-6 z-30 flex items-center gap-1.5 pointer-events-none">
+        {([
+          { fn: () => doZoom("out"), icon: <ZoomOut    size={13} />, tip: "Zoom out" },
+          { fn: () => doZoom("in"),  icon: <ZoomIn     size={13} />, tip: "Zoom in"  },
+          { fn: () => doZoom("fit"), icon: <Maximize2  size={13} />, tip: "Reset"    },
+        ]).map((z, i) => (
+          <button key={i} title={z.tip} onClick={z.fn}
+            className="w-9 h-9 flex items-center justify-center rounded-xl transition-opacity hover:opacity-80 pointer-events-auto shadow-lg"
+            style={{ background: "#0d1520", border: "1px solid #1a2535", color: "#64748b" }}>
+            {z.icon}
+          </button>
+        ))}
+      </div>
+
+      {/* ── Floating Right Panel ── */}
+      {selectedNode && activeTool === "select" && (
+        <aside className="absolute top-24 right-6 w-72 max-h-[70vh] flex flex-col overflow-hidden rounded-2xl shadow-2xl z-40 pointer-events-auto"
+          style={{ background: "#0a0f1a", border: "1px solid #1a2535" }}>
+          <div className="flex items-center justify-between px-4 py-3 shrink-0"
+            style={{ borderBottom: "1px solid #1a2535" }}>
+            <div className="flex items-center gap-2">
+              <div className="w-2 h-2 rounded-sm" style={{ background: TYPE_COLOR[selectedNode.type] }} />
+              <span className="text-[9px] font-bold tracking-widest uppercase"
+                style={{ color: TYPE_COLOR[selectedNode.type], fontFamily: MONO }}>
+                {TYPE_LABEL[selectedNode.type]}
+              </span>
+            </div>
+            <button onClick={() => setSelectedNode(null)} style={{ color: "#334155" }} className="hover:text-white transition-colors">
+              <X size={13} />
+            </button>
+          </div>
+
+          <div className="flex-1 overflow-y-auto px-4 py-4 flex flex-col gap-5">
+            <p className="text-[13px] font-semibold leading-snug" style={{ color: "#e2e8f0" }}>
+              {selectedNode.title}
+            </p>
+
+            {/* Meta */}
+            <div className="flex flex-col gap-2.5 pt-3" style={{ borderTop: "1px solid #1a2535" }}>
+              {[
+                { label: "Author",    value: selectedNode.author },
+                { label: "Year",      value: selectedNode.year?.toString() },
+                { label: "Citations", value: selectedNode.citations?.toLocaleString(), accent: true },
+                { label: "Field",     value: selectedNode.field },
+              ].filter(r => r.value).map(row => (
+                <div key={row.label} className="flex items-start justify-between gap-2">
+                  <span className="text-[9px] font-bold uppercase tracking-widest shrink-0"
+                    style={{ color: "#334155", fontFamily: MONO }}>{row.label}</span>
+                  <span className="text-[11px] font-medium text-right leading-snug"
+                    style={{ color: row.accent ? "#3bc9db" : "#64748b" }}>{row.value}</span>
+                </div>
+              ))}
+            </div>
+
+            {/* Note */}
+            {selectedNode.note && (
+              <div className="rounded-lg px-3 py-2.5" style={{ background: "#0d1520", border: "1px solid #1a2535" }}>
+                <div className="text-[9px] font-bold uppercase tracking-widest mb-1.5"
+                  style={{ color: "#334155", fontFamily: MONO }}>Note</div>
+                <p className="text-[12px] leading-relaxed" style={{ color: "#64748b" }}>{selectedNode.note}</p>
               </div>
-              <button onClick={() => setSelectedNode(null)} style={{ color: "#334155" }}>
-                <X size={13} />
+            )}
+
+            {/* Priority */}
+            <div style={{ borderTop: "1px solid #1a2535", paddingTop: 12 }}>
+              <div className="text-[9px] font-bold uppercase tracking-widest mb-2"
+                style={{ color: "#334155", fontFamily: MONO }}>Priority</div>
+              <div className="flex gap-1.5">
+                {(["normal", "high", "critical"] as Priority[]).map(p => (
+                  <button key={p} onClick={() => updateNodePriority(p)}
+                    className="flex-1 py-1.5 rounded-lg text-[10px] font-semibold capitalize transition-all hover:opacity-80"
+                    style={{
+                      background: selectedNode.priority === p ? PRIORITY_COLOR[p] + "18" : "#0d1520",
+                      border: `1px solid ${selectedNode.priority === p ? PRIORITY_COLOR[p] + "40" : "#1a2535"}`,
+                      color: selectedNode.priority === p ? PRIORITY_COLOR[p] : "#334155",
+                    }}>
+                    {p}
+                  </button>
+                ))}
+              </div>
+            </div>
+
+            {/* Note + URL */}
+            <div className="flex gap-2">
+              <button onClick={() => { setNoteInput(selectedNode.note || ""); setShowNoteModal(true); }}
+                className="flex-1 flex items-center justify-center gap-1.5 py-2 rounded-lg text-[11px] font-medium transition-all hover:opacity-80"
+                style={{ background: "#0d1520", border: "1px solid #1a2535", color: "#64748b" }}>
+                <AlignLeft size={12} /> Note
+              </button>
+              <button onClick={() => { setUrlInput(selectedNode.url || ""); setShowUrlModal(true); }}
+                className="flex-1 flex items-center justify-center gap-1.5 py-2 rounded-lg text-[11px] font-medium transition-all hover:opacity-80"
+                style={{ background: "#0d1520", border: "1px solid #1a2535", color: "#64748b" }}>
+                <ExternalLink size={12} /> Link
               </button>
             </div>
 
-            <div className="flex-1 overflow-y-auto px-4 py-4 flex flex-col gap-5">
-              <p className="text-[13px] font-semibold leading-snug" style={{ color: "#e2e8f0" }}>
-                {selectedNode.title}
-              </p>
-
-              {/* Meta */}
-              <div className="flex flex-col gap-2.5 pt-3" style={{ borderTop: "1px solid #1a2535" }}>
-                {[
-                  { label: "Author",    value: selectedNode.author },
-                  { label: "Year",      value: selectedNode.year?.toString() },
-                  { label: "Citations", value: selectedNode.citations?.toLocaleString(), accent: true },
-                  { label: "Field",     value: selectedNode.field },
-                ].filter(r => r.value).map(row => (
-                  <div key={row.label} className="flex items-start justify-between gap-2">
-                    <span className="text-[9px] font-bold uppercase tracking-widest shrink-0"
-                      style={{ color: "#334155", fontFamily: MONO }}>{row.label}</span>
-                    <span className="text-[11px] font-medium text-right leading-snug"
-                      style={{ color: row.accent ? "#3bc9db" : "#64748b" }}>{row.value}</span>
-                  </div>
-                ))}
-              </div>
-
-              {/* Note */}
-              {selectedNode.note && (
-                <div className="rounded-lg px-3 py-2.5" style={{ background: "#0d1520", border: "1px solid #1a2535" }}>
-                  <div className="text-[9px] font-bold uppercase tracking-widest mb-1.5"
-                    style={{ color: "#334155", fontFamily: MONO }}>Note</div>
-                  <p className="text-[12px] leading-relaxed" style={{ color: "#64748b" }}>{selectedNode.note}</p>
-                </div>
+            {/* Actions */}
+            <div className="flex flex-col gap-2 pt-3" style={{ borderTop: "1px solid #1a2535" }}>
+              <button onClick={() => { window.location.href = `/paper/${selectedNode.id}`; }}
+                className="w-full flex items-center justify-center gap-2 py-2.5 rounded-xl text-[11px] font-semibold transition-all hover:opacity-80"
+                style={{ background: "rgba(16,185,129,0.07)", border: "1px solid rgba(16,185,129,0.18)", color: "#10b981" }}>
+                <BookOpen size={12} /> View Full Paper
+              </button>
+              <button onClick={() => { window.location.href = `/map/${selectedNode.id}`; }}
+                className="w-full flex items-center justify-center gap-2 py-2.5 rounded-xl text-[11px] font-semibold transition-all hover:opacity-80"
+                style={{ background: "rgba(59,201,219,0.05)", border: "1px solid rgba(59,201,219,0.15)", color: "#3bc9db" }}>
+                <Map size={12} /> Map This Paper
+              </button>
+              {selectedNode.url && (
+                <a href={selectedNode.url} target="_blank" rel="noopener noreferrer"
+                  className="w-full flex items-center justify-center gap-2 py-2.5 rounded-xl text-[11px] font-semibold transition-all hover:opacity-80"
+                  style={{ background: "#0d1520", border: "1px solid #1a2535", color: "#64748b" }}>
+                  <ExternalLink size={12} /> Open Source Link
+                </a>
               )}
-
-              {editMode && (
-                <>
-                  {/* Priority */}
-                  <div style={{ borderTop: "1px solid #1a2535", paddingTop: 12 }}>
-                    <div className="text-[9px] font-bold uppercase tracking-widest mb-2"
-                      style={{ color: "#334155", fontFamily: MONO }}>Priority</div>
-                    <div className="flex gap-1.5">
-                      {(["normal", "high", "critical"] as Priority[]).map(p => (
-                        <button key={p} onClick={() => updateNodePriority(p)}
-                          className="flex-1 py-1.5 rounded-lg text-[10px] font-semibold capitalize transition-opacity hover:opacity-80"
-                          style={{
-                            background: selectedNode.priority === p ? PRIORITY_COLOR[p] + "18" : "#0d1520",
-                            border: `1px solid ${selectedNode.priority === p ? PRIORITY_COLOR[p] + "40" : "#1a2535"}`,
-                            color: selectedNode.priority === p ? PRIORITY_COLOR[p] : "#334155",
-                          }}>
-                          {p}
-                        </button>
-                      ))}
-                    </div>
-                  </div>
-
-                  {/* Note + URL */}
-                  <div className="flex gap-2">
-                    <button onClick={() => { setNoteInput(selectedNode.note || ""); setShowNoteModal(true); }}
-                      className="flex-1 flex items-center justify-center gap-1.5 py-2 rounded-lg text-[11px] font-medium transition-opacity hover:opacity-80"
-                      style={{ background: "#0d1520", border: "1px solid #1a2535", color: "#64748b" }}>
-                      <AlignLeft size={12} /> Note
-                    </button>
-                    <button onClick={() => { setUrlInput(selectedNode.url || ""); setShowUrlModal(true); }}
-                      className="flex-1 flex items-center justify-center gap-1.5 py-2 rounded-lg text-[11px] font-medium transition-opacity hover:opacity-80"
-                      style={{ background: "#0d1520", border: "1px solid #1a2535", color: "#64748b" }}>
-                      <ExternalLink size={12} /> Link
-                    </button>
-                  </div>
-                </>
-              )}
-
-              {/* Actions */}
-              <div className="flex flex-col gap-2 pt-3" style={{ borderTop: "1px solid #1a2535" }}>
-                <button onClick={() => { window.location.href = `/paper/${selectedNode.id}`; }}
-                  className="w-full flex items-center justify-center gap-2 py-2.5 rounded-xl text-[11px] font-semibold transition-opacity hover:opacity-80"
-                  style={{ background: "rgba(16,185,129,0.07)", border: "1px solid rgba(16,185,129,0.18)", color: "#10b981" }}>
-                  <BookOpen size={12} /> View Full Paper
-                </button>
-                <button onClick={() => { window.location.href = `/map/${selectedNode.id}`; }}
-                  className="w-full flex items-center justify-center gap-2 py-2.5 rounded-xl text-[11px] font-semibold transition-opacity hover:opacity-80"
-                  style={{ background: "rgba(59,201,219,0.05)", border: "1px solid rgba(59,201,219,0.15)", color: "#3bc9db" }}>
-                  <Map size={12} /> Map This Paper
-                </button>
-                {selectedNode.url && (
-                  <a href={selectedNode.url} target="_blank" rel="noopener noreferrer"
-                    className="w-full flex items-center justify-center gap-2 py-2.5 rounded-xl text-[11px] font-semibold transition-opacity hover:opacity-80"
-                    style={{ background: "#0d1520", border: "1px solid #1a2535", color: "#64748b" }}>
-                    <ExternalLink size={12} /> Open Source Link
-                  </a>
-                )}
-                {editMode && (
-                  <button
-                    onClick={() => {
-                      setNodes(p => p.filter(n => n.id !== selectedNode!.id));
-                      setEdges(p => p.filter(e =>
-                        getId(e.source) !== selectedNode!.id && getId(e.target) !== selectedNode!.id
-                      ));
-                      setSelectedNode(null);
-                    }}
-                    className="w-full flex items-center justify-center gap-2 py-2.5 rounded-xl text-[11px] font-semibold transition-opacity hover:opacity-80"
-                    style={{ background: "rgba(239,68,68,0.05)", border: "1px solid rgba(239,68,68,0.15)", color: "#f87171" }}>
-                    <Trash2 size={12} /> Remove Node
-                  </button>
-                )}
-              </div>
+              <button
+                onClick={() => {
+                  setNodes(p => p.filter(n => n.id !== selectedNode!.id));
+                  setEdges(p => p.filter(e =>
+                    getId(e.source) !== selectedNode!.id && getId(e.target) !== selectedNode!.id
+                  ));
+                  setSelectedNode(null);
+                }}
+                className="w-full flex items-center justify-center gap-2 py-2.5 rounded-xl text-[11px] font-semibold transition-all hover:opacity-80"
+                style={{ background: "rgba(239,68,68,0.05)", border: "1px solid rgba(239,68,68,0.15)", color: "#f87171" }}>
+                <Trash2 size={12} /> Remove Node
+              </button>
             </div>
-          </aside>
-        )}
-      </div>
-
-      {/* ── Bottom bar ── */}
-      <footer className="flex items-center justify-between px-5 py-2 shrink-0"
-        style={{ background: "#0a0f1a", borderTop: "1px solid #1a2535" }}>
-        <div className="flex items-center gap-5">
-          {(Object.keys(TYPE_COLOR) as NodeType[]).map(type => (
-            <div key={type} className="flex items-center gap-1.5">
-              <div className="w-1.5 h-1.5 rounded-sm" style={{ background: TYPE_COLOR[type] }} />
-              <span className="text-[9px] font-medium uppercase tracking-widest"
-                style={{ color: "#243044", fontFamily: MONO }}>
-                {TYPE_LABEL[type]}
-              </span>
-            </div>
-          ))}
-        </div>
-        <div className="flex items-center gap-1.5">
-          <span className="text-[9px] mr-2 uppercase tracking-widest" style={{ color: "#1a2535", fontFamily: MONO }}>
-            scroll · drag · click +
-          </span>
-          {([
-            { fn: () => doZoom("out"), icon: <ZoomOut    size={13} />, tip: "Zoom out" },
-            { fn: () => doZoom("in"),  icon: <ZoomIn     size={13} />, tip: "Zoom in"  },
-            { fn: () => doZoom("fit"), icon: <Maximize2  size={13} />, tip: "Reset"    },
-          ]).map((z, i) => (
-            <button key={i} title={z.tip} onClick={z.fn}
-              className="w-7 h-7 flex items-center justify-center rounded-lg transition-opacity hover:opacity-80"
-              style={{ background: "#0d1520", border: "1px solid #1a2535", color: "#475569" }}>
-              {z.icon}
-            </button>
-          ))}
-        </div>
-      </footer>
+          </div>
+        </aside>
+      )}
 
       {/* ── Add paper modal ── */}
       {showAdd && (
