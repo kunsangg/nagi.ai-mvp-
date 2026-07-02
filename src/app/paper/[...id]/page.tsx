@@ -6,6 +6,47 @@ import {
   ArrowLeft, ExternalLink, FileText, Map,
   BookOpen, Quote, Layers, Unlock, Lock
 } from "lucide-react";
+import { DitherGradient } from "@/components/ui";
+
+function getGradientColorsForDomain(domain?: string, field?: string) {
+  const categoryStr = `${domain || ''} ${field || ''}`.toLowerCase();
+  
+  if (
+    categoryStr.includes('life') || 
+    categoryStr.includes('health') || 
+    categoryStr.includes('biology') || 
+    categoryStr.includes('medicine') ||
+    categoryStr.includes('psychology')
+  ) {
+    // Ocean to Forest
+    return {
+      colorFrom: "#0ea5e9", // Sky 500
+      colorMid: "#14b8a6",  // Teal 500
+      colorTo: "#22c55e",   // Green 500
+    };
+  }
+  
+  if (
+    categoryStr.includes('social') || 
+    categoryStr.includes('economic') || 
+    categoryStr.includes('environment') || 
+    categoryStr.includes('chemistry')
+  ) {
+    // Sunset Fire
+    return {
+      colorFrom: "#f59e0b", // Amber 500
+      colorMid: "#f97316",  // Orange 500
+      colorTo: "#ef4444",   // Red 500
+    };
+  }
+
+  // Default
+  return {
+    colorFrom: "#4f46e5",
+    colorMid: "#a855f7",
+    colorTo: "#ec4899",
+  };
+}
 
 function stripHtml(str: string): string {
   return str.replace(/<[^>]*>/g, "");
@@ -157,8 +198,12 @@ export default function PaperPage() {
       </header>
 
       {/* ── Hero ── */}
-      <section className="px-8 pt-16 pb-12 max-w-[860px] mx-auto">
-        {/* Domain + type badges */}
+      <div className="relative w-full overflow-hidden shrink-0 border-b border-[#1a2535]">
+        <DitherGradient {...getGradientColorsForDomain(paper.domain, paper.field)} className="absolute inset-0 opacity-40" />
+        <div className="absolute inset-0 bg-gradient-to-b from-[#050810]/30 to-[#050810]/95" />
+        
+        <section className="relative z-10 px-8 pt-16 pb-12 max-w-[860px] mx-auto">
+          {/* Domain + type badges */}
         <div className="flex items-center gap-2 mb-6">
           {(paper.domain || paper.field) && (
             <span className="text-[11px] font-medium px-3 py-1 rounded-full"
@@ -205,9 +250,9 @@ export default function PaperPage() {
           </p>
         )}
       </section>
+      </div>
 
-      {/* ── Divider ── */}
-      <div style={{ height: 1, background: "#1a2535", maxWidth: 860, margin: "0 auto 0 auto" }} />
+
 
       {/* ── Main content ── */}
       <main className="max-w-[860px] mx-auto px-8 py-12 flex flex-col gap-14">
