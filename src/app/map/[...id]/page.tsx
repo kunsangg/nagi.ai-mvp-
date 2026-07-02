@@ -2,6 +2,7 @@
 
 import { useEffect, useRef, useState, useCallback } from "react";
 import { useParams, useRouter } from "next/navigation";
+import Sidebar from "@/components/layout/Sidebar";
 import * as d3 from "d3";
 import {
   ArrowLeft, Plus, Trash2, Link2, MousePointer,
@@ -545,102 +546,7 @@ export default function MapPage() {
       style={{ background: "#050505", fontFamily: SF }}>
 
       {/* ── Left Sidebar ── */}
-      <div className="w-[260px] h-full shrink-0 flex flex-col z-40 shadow-2xl relative"
-        style={{ background: "#0a0a0a", borderRight: "1px solid #1a2535" }}>
-        
-        {/* Logo Area */}
-        <div className="px-5 pt-6 pb-5 flex items-center gap-2">
-          <Sparkles size={20} className="text-white" />
-          <span className="text-[18px] font-semibold text-white tracking-tight">Nagi</span>
-        </div>
-
-        {/* Workspace Dropdown */}
-        <div className="px-5 pb-6">
-          <button className="w-full flex items-center justify-between px-3 py-2.5 rounded-xl transition-colors hover:bg-white/5"
-            style={{ border: "1px solid #1a2535" }}>
-            <div className="flex items-center gap-2.5">
-              <div className="w-6 h-6 rounded-full flex items-center justify-center font-bold text-[10px] bg-white text-black shrink-0">
-                K
-              </div>
-              <span className="text-[12px] font-medium text-white truncate max-w-[120px]">Kunsang's Workspace</span>
-            </div>
-            <ArrowLeft size={12} className="rotate-[-90deg] text-gray-500" />
-          </button>
-        </div>
-
-        {/* Navigation */}
-        <div className="flex-1 overflow-y-auto px-3 flex flex-col gap-1.5">
-          <div className="px-2 py-1 mb-1">
-            <span className="text-[10px] font-bold tracking-widest uppercase" style={{ color: "#475569", fontFamily: MONO }}>
-              Research
-            </span>
-          </div>
-          
-          <button className="w-full flex items-center gap-3 px-3 py-2 rounded-lg transition-colors bg-white/5 text-white">
-            <Map size={15} />
-            <span className="text-[13px] font-medium">Research Maps</span>
-          </button>
-          <button className="w-full flex items-center gap-3 px-3 py-2 rounded-lg transition-colors hover:bg-white/5 text-[#94a3b8] hover:text-white">
-            <BookOpen size={15} />
-            <span className="text-[13px] font-medium">My Library</span>
-          </button>
-          <button className="w-full flex items-center gap-3 px-3 py-2 rounded-lg transition-colors hover:bg-white/5 text-[#94a3b8] hover:text-white">
-            <Search size={15} />
-            <span className="text-[13px] font-medium">Semantic Search</span>
-          </button>
-          <button className="w-full flex items-center gap-3 px-3 py-2 rounded-lg transition-colors hover:bg-white/5 text-[#94a3b8] hover:text-white">
-            <Sparkles size={15} />
-            <span className="text-[13px] font-medium">Co-pilot Chat</span>
-          </button>
-
-          <div className="px-2 pt-5 py-1 mb-1">
-            <span className="text-[10px] font-bold tracking-widest uppercase" style={{ color: "#475569", fontFamily: MONO }}>
-              Knowledge Base
-            </span>
-          </div>
-
-          <button className="w-full flex items-center gap-3 px-3 py-2 rounded-lg transition-colors hover:bg-white/5 text-[#94a3b8] hover:text-white">
-            <Database size={15} />
-            <span className="text-[13px] font-medium">Papers</span>
-          </button>
-          <button className="w-full flex items-center gap-3 px-3 py-2 rounded-lg transition-colors hover:bg-white/5 text-[#94a3b8] hover:text-white">
-            <StickyNote size={15} />
-            <span className="text-[13px] font-medium">Notes & Highlights</span>
-          </button>
-
-          <div className="px-2 pt-5 py-1 mb-1">
-            <span className="text-[10px] font-bold tracking-widest uppercase" style={{ color: "#475569", fontFamily: MONO }}>
-              Settings
-            </span>
-          </div>
-
-          <button className="w-full flex items-center gap-3 px-3 py-2 rounded-lg transition-colors hover:bg-white/5 text-[#94a3b8] hover:text-white">
-            <Webhook size={15} />
-            <span className="text-[13px] font-medium">API Keys</span>
-          </button>
-        </div>
-
-        {/* Footer Plan Area */}
-        <div className="p-5 mt-auto" style={{ borderTop: "1px solid #1a2535" }}>
-          <div className="flex justify-between items-center mb-1.5">
-            <span className="text-[12px] font-medium text-gray-400">Plan</span>
-            <span className="text-[12px] font-medium text-white">Pro Researcher</span>
-          </div>
-          <div className="flex justify-between items-center mb-3">
-            <span className="text-[12px] font-medium text-gray-400">Credits</span>
-            <span className="text-[12px] font-medium text-white">1200 / 2000</span>
-          </div>
-          
-          {/* Progress bar */}
-          <div className="w-full h-1.5 rounded-full bg-gray-800 mb-4 overflow-hidden">
-            <div className="h-full bg-white rounded-full" style={{ width: "60%" }}></div>
-          </div>
-
-          <button className="w-full flex items-center justify-center gap-2 py-2 rounded-lg text-[13px] font-semibold bg-white text-black hover:bg-gray-100 transition-colors">
-            <Plus size={14} /> Upgrade Plan
-          </button>
-        </div>
-      </div>
+      <Sidebar />
 
       {/* ── Main Canvas Area ── */}
       <div className="flex-1 relative overflow-hidden">
