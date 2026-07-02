@@ -198,64 +198,57 @@ export default function PaperPage() {
       </header>
 
       {/* ── Hero ── */}
-      <div className="relative w-full overflow-hidden shrink-0 border-b border-[#1a2535]">
-        <DitherGradient {...getGradientColorsForDomain(paper.domain, paper.field)} className="absolute inset-0 opacity-40" />
-        <div className="absolute inset-0 bg-gradient-to-b from-[#050810]/30 to-[#050810]/95" />
+      <section className="relative w-full h-[100vh] flex flex-col items-center justify-center overflow-hidden shrink-0">
+        <DitherGradient 
+          {...getGradientColorsForDomain(paper.domain, paper.field)}
+          className="absolute inset-0" 
+        />
         
-        <section className="relative z-10 px-8 pt-16 pb-12 max-w-[860px] mx-auto">
-          {/* Domain + type badges */}
-        <div className="flex items-center gap-2 mb-6">
-          {(paper.domain || paper.field) && (
-            <span className="text-[11px] font-medium px-3 py-1 rounded-full"
-              style={{ background: "rgba(59,201,219,0.08)", color: "#3bc9db", border: "1px solid rgba(59,201,219,0.2)" }}>
-              {paper.domain || paper.field}
-            </span>
-          )}
-          {paper.isOpenAccess ? (
-            <span className="flex items-center gap-1 text-[11px] font-medium px-3 py-1 rounded-full"
-              style={{ background: "rgba(16,185,129,0.08)", color: "#10b981", border: "1px solid rgba(16,185,129,0.2)" }}>
-              <Unlock size={10} /> Open Access
-            </span>
-          ) : (
-            <span className="flex items-center gap-1 text-[11px] font-medium px-3 py-1 rounded-full"
-              style={{ background: "#0a0f1a", color: "#475569", border: "1px solid #1a2535" }}>
-              <Lock size={10} /> Closed
-            </span>
-          )}
-          {paper.type && (
-            <span className="text-[11px] font-medium px-3 py-1 rounded-full capitalize"
-              style={{ background: "#0a0f1a", color: "#475569", border: "1px solid #1a2535" }}>
-              {paper.type}
-            </span>
-          )}
+        <div className="relative z-10 flex flex-col items-center w-full px-12 text-center">
+          {/* Domain Badge */}
+          <div className="px-3 py-1 mb-8 text-xs text-white/80 border border-white/20 rounded-full bg-white/5 backdrop-blur-sm">
+            {paper.domain || paper.field || "Research"}
+          </div>
+          
+          {/* Main Title */}
+          <h1 className="text-white text-[48px] md:text-[60px] lg:text-[68px] font-bold tracking-tight leading-[1.1] max-w-[900px] text-balance" style={{ fontFamily: "'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif" }}>
+            {stripHtml(paper.title)}
+          </h1>
+          
+          {/* Subtitle / Authors */}
+          <p className="mt-6 text-[16px] md:text-[18px] text-white/80 max-w-[700px] font-light leading-relaxed" style={{ fontFamily: "'Inter', 'Roboto', sans-serif" }}>
+            {paper.authors ? (Array.isArray(paper.authors) ? paper.authors.join(", ") : paper.authors) : (paper.abstract ? paper.abstract.substring(0, 150) + "..." : "Explore this research paper's findings, methodology, and citations.")}
+          </p>
+          
+          {/* Action Buttons */}
+          <div className="flex flex-wrap justify-center items-center gap-4 mt-12">
+            {paper.isOpenAccess && paper.pdfUrl && (
+              <a href={paper.pdfUrl} target="_blank" rel="noopener noreferrer" 
+                 className="flex items-center gap-2.5 px-6 py-2.5 rounded-full text-[14px] font-medium border border-white/30 text-white bg-white/10 backdrop-blur-md hover:bg-white hover:text-black transition-all duration-300 ease-out">
+                <FileText size={16} /> Read PDF
+              </a>
+            )}
+            {paper.doi && (
+              <a href={`https://doi.org/${paper.doi}`} target="_blank" rel="noopener noreferrer" 
+                 className="flex items-center gap-2.5 px-6 py-2.5 rounded-full text-[14px] font-medium border border-white/30 text-white bg-white/10 backdrop-blur-md hover:bg-white hover:text-black transition-all duration-300 ease-out">
+                <ExternalLink size={16} /> View DOI
+              </a>
+            )}
+            <button 
+              onClick={() => {
+                document.getElementById('abstract-section')?.scrollIntoView({ behavior: 'smooth' });
+              }}
+              className="flex items-center gap-2.5 px-6 py-2.5 rounded-full text-[14px] font-medium border border-white/30 text-white bg-white/10 backdrop-blur-md hover:bg-white hover:text-black transition-all duration-300 ease-out">
+              <BookOpen size={16} /> Explore
+            </button>
+          </div>
         </div>
-
-        {/* Title */}
-        <h1 className="text-[32px] sm:text-[38px] font-bold leading-tight tracking-tight mb-6"
-          style={{ color: "#f1f5f9", letterSpacing: "-0.02em" }}>
-          {stripHtml(paper.title)}
-        </h1>
-
-        {/* Authors inline */}
-        {paper.authors?.length > 0 && (
-          <p className="text-[15px] mb-2" style={{ color: "#64748b" }}>
-            {paper.authors.slice(0, 5).join(", ")}{paper.authors.length > 5 ? ` +${paper.authors.length - 5} more` : ""}
-          </p>
-        )}
-
-        {/* Journal + year */}
-        {(paper.journal || paper.publicationYear) && (
-          <p className="text-[13px] font-medium" style={{ color: "#475569" }}>
-            {paper.journal}{paper.journal && paper.publicationYear ? " · " : ""}{paper.publicationYear}
-          </p>
-        )}
       </section>
-      </div>
 
 
 
       {/* ── Main content ── */}
-      <main className="max-w-[860px] mx-auto px-8 py-12 flex flex-col gap-14">
+      <main id="abstract-section" className="max-w-[860px] mx-auto px-8 py-12 flex flex-col gap-14">
 
         {/* Stats row */}
         <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
