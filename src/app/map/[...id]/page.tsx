@@ -237,10 +237,10 @@ export default function MapPage() {
       const t = typeof d.target === "string" ? nodes.find(n => n.id === d.target) : d.target as MapNode;
       if (!s || !t) return "";
 
-      const sW = s.type === "center" ? 160 : 64;
-      const tW = t.type === "center" ? 160 : 64;
-      const sH = s.type === "center" ? 56 : 64;
-      const tH = t.type === "center" ? 56 : 64;
+      const sW = s.type === "center" ? 240 : 80;
+      const tW = t.type === "center" ? 240 : 80;
+      const sH = s.type === "center" ? 72 : 80;
+      const tH = t.type === "center" ? 72 : 80;
 
       let sx = s.x, sy = s.y, tx = t.x, ty = t.y;
 
@@ -320,10 +320,10 @@ export default function MapPage() {
 
     // Card shadow
     nodeSel.append("rect")
-      .attr("x", d => d.type === "center" ? -80 - 4 : -32 - 4)
-      .attr("y", d => d.type === "center" ? -28 - 4 : -32 - 4)
-      .attr("width", d => d.type === "center" ? 160 + 8 : 64 + 8)
-      .attr("height", d => d.type === "center" ? 56 + 8 : 64 + 8)
+      .attr("x", d => d.type === "center" ? -120 - 4 : -40 - 4)
+      .attr("y", d => d.type === "center" ? -36 - 4 : -40 - 4)
+      .attr("width", d => d.type === "center" ? 240 + 8 : 80 + 8)
+      .attr("height", d => d.type === "center" ? 72 + 8 : 80 + 8)
       .attr("rx", d => d.type === "center" ? 12 : 20)
       .attr("fill", "rgba(0,0,0,0.5)")
       .attr("filter", "url(#shadow)");
@@ -331,11 +331,11 @@ export default function MapPage() {
     // Card body (n8n style)
     nodeSel.append("rect")
       .attr("class", "card-body")
-      .attr("x", d => d.type === "center" ? -80 : -32)
-      .attr("y", d => d.type === "center" ? -28 : -32)
-      .attr("width", d => d.type === "center" ? 160 : 64)
-      .attr("height", d => d.type === "center" ? 56 : 64)
-      .attr("rx", d => d.type === "center" ? 8 : 16)
+      .attr("x", d => d.type === "center" ? -120 : -40)
+      .attr("y", d => d.type === "center" ? -36 : -40)
+      .attr("width", d => d.type === "center" ? 240 : 80)
+      .attr("height", d => d.type === "center" ? 72 : 80)
+      .attr("rx", d => d.type === "center" ? 12 : 20)
       .attr("fill", d => d.type === "center" ? "#1A1D27" : "#11131A")
       .attr("stroke", d => d.id === stateRef.current.selectedNode?.id ? "#FFFFFF" : "#2A2E3D")
       .attr("stroke-width", d => d.id === stateRef.current.selectedNode?.id ? 1.5 : 1)
@@ -365,44 +365,44 @@ export default function MapPage() {
       .attr("stroke-width", 1.5)
       .attr("stroke-linecap", "round")
       .attr("stroke-linejoin", "round")
-      .attr("transform", "translate(-50, -12)");
+      .attr("transform", "translate(-80, -12)");
       
     centerGroup.append("text")
       .attr("text-anchor", "start")
-      .attr("x", -15).attr("y", -2)
-      .attr("font-size", "11px").attr("font-weight", "600").attr("font-family", SF)
+      .attr("x", -40).attr("y", -2)
+      .attr("font-size", "13px").attr("font-weight", "600").attr("font-family", SF)
       .attr("fill", "#FFFFFF").attr("pointer-events", "none")
-      .text(d => truncate(d.title, 18));
+      .text(d => truncate(d.title, 32));
 
     centerGroup.append("text")
       .attr("text-anchor", "start")
-      .attr("x", -15).attr("y", 12)
-      .attr("font-size", "9px").attr("font-family", MONO)
+      .attr("x", -40).attr("y", 14)
+      .attr("font-size", "10px").attr("font-family", MONO)
       .attr("fill", "#64748B").attr("pointer-events", "none")
       .text("AI Map Center");
 
     // Title outside non-center nodes
     nodeSel.filter(d => d.type !== "center").append("text")
       .attr("text-anchor", "middle")
-      .attr("x", 0).attr("y", 52)
-      .attr("font-size", "11px").attr("font-weight", "500").attr("font-family", SF)
+      .attr("x", 0).attr("y", 62)
+      .attr("font-size", "12px").attr("font-weight", "500").attr("font-family", SF)
       .attr("fill", "#E2E8F0").attr("pointer-events", "none")
-      .text(d => truncate(d.title, 25));
+      .text(d => truncate(d.title, 30));
 
     // Meta (Year/Cit) outside non-center nodes
     nodeSel.filter(d => d.type !== "center").append("text")
       .attr("text-anchor", "middle")
-      .attr("x", 0).attr("y", 66)
-      .attr("font-size", "9px").attr("font-family", MONO)
+      .attr("x", 0).attr("y", 78)
+      .attr("font-size", "10px").attr("font-family", MONO)
       .attr("fill", "#64748B").attr("pointer-events", "none")
       .text(d => [d.year, d.citations ? `${d.citations.toLocaleString()} cit.` : ""].filter(Boolean).join(" · "));
 
     // Port dots (Left, Right, Top, Bottom)
     const ports = [
-      { x: (d: MapNode) => d.type === "center" ? -80 : -32, y: () => 0 },
-      { x: (d: MapNode) => d.type === "center" ? 80 : 32, y: () => 0 },
-      { x: () => 0, y: (d: MapNode) => d.type === "center" ? -28 : -32 },
-      { x: () => 0, y: (d: MapNode) => d.type === "center" ? 28 : 32 }
+      { x: (d: MapNode) => d.type === "center" ? -120 : -40, y: () => 0 },
+      { x: (d: MapNode) => d.type === "center" ? 120 : 40, y: () => 0 },
+      { x: () => 0, y: (d: MapNode) => d.type === "center" ? -36 : -40 },
+      { x: () => 0, y: (d: MapNode) => d.type === "center" ? 36 : 40 }
     ];
     
     ports.forEach(pos => {
@@ -417,7 +417,7 @@ export default function MapPage() {
 
     // Plus button (add child node)
     nodeSel.append("circle")
-      .attr("cx", d => d.type === "center" ? 92 : 44)
+      .attr("cx", d => d.type === "center" ? 134 : 54)
       .attr("cy", 0)
       .attr("r", 7)
       .attr("fill", "#1A1D27")
@@ -429,13 +429,13 @@ export default function MapPage() {
           id: `custom-${Date.now()}`,
           title: "New Node",
           type: "custom", shape: "card", priority: "normal",
-          x: d.x + 200, y: d.y + (Math.random() * 40 - 20),
+          x: d.x + 240, y: d.y + (Math.random() * 40 - 20),
         };
         setNodes(p => [...p, child]);
         setEdges(p => [...p, { source: d.id, target: child.id, type: "custom" }]);
       });
     nodeSel.append("text")
-      .text("+").attr("x", d => d.type === "center" ? 92 : 44).attr("y", 3)
+      .text("+").attr("x", d => d.type === "center" ? 134 : 54).attr("y", 3)
       .attr("text-anchor", "middle").attr("font-size", "10px")
       .attr("fill", "#64748B").attr("font-family", MONO)
       .attr("pointer-events", "none");
