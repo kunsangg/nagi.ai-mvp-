@@ -27,48 +27,7 @@ const PAPER_TYPES = [
   { label: "Dissertation", value: "dissertation" },
 ];
 
-const DOMAIN_IMAGES: Record<string, string> = {
-  "Life Sciences": "https://images.unsplash.com/photo-1530026405186-ed1f139313f8?w=400&q=80",
-  "Health Sciences": "https://images.unsplash.com/photo-1576091160399-112ba8d25d1d?w=400&q=80",
-  "Physical Sciences": "https://images.unsplash.com/photo-1462331940025-496dfbfc7564?w=400&q=80",
-  "Social Sciences": "https://images.unsplash.com/photo-1529156069898-49953e39b3ac?w=400&q=80",
-  "Computer Science": "https://images.unsplash.com/photo-1518770660439-4636190af475?w=400&q=80",
-  "Mathematics": "https://images.unsplash.com/photo-1509228468518-180dd4864904?w=400&q=80",
-  "Engineering": "https://images.unsplash.com/photo-1537462715879-360eeb61a0ad?w=400&q=80",
-  "Economics": "https://images.unsplash.com/photo-1611974789855-9c2a0a7236a3?w=400&q=80",
-  "Medicine": "https://images.unsplash.com/photo-1559757148-5c350d0d3c56?w=400&q=80",
-  "Biology": "https://images.unsplash.com/photo-1530026405186-ed1f139313f8?w=400&q=80",
-  "Chemistry": "https://images.unsplash.com/photo-1532187863486-abf9dbad1b69?w=400&q=80",
-  "Physics": "https://images.unsplash.com/photo-1446776811953-b23d57bd21aa?w=400&q=80",
-  "Psychology": "https://images.unsplash.com/photo-1507413245164-6160d8298b31?w=400&q=80",
-  "Environmental Science": "https://images.unsplash.com/photo-1441974231531-c6227db76b6e?w=400&q=80",
-};
 
-const GRADIENTS = [
-  "from-indigo-500/20 to-purple-500/20",
-  "from-emerald-500/20 to-teal-500/20",
-  "from-blue-500/20 to-cyan-500/20",
-  "from-orange-500/20 to-red-500/20",
-  "from-pink-500/20 to-rose-500/20",
-];
-
-function getGradientForPaper(id: string) {
-  let hash = 0;
-  for (let i = 0; i < id.length; i++) {
-    hash = id.charCodeAt(i) + ((hash << 5) - hash);
-  }
-  return GRADIENTS[Math.abs(hash) % GRADIENTS.length];
-}
-
-function getDomainImage(domain?: string, field?: string): string | null {
-  if (domain && DOMAIN_IMAGES[domain]) return DOMAIN_IMAGES[domain];
-  if (field && DOMAIN_IMAGES[field]) return DOMAIN_IMAGES[field];
-  for (const key of Object.keys(DOMAIN_IMAGES)) {
-    if (domain?.toLowerCase().includes(key.toLowerCase())) return DOMAIN_IMAGES[key];
-    if (field?.toLowerCase().includes(key.toLowerCase())) return DOMAIN_IMAGES[key];
-  }
-  return null;
-}
 
 function stripHtml(str?: string): string {
   if (!str) return "";
@@ -421,91 +380,98 @@ export default function HeroSearch() {
                 <div
                   key={paper.id}
                   onClick={() => handlePaperClick(paper)}
-                  className="group flex flex-col cursor-pointer bg-[#111213] border border-[#2b2d2d] rounded-xl overflow-hidden hover:-translate-y-1 hover:shadow-[0_8px_30px_rgba(0,0,0,0.4)] hover:border-[#3bc9db]/30 transition-all duration-300 h-full"
-                  style={{ animationDelay: `${index * 60}ms` }}
+                  className="group flex flex-col cursor-pointer rounded-2xl overflow-hidden border transition-all duration-300 hover:-translate-y-0.5 h-full"
+                  style={{
+                    background: "#0d1520",
+                    borderColor: "#1a2535",
+                  }}
+                  onMouseEnter={e => {
+                    (e.currentTarget as HTMLDivElement).style.borderColor = "rgba(59,201,219,0.3)";
+                    (e.currentTarget as HTMLDivElement).style.boxShadow = "0 8px 32px rgba(0,0,0,0.4)";
+                  }}
+                  onMouseLeave={e => {
+                    (e.currentTarget as HTMLDivElement).style.borderColor = "#1a2535";
+                    (e.currentTarget as HTMLDivElement).style.boxShadow = "none";
+                  }}
                 >
-                  {/* Image/Gradient Thumbnail (16:9) */}
-                  <div className="relative w-full aspect-video overflow-hidden bg-[#1a1b1b] shrink-0">
-                    {getDomainImage(paper.domain, paper.field) ? (
-                      <img
-                        src={getDomainImage(paper.domain, paper.field)!}
-                        alt={paper.domain || paper.field || "Research"}
-                        className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105 opacity-70 group-hover:opacity-90"
-                      />
-                    ) : (
-                      <div className={`w-full h-full bg-gradient-to-br ${getGradientForPaper(paper.id)} opacity-50 transition-transform duration-700 group-hover:scale-105`} />
-                    )}
-                    <div className="absolute inset-0 bg-gradient-to-t from-[#111213] via-[#111213]/20 to-transparent" />
-                    
-                    {/* Rank Badge */}
-                    <div className="absolute top-3 left-3 flex items-center">
-                      <span className="text-[10px] font-bold text-white bg-black/40 backdrop-blur-md px-2 py-1 rounded-md tracking-wider border border-white/10">
-                        #{index + 1}
+                  {/* Card top — domain color bar + rank + badges */}
+                  <div className="relative px-5 pt-5 pb-4 border-b" style={{ borderColor: "#1a2535" }}>
+                    {/* Colored accent line at very top */}
+                    <div className="absolute top-0 left-0 right-0 h-[2px] rounded-t-2xl"
+                      style={{ background: `linear-gradient(90deg, #3bc9db, transparent)`, opacity: 0.6 }} />
+
+                    <div className="flex items-start justify-between gap-3 mb-3">
+                      {/* Rank */}
+                      <span className="text-[11px] font-semibold tabular-nums shrink-0 mt-0.5"
+                        style={{ color: "#3bc9db", fontFamily: "var(--font-mono)" }}>
+                        #{String(index + 1).padStart(2, "0")}
                       </span>
-                    </div>
-
-                    {/* Paper Type Pill */}
-                    <div className="absolute top-3 right-3 flex items-center gap-2">
-                      {paper.isOpenAccess && (
-                        <span className="text-[10px] font-bold bg-emerald-500/20 text-emerald-400 border border-emerald-500/30 px-2 py-1 rounded-md tracking-wider backdrop-blur-md">
-                          OA
-                        </span>
-                      )}
-                      {paper.type && (
-                        <span className="text-[10px] font-medium bg-black/40 text-[#a0a0a0] border border-white/10 px-2 py-1 rounded-md capitalize backdrop-blur-md">
-                          {paper.type.replace("-", " ")}
-                        </span>
-                      )}
-                    </div>
-                  </div>
-
-                  {/* Card Metadata Content */}
-                  <div className="flex flex-col flex-1 p-5 pt-4 gap-3">
-                    {/* Title */}
-                    <div className="text-[15px] font-bold text-white leading-snug group-hover:text-[#3bc9db] transition-colors line-clamp-2 font-sans">
-                      {stripHtml(paper.title)}
-                    </div>
-
-                    {/* Authors & Venue & Year */}
-                    <div className="flex flex-col gap-1.5">
-                      {paper.authors && paper.authors.length > 0 && (
-                        <div className="text-[12px] text-[#a0a0a0] font-sans line-clamp-1">
-                          {paper.authors.slice(0, 3).join(", ")}{paper.authors.length > 3 ? " et al." : ""}
-                        </div>
-                      )}
-                      <div className="flex items-center gap-2 text-[11px] text-[#808080] font-sans font-medium">
-                        {paper.journal && (
-                          <span className="truncate max-w-[180px]">{paper.journal}</span>
+                      {/* Badges */}
+                      <div className="flex items-center gap-1.5 shrink-0">
+                        {paper.isOpenAccess && (
+                          <span className="text-[9px] font-bold px-2 py-0.5 rounded-full tracking-widest"
+                            style={{ background: "rgba(16,185,129,0.12)", color: "#10b981", border: "1px solid rgba(16,185,129,0.25)" }}>
+                            OA
+                          </span>
                         )}
-                        {paper.journal && paper.publicationYear && <span>·</span>}
-                        {paper.publicationYear && (
-                          <span>{paper.publicationYear}</span>
+                        {paper.type && (
+                          <span className="text-[9px] font-medium px-2 py-0.5 rounded-full capitalize tracking-wide"
+                            style={{ background: "#0a0f1a", color: "#64748b", border: "1px solid #1a2535" }}>
+                            {paper.type.replace("-", " ")}
+                          </span>
                         )}
                       </div>
                     </div>
 
-                    {/* Citation Count Badge */}
-                    <div className="flex items-center mt-0.5">
-                      <span className="inline-flex items-center text-[10px] font-bold bg-[#3bc9db]/10 text-[#3bc9db] border border-[#3bc9db]/20 px-2 py-1 rounded-md font-sans tracking-wide">
+                    {/* Title */}
+                    <h3 className="text-[15px] font-semibold leading-snug line-clamp-3 transition-colors group-hover:text-[#3bc9db]"
+                      style={{ color: "#e2e8f0", fontFamily: "var(--font-system)", letterSpacing: "-0.01em" }}>
+                      {stripHtml(paper.title)}
+                    </h3>
+                  </div>
+
+                  {/* Card body */}
+                  <div className="flex flex-col flex-1 px-5 py-4 gap-3">
+                    {/* Authors */}
+                    {paper.authors && paper.authors.length > 0 && (
+                      <p className="text-[12px] line-clamp-1" style={{ color: "#64748b" }}>
+                        {paper.authors.slice(0, 3).join(", ")}{paper.authors.length > 3 ? " et al." : ""}
+                      </p>
+                    )}
+
+                    {/* Journal + Year */}
+                    <div className="flex items-center gap-2 text-[11px]" style={{ color: "#475569" }}>
+                      {paper.journal && (
+                        <span className="truncate max-w-[160px] font-medium">{paper.journal}</span>
+                      )}
+                      {paper.journal && paper.publicationYear && (
+                        <span style={{ color: "#243044" }}>·</span>
+                      )}
+                      {paper.publicationYear && <span>{paper.publicationYear}</span>}
+                    </div>
+
+                    {/* Citations */}
+                    <div>
+                      <span className="inline-flex items-center text-[11px] font-semibold px-2.5 py-1 rounded-lg"
+                        style={{ background: "rgba(59,201,219,0.08)", color: "#3bc9db", border: "1px solid rgba(59,201,219,0.15)" }}>
                         {paper.citationCount.toLocaleString()} Citations
                       </span>
                     </div>
 
-                    {/* Abstract Preview */}
+                    {/* Abstract */}
                     {paper.abstract && (
-                      <div className="text-[12px] text-[#808080] leading-relaxed line-clamp-3 font-sans mt-1">
+                      <p className="text-[12px] leading-relaxed line-clamp-3 flex-1"
+                        style={{ color: "#475569" }}>
                         {paper.abstract}
-                      </div>
+                      </p>
                     )}
 
-                    {/* Spacer to push tags to bottom */}
-                    <div className="flex-1" />
-
-                    {/* Research Tags */}
+                    {/* Topic tags */}
                     {paper.topics && paper.topics.length > 0 && (
-                      <div className="flex gap-1.5 flex-wrap pt-4 border-t border-[#2b2d2d]/50">
+                      <div className="flex gap-1.5 flex-wrap pt-3 mt-auto border-t" style={{ borderColor: "#1a2535" }}>
                         {paper.topics.slice(0, 2).map((t, i) => (
-                          <span key={i} className="text-[9px] text-[#a0a0a0] bg-[#1a1b1b] border border-[#2b2d2d] px-2 py-1 rounded-md font-sans uppercase tracking-widest hover:text-white transition-colors">
+                          <span key={i} className="text-[9px] font-medium px-2 py-1 rounded-md uppercase tracking-widest"
+                            style={{ background: "#0a0f1a", color: "#475569", border: "1px solid #1a2535" }}>
                             {t.displayName}
                           </span>
                         ))}

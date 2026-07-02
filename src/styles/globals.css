@@ -1,28 +1,42 @@
 @import "tailwindcss";
 
 @theme {
-  /* Colors */
-  --color-perplex-bg: #191a1a;
-  --color-perplex-surface: #202222;
-  --color-perplex-hover: #2b2d2d;
-  --color-perplex-border: #2b2d2d;
-  
-  --color-perplex-text: #e8e8e6;
-  --color-perplex-muted: #a0a0a0;
-  
-  --color-perplex-teal: #016a71;
-  --color-perplex-teal-hover: #017a82;
+  /* Nagi dark ocean palette */
+  --color-nagi-bg:        #050810;
+  --color-nagi-surface:   #0a0f1a;
+  --color-nagi-card:      #0d1520;
+  --color-nagi-border:    #1a2535;
+  --color-nagi-border2:   #243044;
+  --color-nagi-text:      #e2e8f0;
+  --color-nagi-muted:     #64748b;
+  --color-nagi-faint:     #334155;
+  --color-nagi-teal:      #3bc9db;
+  --color-nagi-teal-dim:  #22b8cf;
+  --color-nagi-teal-glow: rgba(59,201,219,0.12);
 
-  --font-pplxsans: -apple-system, BlinkMacSystemFont, "SF Pro Text", "SF Pro Icons", "Helvetica Neue", Helvetica, Arial, sans-serif;
+  /* Apple system font stack */
+  --font-system: -apple-system, BlinkMacSystemFont, "SF Pro Text", "SF Pro Display",
+    "Helvetica Neue", Helvetica, Arial, sans-serif;
+  --font-mono:   "SF Mono", SFMono-Regular, ui-monospace, "Cascadia Mono",
+    "Segoe UI Mono", Menlo, Consolas, monospace;
 }
+
+*, *::before, *::after { box-sizing: border-box; }
+
+html { -webkit-font-smoothing: antialiased; -moz-osx-font-smoothing: grayscale; }
 
 body {
-  background-color: var(--color-perplex-bg);
-  color: var(--color-perplex-text);
-  font-family: var(--font-pplxsans);
+  background-color: var(--color-nagi-bg);
+  color:            var(--color-nagi-text);
+  font-family:      var(--font-system);
+  font-size:        15px;
+  line-height:      1.6;
 }
 
-.glass-panel {
-  background: var(--color-perplex-surface);
-  border: 1px solid var(--color-perplex-border);
-}
+::selection { background: rgba(59,201,219,0.2); color: #e2e8f0; }
+
+/* Scrollbar */
+::-webkit-scrollbar       { width: 5px; height: 5px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb { background: #1a2535; border-radius: 9999px; }
+::-webkit-scrollbar-thumb:hover { background: #243044; }
