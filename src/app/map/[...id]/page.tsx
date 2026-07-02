@@ -1230,6 +1230,97 @@ export default function MapPage() {
 
 
 
+
+      {/* ── Floating Bottom Center Toolbar (Glassmorphism Dock) ── */}
+      <div className="absolute bottom-6 left-1/2 -translate-x-1/2 z-30 flex flex-col items-center gap-4 pointer-events-none">
+      {/* Premium Glassmorphism Toolbar */}
+        <div 
+          className="flex items-center gap-5 px-3 py-2 pointer-events-auto rounded-[20px] shadow-2xl backdrop-blur-2xl transition-all"
+          style={{ 
+            background: "rgba(17, 19, 26, 0.7)", 
+            border: "1px solid rgba(255, 255, 255, 0.08)",
+            boxShadow: "0 20px 40px rgba(0,0,0,0.4), inset 0 1px 0 rgba(255,255,255,0.1)"
+          }}
+        >
+          {([
+            [
+              { t: "select",  icon: <MousePointer size={17} />, tip: "Cursor (V)"  },
+              { t: "hand",    icon: <Hand         size={17} />, tip: "Hand (H)" },
+            ],
+            [
+              { t: "paper",   icon: <FileText     size={17} />, tip: "Paper Node"  },
+              { t: "note",    icon: <StickyNote   size={17} />, tip: "Note Node" },
+              { t: "question",icon: <MessageSquare size={17} />, tip: "Research Question" },
+              { t: "timeline",icon: <Minus        size={17} />, tip: "Timeline" },
+              { t: "frame",   icon: <Square       size={17} />, tip: "Frame" },
+            ],
+            [
+              { t: "connect", icon: <ArrowUpRight size={17} />, tip: "Connection" },
+              { t: "comment", icon: <MessageCircle size={17} />, tip: "Comment" },
+            ],
+            [
+              { t: "ai",      icon: <Sparkles     size={17} />, tip: "AI Assistant", special: true },
+            ],
+            [
+              { t: "export",  icon: <Download     size={17} />, tip: "Export" },
+            ]
+          ] as any[][]).map((group, groupIndex) => (
+            <div key={groupIndex} className="flex items-center gap-1 relative">
+              {group.map((item) => (
+                <button 
+                  key={item.t} 
+                  className={`relative group w-9 h-9 flex items-center justify-center rounded-[12px] transition-all duration-300 active:scale-95 ${
+                    item.special ? "hover:scale-105 hover:-translate-y-0.5" : "hover:bg-[rgba(255,255,255,0.08)] hover:text-white"
+                  }`}
+                  onClick={() => {
+                    if (item.t === "paper") {
+                      setShowAdd(true);
+                    } else if (item.t === "ai") {
+                      setActiveTool("ai" as Tool);
+                    } else {
+                      setActiveTool(item.t as Tool);
+                    }
+                  }}
+                  style={item.special ? {
+                    background: "linear-gradient(135deg, #3b82f6, #8b5cf6)",
+                    boxShadow: "0 4px 15px rgba(139, 92, 246, 0.4), inset 0 1px 1px rgba(255,255,255,0.4)",
+                    color: "#ffffff"
+                  } : {
+                    background: activeTool === item.t ? "rgba(255,255,255,0.12)" : "transparent",
+                    color:      activeTool === item.t ? "#ffffff" : "#94a3b8",
+                    boxShadow:  activeTool === item.t ? "inset 0 1px 3px rgba(255,255,255,0.1), 0 1px 2px rgba(0,0,0,0.2)" : "none",
+                  }}
+                >
+                  {item.icon}
+                  {/* Tooltip */}
+                  <div className="absolute -top-[52px] left-1/2 -translate-x-1/2 px-3 py-1.5 rounded-[10px] text-[12px] font-semibold opacity-0 group-hover:opacity-100 transition-all duration-200 pointer-events-none whitespace-nowrap shadow-2xl backdrop-blur-xl z-50 translate-y-2 group-hover:translate-y-0"
+                    style={{ background: "rgba(10,12,16,0.95)", border: "1px solid rgba(255,255,255,0.15)", color: "#f8fafc", fontFamily: SF, boxShadow: "0 10px 25px rgba(0,0,0,0.5)" }}>
+                    {item.tip}
+                  </div>
+                </button>
+              ))}
+            </div>
+          ))}
+        </div>
+      </div>
+
+      {/* ── Floating Bottom Right (Zoom) ── */}
+      <div className="absolute bottom-6 right-6 z-30 flex items-center gap-1.5 pointer-events-auto nagi-glass-toolbar px-3 py-2">
+        {([
+          { fn: () => doZoom("out"), icon: <ZoomOut    size={14} />, tip: "Zoom out" },
+          { fn: () => doZoom("in"),  icon: <ZoomIn     size={14} />, tip: "Zoom in"  },
+          { fn: () => doZoom("fit"), icon: <Maximize2  size={14} />, tip: "Reset"    },
+        ]).map((z, i) => (
+          <button key={i} title={z.tip} onClick={z.fn}
+            className="w-8 h-8 flex items-center justify-center rounded-full transition-all hover:bg-[rgba(255,255,255,0.1)] active:scale-95 text-[#a1a1aa] hover:text-white">
+            {z.icon}
+          </button>
+        ))}
+      </div>
+
+
+
+      </div>
       {/* ── Fixed Right Sidebar (Unified) ── */}
       <aside className="w-[320px] flex-shrink-0 h-full flex flex-col z-40 transition-all duration-300" style={{ background: "#222327", borderLeft: "1px solid #333539" }}>
         
@@ -1670,97 +1761,6 @@ export default function MapPage() {
           )}
         </div>
       </aside>
-
-      {/* ── Floating Bottom Center Toolbar (Glassmorphism Dock) ── */}
-      <div className="absolute bottom-6 left-1/2 -translate-x-1/2 z-30 flex flex-col items-center gap-4 pointer-events-none">
-      {/* Premium Glassmorphism Toolbar */}
-        <div 
-          className="flex items-center gap-5 px-3 py-2 pointer-events-auto rounded-[20px] shadow-2xl backdrop-blur-2xl transition-all"
-          style={{ 
-            background: "rgba(17, 19, 26, 0.7)", 
-            border: "1px solid rgba(255, 255, 255, 0.08)",
-            boxShadow: "0 20px 40px rgba(0,0,0,0.4), inset 0 1px 0 rgba(255,255,255,0.1)"
-          }}
-        >
-          {([
-            [
-              { t: "select",  icon: <MousePointer size={17} />, tip: "Cursor (V)"  },
-              { t: "hand",    icon: <Hand         size={17} />, tip: "Hand (H)" },
-            ],
-            [
-              { t: "paper",   icon: <FileText     size={17} />, tip: "Paper Node"  },
-              { t: "note",    icon: <StickyNote   size={17} />, tip: "Note Node" },
-              { t: "question",icon: <MessageSquare size={17} />, tip: "Research Question" },
-              { t: "timeline",icon: <Minus        size={17} />, tip: "Timeline" },
-              { t: "frame",   icon: <Square       size={17} />, tip: "Frame" },
-            ],
-            [
-              { t: "connect", icon: <ArrowUpRight size={17} />, tip: "Connection" },
-              { t: "comment", icon: <MessageCircle size={17} />, tip: "Comment" },
-            ],
-            [
-              { t: "ai",      icon: <Sparkles     size={17} />, tip: "AI Assistant", special: true },
-            ],
-            [
-              { t: "export",  icon: <Download     size={17} />, tip: "Export" },
-            ]
-          ] as any[][]).map((group, groupIndex) => (
-            <div key={groupIndex} className="flex items-center gap-1 relative">
-              {group.map((item) => (
-                <button 
-                  key={item.t} 
-                  className={`relative group w-9 h-9 flex items-center justify-center rounded-[12px] transition-all duration-300 active:scale-95 ${
-                    item.special ? "hover:scale-105 hover:-translate-y-0.5" : "hover:bg-[rgba(255,255,255,0.08)] hover:text-white"
-                  }`}
-                  onClick={() => {
-                    if (item.t === "paper") {
-                      setShowAdd(true);
-                    } else if (item.t === "ai") {
-                      setActiveTool("ai" as Tool);
-                    } else {
-                      setActiveTool(item.t as Tool);
-                    }
-                  }}
-                  style={item.special ? {
-                    background: "linear-gradient(135deg, #3b82f6, #8b5cf6)",
-                    boxShadow: "0 4px 15px rgba(139, 92, 246, 0.4), inset 0 1px 1px rgba(255,255,255,0.4)",
-                    color: "#ffffff"
-                  } : {
-                    background: activeTool === item.t ? "rgba(255,255,255,0.12)" : "transparent",
-                    color:      activeTool === item.t ? "#ffffff" : "#94a3b8",
-                    boxShadow:  activeTool === item.t ? "inset 0 1px 3px rgba(255,255,255,0.1), 0 1px 2px rgba(0,0,0,0.2)" : "none",
-                  }}
-                >
-                  {item.icon}
-                  {/* Tooltip */}
-                  <div className="absolute -top-[52px] left-1/2 -translate-x-1/2 px-3 py-1.5 rounded-[10px] text-[12px] font-semibold opacity-0 group-hover:opacity-100 transition-all duration-200 pointer-events-none whitespace-nowrap shadow-2xl backdrop-blur-xl z-50 translate-y-2 group-hover:translate-y-0"
-                    style={{ background: "rgba(10,12,16,0.95)", border: "1px solid rgba(255,255,255,0.15)", color: "#f8fafc", fontFamily: SF, boxShadow: "0 10px 25px rgba(0,0,0,0.5)" }}>
-                    {item.tip}
-                  </div>
-                </button>
-              ))}
-            </div>
-          ))}
-        </div>
-      </div>
-
-      {/* ── Floating Bottom Right (Zoom) ── */}
-      <div className="absolute bottom-6 right-6 z-30 flex items-center gap-1.5 pointer-events-auto nagi-glass-toolbar px-3 py-2">
-        {([
-          { fn: () => doZoom("out"), icon: <ZoomOut    size={14} />, tip: "Zoom out" },
-          { fn: () => doZoom("in"),  icon: <ZoomIn     size={14} />, tip: "Zoom in"  },
-          { fn: () => doZoom("fit"), icon: <Maximize2  size={14} />, tip: "Reset"    },
-        ]).map((z, i) => (
-          <button key={i} title={z.tip} onClick={z.fn}
-            className="w-8 h-8 flex items-center justify-center rounded-full transition-all hover:bg-[rgba(255,255,255,0.1)] active:scale-95 text-[#a1a1aa] hover:text-white">
-            {z.icon}
-          </button>
-        ))}
-      </div>
-
-
-
-      </div>
 
       {/* ── Add paper modal ── */}
       {showAdd && (
