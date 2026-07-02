@@ -245,6 +245,19 @@ export default function MapPage() {
 
   const [activeSidebarTab, setActiveSidebarTab] = useState<"design" | "copilot">("copilot");
 
+  const [openSections, setOpenSections] = useState<Record<string, boolean>>({
+    general: true,
+    appearance: true,
+    layout: false,
+    typography: false,
+    metadata: true,
+    connections: false,
+    notes: false,
+    ai: true,
+    danger: false
+  });
+  const toggleSection = (s: string) => setOpenSections(prev => ({ ...prev, [s]: !prev[s] }));
+
   useEffect(() => {
     if (selectedNodeIds.length > 0 || selectedEdge) {
       setActiveSidebarTab("design");
@@ -455,39 +468,44 @@ export default function MapPage() {
     const svg = d3.select(el).attr("width", W).attr("height", H);
     const defs = svg.append("defs");
 
-    // Dot grid
+    // Dot grid - Softer and wider spacing
     const pat = defs.append("pattern")
-      .attr("id", "dotgrid").attr("width", 24).attr("height", 24)
+      .attr("id", "dotgrid").attr("width", 40).attr("height", 40)
       .attr("patternUnits", "userSpaceOnUse");
-    pat.append("circle").attr("cx", 1).attr("cy", 1).attr("r", 1).attr("fill", "rgba(255,255,255,0.15)");
+    pat.append("circle").attr("cx", 2).attr("cy", 2).attr("r", 1.5).attr("fill", "rgba(255,255,255,0.04)");
     svg.append("rect").attr("width", W).attr("height", H).attr("fill", "#050505");
     svg.append("rect").attr("width", W).attr("height", H).attr("fill", "url(#dotgrid)");
 
-    // Arrows
+    // Arrows - refined and subtle
     (Object.keys(EDGE_COLOR) as EdgeType[]).forEach(t => {
       defs.append("marker")
         .attr("id", `arr-${t}`).attr("viewBox", "0 -4 9 8")
-        .attr("refX", 9).attr("refY", 0)
-        .attr("markerWidth", 6).attr("markerHeight", 6).attr("orient", "auto")
-        .append("path").attr("d", "M0,-4L9,0L0,4").attr("fill", EDGE_COLOR[t]);
+        .attr("refX", 10).attr("refY", 0)
+        .attr("markerWidth", 5).attr("markerHeight", 5).attr("orient", "auto")
+        .append("path").attr("d", "M0,-4L9,0L0,4").attr("fill", EDGE_COLOR[t]).attr("opacity", 0.9);
     });
 
     // Premium Layered Drop shadow
     const f = defs.append("filter").attr("id", "shadow")
       .attr("x", "-50%").attr("y", "-50%").attr("width", "200%").attr("height", "200%");
-    // Ambient shadow
-    f.append("feDropShadow").attr("dx", 0).attr("dy", 12).attr("stdDeviation", 24)
-      .attr("flood-color", "#000").attr("flood-opacity", 0.4);
-    // Hard shadow
-    f.append("feDropShadow").attr("dx", 0).attr("dy", 4).attr("stdDeviation", 8)
+    f.append("feDropShadow").attr("dx", 0).attr("dy", 16).attr("stdDeviation", 32)
+      .attr("flood-color", "#000").attr("flood-opacity", 0.5);
+    f.append("feDropShadow").attr("dx", 0).attr("dy", 4).attr("stdDeviation", 12)
       .attr("flood-color", "#000").attr("flood-opacity", 0.3);
+
+    const fGlow = defs.append("filter").attr("id", "glow")
+      .attr("x", "-50%").attr("y", "-50%").attr("width", "200%").attr("height", "200%");
+    fGlow.append("feGaussianBlur").attr("stdDeviation", 4).attr("result", "coloredBlur");
+    const feMerge = fGlow.append("feMerge");
+    feMerge.append("feMergeNode").attr("in", "coloredBlur");
+    feMerge.append("feMergeNode").attr("in", "SourceGraphic");
 
     const g = svg.append("g");
     const zoom = d3.zoom<SVGSVGElement, unknown>()
-      .scaleExtent([0.15, 3])
+      .scaleExtent([0.1, 4])
       .filter((ev) => {
         if (ev.type === "wheel") return true;
-        return stateRef.current.activeTool === "hand" || ev.button === 1;
+        return stateRef.current.activeTool === "hand" || ev.button === 1 || ev.button === 2;
       })
       .on("zoom", ev => {
         g.attr("transform", ev.transform);
@@ -530,8 +548,9 @@ export default function MapPage() {
 
     g.append("g").attr("class", "brush").call(brush);
 
-    const getNodeW = (t: NodeType) => t === "frame" ? 800 : t === "center" ? 280 : t === "timeline" ? 340 : t === "question" ? 260 : t === "note" ? 220 : t === "comment" ? 240 : ["paper", "reference", "citing", "related", "custom"].includes(t) ? 280 : 200;
-    const getNodeH = (t: NodeType) => t === "frame" ? 600 : t === "center" ? 80 : t === "timeline" ? 80 : t === "question" ? 80 : t === "note" ? 140 : t === "comment" ? 120 : ["paper", "reference", "citing", "related", "custom"].includes(t) ? 110 : 72;
+    // Modern spacing dimensions
+    const getNodeW = (t: NodeType) => t === "frame" ? 800 : t === "center" ? 320 : t === "timeline" ? 380 : t === "question" ? 300 : t === "note" ? 260 : t === "comment" ? 280 : ["paper", "reference", "citing", "related", "custom"].includes(t) ? 320 : 240;
+    const getNodeH = (t: NodeType) => t === "frame" ? 600 : t === "center" ? 100 : t === "timeline" ? 90 : t === "question" ? 100 : t === "note" ? 180 : t === "comment" ? 140 : ["paper", "reference", "citing", "related", "custom"].includes(t) ? 140 : 90;
 
     svg.on("click", (ev) => {
       if (ev.defaultPrevented) return;
@@ -554,7 +573,7 @@ export default function MapPage() {
       }
     });
 
-    // Edge path helper
+    // Smooth continuous Bezier edge path
     const edgePath = (d: any) => {
       const s = typeof d.source === "string" ? nodes.find(n => n.id === d.source) : d.source as MapNode;
       const t = typeof d.target === "string" ? nodes.find(n => n.id === d.target) : d.target as MapNode;
@@ -570,12 +589,12 @@ export default function MapPage() {
       if (Math.abs(s.x - t.x) > Math.abs(s.y - t.y)) {
         sx = s.x < t.x ? s.x + sW / 2 : s.x - sW / 2;
         tx = s.x < t.x ? t.x - tW / 2 : t.x + tW / 2;
-        const dist = Math.abs(tx - sx) * 0.5;
+        const dist = Math.abs(tx - sx) * 0.4;
         return `M${sx},${sy} C${sx + (s.x < t.x ? dist : -dist)},${sy} ${tx - (s.x < t.x ? dist : -dist)},${ty} ${tx},${ty}`;
       } else {
         sy = s.y < t.y ? s.y + sH / 2 : s.y - sH / 2;
         ty = s.y < t.y ? t.y - tH / 2 : t.y + tH / 2;
-        const dist = Math.abs(ty - sy) * 0.5;
+        const dist = Math.abs(ty - sy) * 0.4;
         return `M${sx},${sy} C${sx},${sy + (s.y < t.y ? dist : -dist)} ${tx},${ty - (s.y < t.y ? dist : -dist)} ${tx},${ty}`;
       }
     };
@@ -584,23 +603,33 @@ export default function MapPage() {
     const edgeG = g.append("g");
     const edgeGroups = edgeG.selectAll<SVGGElement, MapEdge>("g")
       .data(edges).join("g");
+      
+    // Invisible hit area for easier hover
+    const hitSel = edgeGroups.append("path")
+      .attr("fill", "none").attr("stroke", "transparent").attr("stroke-width", 15)
+      .attr("cursor", "pointer").attr("d", edgePath as any);
+
     const linkSel = edgeGroups.append("path")
       .attr("fill", "none")
-      .attr("stroke", (d: any) => stateRef.current.selectedEdge?.id === d.id ? "#ffffff" : EDGE_COLOR[d.type as EdgeType] || "#4F46E5")
-      .attr("stroke-width", (d: any) => stateRef.current.selectedEdge?.id === d.id ? 3 : 2)
-      .attr("stroke-opacity", 0.8)
+      .attr("stroke", (d: any) => stateRef.current.selectedEdge?.id === d.id ? "#3bc9db" : EDGE_COLOR[d.type as EdgeType] || "#4F46E5")
+      .attr("stroke-width", (d: any) => stateRef.current.selectedEdge?.id === d.id ? 2.5 : 1.5)
+      .attr("stroke-opacity", (d: any) => stateRef.current.selectedEdge?.id === d.id ? 1 : 0.65)
       .attr("stroke-dasharray", (d: any) => EDGE_DASH[d.type as EdgeType] || "none")
       .attr("marker-end", (d: any) => `url(#arr-${d.type})`)
       .attr("cursor", "pointer")
       .attr("class", "animated-edge")
-      .attr("d", edgePath as any)
-      .on("mouseover", function(ev, d: any) {
+      .attr("filter", (d: any) => stateRef.current.selectedEdge?.id === d.id ? "url(#glow)" : "none")
+      .attr("d", edgePath as any);
+
+    hitSel.on("mouseover", function(ev, d: any) {
         if (stateRef.current.selectedEdge?.id === d.id) return;
-        d3.select(this).transition().duration(200).attr("stroke-width", 4).attr("stroke-opacity", 1);
+        const p = d3.select(this.parentNode as SVGGElement).select(".animated-edge");
+        p.transition().duration(250).attr("stroke-width", 2.5).attr("stroke-opacity", 0.9).attr("filter", "url(#glow)");
       })
       .on("mouseout", function(ev, d: any) {
         if (stateRef.current.selectedEdge?.id === d.id) return;
-        d3.select(this).transition().duration(200).attr("stroke-width", 2).attr("stroke-opacity", 0.8);
+        const p = d3.select(this.parentNode as SVGGElement).select(".animated-edge");
+        p.transition().duration(250).attr("stroke-width", 1.5).attr("stroke-opacity", 0.65).attr("filter", "none");
       })
       .on("click", (_ev, d: any) => {
         setSelectedEdge(d);
@@ -608,7 +637,7 @@ export default function MapPage() {
         setShowEdgeLabel(true);
       });
 
-    // Edge labels
+    // Elegant Pill Labels
     edgeGroups.each(function(d: any) {
       const labelText = d.label || EDGE_LABEL[d.type as EdgeType];
       if (!labelText) return;
@@ -617,24 +646,42 @@ export default function MapPage() {
       if (!s || !t) return;
       const mx = (s.x + t.x) / 2, my = (s.y + t.y) / 2;
       
-      const width = labelText.length * 7.5 + 24;
-      d3.select(this).append("rect")
-        .attr("x", mx - width/2).attr("y", my - 12)
-        .attr("width", width).attr("height", 24).attr("rx", 12)
-        .attr("fill", "#121212").attr("stroke", EDGE_COLOR[d.type as EdgeType] || "#2b2d2d")
-        .attr("stroke-width", stateRef.current.selectedEdge?.id === d.id ? 2 : 1)
-        .attr("cursor", "pointer")
-        .on("click", () => {
+      const width = labelText.length * 7 + 20;
+      const pillGrp = d3.select(this).append("g")
+         .attr("cursor", "pointer")
+         .on("click", () => {
            setSelectedEdge(d);
            setEdgeLabelInput(d.label || "");
            setShowEdgeLabel(true);
-        });
-      d3.select(this).append("text")
+         })
+         .on("mouseover", function() {
+            d3.select(this).select("rect").transition().duration(200).attr("stroke", "#ffffff");
+         })
+         .on("mouseout", function() {
+            d3.select(this).select("rect").transition().duration(200).attr("stroke", "transparent");
+         });
+
+      pillGrp.append("rect")
+        .attr("x", mx - width/2).attr("y", my - 11)
+        .attr("width", width).attr("height", 22).attr("rx", 11)
+        .attr("fill", "#0A0F1A")
+        .attr("stroke", stateRef.current.selectedEdge?.id === d.id ? "#3BC9DB" : "transparent")
+        .attr("stroke-width", 1)
+        .attr("filter", "url(#shadow)");
+
+      pillGrp.append("rect")
+        .attr("x", mx - width/2).attr("y", my - 11)
+        .attr("width", width).attr("height", 22).attr("rx", 11)
+        .attr("fill", EDGE_COLOR[d.type as EdgeType] || "#2b2d2d")
+        .attr("fill-opacity", 0.15)
+        .attr("pointer-events", "none");
+
+      pillGrp.append("text")
         .text(labelText)
-        .attr("x", mx).attr("y", my + 4.5)
+        .attr("x", mx).attr("y", my + 3.5)
         .attr("text-anchor", "middle")
-        .attr("font-size", "11px").attr("font-family", SF).attr("font-weight", 500)
-        .attr("fill", "#e2e8f0").attr("pointer-events", "none");
+        .attr("font-size", "10px").attr("font-family", SF).attr("font-weight", 600).attr("letter-spacing", "0.05em")
+        .attr("fill", EDGE_COLOR[d.type as EdgeType] || "#e2e8f0").attr("pointer-events", "none");
     });
 
     // Nodes
@@ -650,6 +697,7 @@ export default function MapPage() {
           if (!stateRef.current.selectedNodeIds.includes(d.id)) {
             setSelectedNodeIds([d.id]);
           }
+          d3.select(this).select(".card-shadow").transition().duration(200).attr("transform", "translate(0, 10)");
         })
         .on("drag",  function(ev, d) {
           const dx = ev.dx;
@@ -666,218 +714,123 @@ export default function MapPage() {
             d3.select(this).attr("transform", `translate(${d.x},${d.y})`);
           }
           linkSel.attr("d", edgePath as any);
-          edgeGroups.selectAll("rect,text").remove();
+          hitSel.attr("d", edgePath as any);
+          edgeGroups.selectAll("g").remove(); // Removes pills to avoid jitter during drag, will re-render on end
         })
         .on("end", function() {
           const newNodes = stateRef.current.nodes.map(n => ({ ...n, x: n.x, y: n.y }));
           pushHistory(newNodes, stateRef.current.edges);
+          d3.select(this).select(".card-shadow").transition().duration(200).attr("transform", "translate(0, 0)");
+          // Force re-render of pills
+          setEdges([...stateRef.current.edges]);
         })
       )
       .on("click", (ev, d) => handleNodeClick(ev, d))
       .on("dblclick", (_ev, d) => {
-        // Mock edit mode trigger for now
-        // A full implementation would open a modal or inline edit
         const newTitle = window.prompt("Edit Node Title:", d.title);
         if (newTitle) {
           setNodes(p => p.map(n => n.id === d.id ? { ...n, title: newTitle } : n));
         }
       });
 
-    // Card shadow
+    // Premium shadow for cards
     nodeSel.append("rect")
-      .attr("x", d => -getNodeW(d.type) / 2 - 4)
-      .attr("y", d => -getNodeH(d.type) / 2 - 4)
-      .attr("width", d => getNodeW(d.type) + 8)
-      .attr("height", d => getNodeH(d.type) + 8)
-      .attr("rx", 16)
-      .attr("fill", d => {
-        if (d.customColor) return d.customColor + "33";
-        return d.type === "frame" ? "transparent" : d.type === "ai" ? "rgba(59,201,219,0.2)" : d.type === "dataset" ? "rgba(16,185,129,0.2)" : d.type === "prompt" ? "rgba(245,158,11,0.2)" : d.type === "question" ? "rgba(236,72,153,0.2)" : "rgba(0,0,0,0.5)";
-      })
+      .attr("class", "card-shadow")
+      .attr("x", d => -getNodeW(d.type) / 2)
+      .attr("y", d => -getNodeH(d.type) / 2)
+      .attr("width", d => getNodeW(d.type))
+      .attr("height", d => getNodeH(d.type))
+      .attr("rx", 20) // Much softer rounded corners
+      .attr("fill", "transparent")
       .attr("filter", "url(#shadow)");
 
-    // Card body (n8n style)
+    // Main Card body (Glass aesthetic)
     nodeSel.append("rect")
       .attr("class", "card-body")
       .attr("x", d => -getNodeW(d.type) / 2)
       .attr("y", d => -getNodeH(d.type) / 2)
       .attr("width", d => getNodeW(d.type))
       .attr("height", d => getNodeH(d.type))
-      .attr("rx", 16)
+      .attr("rx", 20) // Much softer rounded corners
       .attr("fill", d => {
         if (d.customColor) return d.customColor + "1A";
-        if (d.type === "center") return "#1A1D27";
-        if (d.type === "ai") return "rgba(30,41,59,0.8)";
-        if (d.type === "dataset") return "rgba(6,78,59,0.8)";
-        if (d.type === "prompt") return "rgba(120,53,15,0.8)";
-        if (d.type === "question") return "rgba(80,20,50,0.8)";
-        if (d.type === "note") return "rgba(30,30,20,0.8)";
-        if (d.type === "timeline") return "rgba(15,20,40,0.8)";
-        if (d.type === "comment") return "rgba(40,15,50,0.8)";
-        if (d.type === "frame") return "rgba(255,255,255,0.02)";
-        return "#11131A";
+        return "rgba(10,15,26,0.65)"; // Ultra-premium glass background
       })
       .attr("stroke", d => {
-        if (stateRef.current.selectedNodeIds.includes(d.id)) return "#FFFFFF";
+        if (stateRef.current.selectedNodeIds.includes(d.id)) return "#3BC9DB";
         if (d.customColor) return d.customColor;
-        if (d.type === "ai") return "#3BC9DB";
-        if (d.type === "dataset") return "#10B981";
-        if (d.type === "prompt") return "#F59E0B";
-        if (d.type === "question") return "#EC4899";
-        if (d.type === "timeline") return "#6366f1";
-        if (d.type === "note") return "#EAB308";
-        if (d.type === "comment") return "#a855f7";
-        if (d.type === "frame") return "#444";
-        return "#2A2E3D";
+        return "rgba(255,255,255,0.08)";
       })
-      .attr("stroke-width", d => {
-        if (stateRef.current.selectedNodeIds.includes(d.id)) return 1.5;
-        if (d.customColor) return 1.5;
-        if (["ai", "dataset", "prompt", "question", "timeline", "note", "comment", "frame"].includes(d.type)) return 1.5;
-        return 1;
-      })
+      .attr("stroke-width", d => stateRef.current.selectedNodeIds.includes(d.id) ? 2 : 1)
+      .style("backdrop-filter", "blur(24px)") // Not strictly supported natively in SVG rects in all browsers, but we use an HTML overlay
       .on("mouseover", function(_ev, d) {
         if (stateRef.current.selectedNodeIds.includes(d.id)) return;
-        const targetStroke = d.customColor || (d.type === "ai" ? "#67E8F9" : d.type === "dataset" ? "#34D399" : d.type === "prompt" ? "#FBBF24" : d.type === "question" ? "#F472B6" : d.type === "timeline" ? "#818CF8" : d.type === "note" ? "#FDE047" : d.type === "comment" ? "#c084fc" : d.type === "frame" ? "#666" : "#4e5569");
-        d3.select(this).transition().duration(200).attr("stroke", targetStroke);
+        d3.select(this).transition().duration(250).attr("stroke", "rgba(255,255,255,0.2)");
       })
       .on("mouseout", function(_ev, d) {
         if (stateRef.current.selectedNodeIds.includes(d.id)) return;
-        const defaultStroke = d.customColor || (d.type === "ai" ? "#3BC9DB" : d.type === "dataset" ? "#10B981" : d.type === "prompt" ? "#F59E0B" : d.type === "question" ? "#EC4899" : d.type === "timeline" ? "#6366f1" : d.type === "note" ? "#EAB308" : d.type === "comment" ? "#a855f7" : d.type === "frame" ? "#444" : "#2A2E3D");
-        d3.select(this).transition().duration(200).attr("stroke", defaultStroke);
+        const defaultStroke = d.customColor || "rgba(255,255,255,0.08)";
+        d3.select(this).transition().duration(250).attr("stroke", defaultStroke);
       });
 
-    // Center Node Content (foreignObject for perfect text wrapping and alignment)
-    const centerGroup = nodeSel.filter(d => d.type === "center");
-    centerGroup.append("foreignObject")
+    // HTML ForeignObject for flawless text layout
+    nodeSel.append("foreignObject")
       .attr("x", d => -getNodeW(d.type) / 2)
       .attr("y", d => -getNodeH(d.type) / 2)
       .attr("width", d => getNodeW(d.type))
       .attr("height", d => getNodeH(d.type))
+      .style("pointer-events", "none")
       .append("xhtml:div")
-      .attr("class", "flex items-center h-full p-4 gap-4 pointer-events-none")
-      .html(d => `
-        <div class="flex-shrink-0 flex items-center justify-center w-10 h-10 rounded-full bg-[rgba(255,255,255,0.05)] border border-[rgba(255,255,255,0.1)]">
-          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#E2E8F0" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
-            <path d="M12 2a2 2 0 0 1 2 2c-.11.66-.5 1.25-1.07 1.62C13.62 6.09 14.33 7 15 8h4a2 2 0 0 1 2 2v6a2 2 0 0 1-2 2h-4c-.67 1-1.38 1.91-2.07 2.38C13.5 20.75 13.89 21.34 14 22a2 2 0 0 1-2 2h-4a2 2 0 0 1-2-2c.11-.66.5-1.25 1.07-1.62C6.38 19.91 5.67 19 5 18H1a2 2 0 0 1-2-2v-6a2 2 0 0 1 2-2h4c.67-1 1.38-1.91 2.07-2.38C6.5 7.25 6.11 6.66 6 6a2 2 0 0 1 2-2h4z"></path>
-            <path d="M9 12v.01"></path>
-            <path d="M15 12v.01"></path>
-          </svg>
-        </div>
-        <div class="flex flex-col overflow-hidden">
-          <div class="text-[13px] font-semibold text-[#FFFFFF] leading-tight line-clamp-2" style="font-family: ${SF}">${d.title}</div>
-          <div class="text-[10px] text-[#64748B] mt-1 uppercase tracking-widest" style="font-family: ${MONO}">AI Map Center</div>
-        </div>
-      `);
+      .attr("class", "w-full h-full flex flex-col pointer-events-none")
+      .style("padding", "20px 24px")
+      .html(d => {
+         // Render specifically beautifully based on type
+         if (d.type === "center") {
+             return `
+               <div class="flex items-center h-full gap-5">
+                 <div class="flex-shrink-0 flex items-center justify-center w-14 h-14 rounded-full bg-[rgba(59,201,219,0.1)] border border-[rgba(59,201,219,0.3)] shadow-[0_0_20px_rgba(59,201,219,0.2)]">
+                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#3BC9DB" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+                      <path d="M12 2a2 2 0 0 1 2 2c-.11.66-.5 1.25-1.07 1.62C13.62 6.09 14.33 7 15 8h4a2 2 0 0 1 2 2v6a2 2 0 0 1-2 2h-4c-.67 1-1.38 1.91-2.07 2.38C13.5 20.75 13.89 21.34 14 22a2 2 0 0 1-2 2h-4a2 2 0 0 1-2-2c.11-.66.5-1.25 1.07-1.62C6.38 19.91 5.67 19 5 18H1a2 2 0 0 1-2-2v-6a2 2 0 0 1 2-2h4c.67-1 1.38-1.91 2.07-2.38C6.5 7.25 6.11 6.66 6 6a2 2 0 0 1 2-2h4z"></path>
+                    </svg>
+                 </div>
+                 <div class="flex flex-col overflow-hidden">
+                   <div class="text-[17px] font-semibold text-[#FFFFFF] leading-snug line-clamp-2 tracking-tight" style="font-family: ${SF}">${d.title}</div>
+                   <div class="text-[11px] text-[#3BC9DB] mt-1.5 uppercase tracking-widest font-medium" style="font-family: ${MONO}">Core Research Map</div>
+                 </div>
+               </div>
+             `;
+         }
 
-    // Paper / Reference / Custom Nodes
-    const paperGroup = nodeSel.filter(d => ["paper", "reference", "custom", "citing", "related"].includes(d.type));
-    paperGroup.append("foreignObject")
-      .attr("x", d => -getNodeW(d.type) / 2)
-      .attr("y", d => -getNodeH(d.type) / 2)
-      .attr("width", d => getNodeW(d.type))
-      .attr("height", d => getNodeH(d.type))
-      .append("xhtml:div")
-      .attr("class", "flex flex-col h-full p-4 pointer-events-none")
-      .html(d => `
-        <div class="flex items-center gap-1.5 mb-1 opacity-70">
-          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="text-[#94A3B8]"><path d="M14 2H6a2 2 0 0 0-2 2v16c0 1.1.9 2 2 2h12a2 2 0 0 0 2-2V8l-6-6z"/><path d="M14 3v5h5M16 13H8M16 17H8M10 9H8"/></svg>
-          <span class="text-[9px] text-[#94A3B8] font-mono font-bold tracking-widest">${d.year || "2024"}</span>
-          ${d.citations ? `<span class="text-[9px] text-[#94A3B8] font-mono font-bold tracking-widest ml-auto">${d.citations.toLocaleString()} cit.</span>` : ''}
-        </div>
-        <div class="text-[12px] font-semibold text-[#E2E8F0] leading-tight mb-1 line-clamp-2" style="font-family: ${SF}">${d.title}</div>
-        <div class="text-[10px] text-[#64748B] truncate" style="font-family: ${SF}">${d.author || "Unknown Author"}</div>
-        ${d.journal ? `<div class="text-[10px] text-[#10B981] truncate mt-0.5" style="font-family: ${SF}">${d.journal}</div>` : ''}
-      `);
+         if (["paper", "reference", "custom", "citing", "related"].includes(d.type)) {
+             return `
+               <div class="flex flex-col h-full justify-between">
+                 <div>
+                   <div class="text-[15px] font-medium text-[#F8FAFC] leading-snug mb-2 line-clamp-3 tracking-tight" style="font-family: ${SF}">${d.title}</div>
+                   <div class="text-[12px] text-[#94A3B8] truncate" style="font-family: ${SF}">${d.author || "Unknown Author"}</div>
+                 </div>
+                 <div class="flex items-center justify-between mt-4 pt-4 border-t border-[rgba(255,255,255,0.06)]">
+                   <div class="flex items-center gap-2">
+                     <span class="text-[10px] text-[#64748B] font-mono font-bold tracking-widest bg-[rgba(255,255,255,0.04)] px-2 py-1 rounded-md">${d.year || "2024"}</span>
+                     ${d.journal ? `<span class="text-[10px] text-[#10B981] font-medium truncate max-w-[120px]" style="font-family: ${SF}">${d.journal}</span>` : ''}
+                   </div>
+                   ${d.citations ? `<span class="text-[11px] text-[#3BC9DB] font-medium" style="font-family: ${SF}">${d.citations.toLocaleString()} cit.</span>` : ''}
+                 </div>
+               </div>
+             `;
+         }
 
-    // Note Nodes
-    const noteGroup = nodeSel.filter(d => d.type === "note");
-    noteGroup.append("foreignObject")
-      .attr("x", d => -getNodeW(d.type) / 2)
-      .attr("y", d => -getNodeH(d.type) / 2)
-      .attr("width", d => getNodeW(d.type))
-      .attr("height", d => getNodeH(d.type))
-      .append("xhtml:div")
-      .attr("class", "flex flex-col h-full p-4 pointer-events-none")
-      .html(d => `
-        <div class="text-[13px] text-[#E2E8F0] whitespace-pre-wrap leading-relaxed overflow-hidden" style="font-family: ${SF}">${d.note || d.title}</div>
-      `);
+         if (d.type === "note") {
+             return `
+               <div class="w-full h-full relative">
+                 <div class="absolute -top-1 -left-1 w-8 h-8 opacity-20"><svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="#EAB308" stroke-width="2"><path d="M14.5 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7.5L14.5 2z"></path></svg></div>
+                 <div class="text-[14px] text-[#E2E8F0] whitespace-pre-wrap leading-relaxed overflow-hidden line-clamp-6 relative z-10" style="font-family: ${SF}">${d.note || d.title}</div>
+               </div>
+             `;
+         }
 
-    // Question Nodes
-    const questionGroup = nodeSel.filter(d => d.type === "question");
-    questionGroup.append("foreignObject")
-      .attr("x", d => -getNodeW(d.type) / 2)
-      .attr("y", d => -getNodeH(d.type) / 2)
-      .attr("width", d => getNodeW(d.type))
-      .attr("height", d => getNodeH(d.type))
-      .append("xhtml:div")
-      .attr("class", "flex items-center h-full p-4 gap-3 pointer-events-none")
-      .html(d => `
-        <div class="flex-shrink-0 w-8 h-8 rounded-full bg-[#EC4899] bg-opacity-20 flex items-center justify-center border border-[#EC4899]">
-          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#EC4899" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
-        </div>
-        <div class="text-[13px] font-semibold text-[#FBCFE8] leading-tight line-clamp-3" style="font-family: ${SF}">${d.title}</div>
-      `);
-
-    // Timeline Nodes
-    const timelineGroup = nodeSel.filter(d => d.type === "timeline");
-    timelineGroup.append("foreignObject")
-      .attr("x", d => -getNodeW(d.type) / 2)
-      .attr("y", d => -getNodeH(d.type) / 2)
-      .attr("width", d => getNodeW(d.type))
-      .attr("height", d => getNodeH(d.type))
-      .append("xhtml:div")
-      .attr("class", "flex flex-col justify-center h-full p-4 pointer-events-none relative")
-      .html(d => `
-        <div class="absolute left-0 right-0 top-1/2 h-[2px] bg-[#4F46E5] opacity-50 -z-10"></div>
-        <div class="flex items-center justify-between z-10 w-full px-2">
-           <div class="w-3 h-3 rounded-full bg-[#818CF8] shadow-[0_0_10px_rgba(129,140,248,0.8)] border-2 border-[#1E1B4B]"></div>
-           <div class="text-[12px] font-bold text-[#E0E7FF] px-4 py-1.5 rounded-full bg-[#312E81] border border-[#4F46E5] uppercase tracking-widest">${d.title}</div>
-           <div class="w-3 h-3 rounded-full bg-[#818CF8] shadow-[0_0_10px_rgba(129,140,248,0.8)] border-2 border-[#1E1B4B]"></div>
-        </div>
-      `);
-
-    // AI Nodes
-    const aiGroup = nodeSel.filter(d => d.type === "ai");
-    aiGroup.append("foreignObject")
-      .attr("x", d => -getNodeW(d.type) / 2)
-      .attr("y", d => -getNodeH(d.type) / 2)
-      .attr("width", d => getNodeW(d.type))
-      .attr("height", d => getNodeH(d.type))
-      .append("xhtml:div")
-      .attr("class", "flex flex-col items-center justify-center h-full gap-1.5 pointer-events-none")
-      .html(d => `
-        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#3BC9DB" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9.937 15.5A2 2 0 0 0 8.5 14.063l-6.135-1.582a.5.5 0 0 1 0-.962L8.5 9.936A2 2 0 0 0 9.937 8.5l1.582-6.135a.5.5 0 0 1 .963 0L14.063 8.5A2 2 0 0 0 15.5 9.937l6.135 1.581a.5.5 0 0 1 0 .964L15.5 14.063a2 2 0 0 0-1.437 1.437l-1.582 6.135a.5.5 0 0 1-.963 0z"/><path d="M20 3v4"/><path d="M22 5h-4"/><path d="M4 17v2"/><path d="M5 18H3"/></svg>
-        <div class="text-[12px] font-semibold text-[#67E8F9] text-center px-2 leading-tight" style="font-family: ${SF}">${d.title}</div>
-      `);
-
-    // Dataset Nodes
-    const datasetGroup = nodeSel.filter(d => d.type === "dataset");
-    datasetGroup.append("foreignObject")
-      .attr("x", d => -getNodeW(d.type) / 2)
-      .attr("y", d => -getNodeH(d.type) / 2)
-      .attr("width", d => getNodeW(d.type))
-      .attr("height", d => getNodeH(d.type))
-      .append("xhtml:div")
-      .attr("class", "flex flex-col items-center justify-center h-full gap-1.5 pointer-events-none")
-      .html(d => `
-        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#10B981" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><ellipse cx="12" cy="5" rx="9" ry="3"/><path d="M21 12c0 1.66-4 3-9 3s-9-1.34-9-3"/><path d="M3 5v14c0 1.66 4 3 9 3s9-1.34 9-3V5"/></svg>
-        <div class="text-[12px] font-semibold text-[#34D399] text-center px-2 leading-tight" style="font-family: ${SF}">${d.title}</div>
-      `);
-
-    // Prompt Nodes
-    const promptGroup = nodeSel.filter(d => d.type === "prompt");
-    promptGroup.append("foreignObject")
-      .attr("x", d => -getNodeW(d.type) / 2)
-      .attr("y", d => -getNodeH(d.type) / 2)
-      .attr("width", d => getNodeW(d.type))
-      .attr("height", d => getNodeH(d.type))
-      .append("xhtml:div")
-      .attr("class", "flex flex-col items-center justify-center h-full gap-1.5 pointer-events-none")
-      .html(d => `
-        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#F59E0B" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="4 17 10 11 4 5"/><line x1="12" y1="19" x2="20" y2="19"/></svg>
-        <div class="text-[12px] font-semibold text-[#FBBF24] text-center px-2 leading-tight" style="font-family: ${SF}">${d.title}</div>
-      `);
+         // Generic default
+         return `<div class="flex items-center justify-center h-full w-full"><div class="text-[15px] font-medium text-[#F8FAFC] text-center line-clamp-3 px-2">${d.title}</div></div>`;
+      });
 
     // Port dots (Left, Right, Top, Bottom)
     const ports = [
@@ -892,11 +845,9 @@ export default function MapPage() {
       .on("start", function(ev, d) {
         ev.sourceEvent.stopPropagation();
         tempLink = edgeG.append("path")
-          .attr("fill", "none")
-          .attr("stroke", "#3bc9db")
-          .attr("stroke-width", 2)
-          .attr("stroke-dasharray", "4 4")
-          .attr("pointer-events", "none");
+          .attr("fill", "none").attr("stroke", "#3bc9db").attr("stroke-width", 2.5)
+          .attr("stroke-dasharray", "6 6").attr("pointer-events", "none")
+          .attr("filter", "url(#glow)");
       })
       .on("drag", function(ev, d) {
         if (!tempLink) return;
@@ -906,7 +857,7 @@ export default function MapPage() {
         const startY = d.y + cy;
         const pointerX = d.x + ev.x;
         const pointerY = d.y + ev.y;
-        const dist = Math.abs(pointerX - startX) * 0.5;
+        const dist = Math.abs(pointerX - startX) * 0.4;
         tempLink.attr("d", `M${startX},${startY} C${startX + dist},${startY} ${pointerX - dist},${pointerY} ${pointerX},${pointerY}`);
       })
       .on("end", function(ev, d) {
@@ -919,15 +870,14 @@ export default function MapPage() {
           if (n.id === d.id) continue;
           const nw = getNodeW(n.type);
           const nh = getNodeH(n.type);
-          if (pointerX >= n.x - nw/2 - 20 && pointerX <= n.x + nw/2 + 20 &&
-              pointerY >= n.y - nh/2 - 20 && pointerY <= n.y + nh/2 + 20) {
+          if (pointerX >= n.x - nw/2 - 30 && pointerX <= n.x + nw/2 + 30 &&
+              pointerY >= n.y - nh/2 - 30 && pointerY <= n.y + nh/2 + 30) {
             targetNode = n; break;
           }
         }
         
         if (targetNode) {
-          // ensure no duplicate edge
-          const exists = edges.find(e => (getId(e.source) === d.id && getId(e.target) === targetNode!.id));
+          const exists = edges.find(e => ((typeof e.source === "string" ? e.source : (e.source as MapNode).id) === d.id && (typeof e.target === "string" ? e.target : (e.target as MapNode).id) === targetNode!.id));
           if (!exists) {
             setEdges(p => [...p, { id: `edge-${Date.now()}-${Math.random()}`, source: d.id, target: targetNode!.id, type: "references" }]);
           }
@@ -937,48 +887,14 @@ export default function MapPage() {
     ports.forEach(pos => {
       nodeSel.append("circle")
         .attr("class", "port-handle-hit")
-        .attr("cx", pos.x)
-        .attr("cy", pos.y)
-        .attr("r", 14)
-        .attr("fill", "transparent")
-        .attr("cursor", "crosshair")
+        .attr("cx", pos.x).attr("cy", pos.y).attr("r", 18).attr("fill", "transparent").attr("cursor", "crosshair")
         .call(portDrag as any);
 
       nodeSel.append("circle")
         .attr("class", "port-handle")
-        .attr("cx", pos.x)
-        .attr("cy", pos.y)
-        .attr("r", 4)
-        .attr("fill", "#0a0f1a")
-        .attr("stroke", "#3bc9db")
-        .attr("stroke-width", 1.5)
-        .attr("pointer-events", "none");
+        .attr("cx", pos.x).attr("cy", pos.y).attr("r", 5).attr("fill", "#050810")
+        .attr("stroke", "#3bc9db").attr("stroke-width", 2).attr("pointer-events", "none");
     });
-
-    // Plus button (add child node)
-    nodeSel.append("circle")
-      .attr("cx", d => getNodeW(d.type) / 2 + 14)
-      .attr("cy", 0)
-      .attr("r", 7)
-      .attr("fill", "#1A1D27")
-      .attr("stroke", "#2A2E3D")
-      .attr("cursor", "pointer")
-      .on("click", (ev, d) => {
-        ev.stopPropagation();
-        const child: MapNode = {
-          id: `custom-${Date.now()}`,
-          title: "New Node",
-          type: "custom", shape: "card", priority: "normal",
-          x: d.x + getNodeW(d.type) + 40, y: d.y + (Math.random() * 40 - 20),
-        };
-        setNodes(p => [...p, child]);
-        setEdges(p => [...p, { id: `edge-${Date.now()}-${Math.random()}`, source: d.id, target: child.id, type: "references" }]);
-      });
-    nodeSel.append("text")
-      .text("+").attr("x", d => getNodeW(d.type) / 2 + 14).attr("y", 3)
-      .attr("text-anchor", "middle").attr("font-size", "10px")
-      .attr("fill", "#64748B").attr("font-family", MONO)
-      .attr("pointer-events", "none");
 
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [nodes, edges, dims]);
@@ -1231,74 +1147,73 @@ export default function MapPage() {
 
 
 
-      {/* ── Floating Bottom Center Toolbar (Glassmorphism Dock) ── */}
-      <div className="absolute bottom-6 left-1/2 -translate-x-1/2 z-30 flex flex-col items-center gap-4 pointer-events-none">
-      {/* Premium Glassmorphism Toolbar */}
+      {/* ── Floating Bottom Center Toolbar (Premium Glass Dock) ── */}
+      <div className="absolute bottom-6 left-1/2 -translate-x-1/2 z-30 flex flex-col items-center pointer-events-none">
         <div 
-          className="flex items-center gap-5 px-3 py-2 pointer-events-auto rounded-[20px] shadow-2xl backdrop-blur-2xl transition-all"
+          className="flex items-center gap-3 px-3 py-2 pointer-events-auto rounded-[16px] shadow-2xl backdrop-blur-2xl transition-all"
           style={{ 
-            background: "rgba(17, 19, 26, 0.7)", 
-            border: "1px solid rgba(255, 255, 255, 0.08)",
-            boxShadow: "0 20px 40px rgba(0,0,0,0.4), inset 0 1px 0 rgba(255,255,255,0.1)"
+            background: "rgba(10, 15, 26, 0.85)", 
+            border: "1px solid rgba(255, 255, 255, 0.1)",
+            boxShadow: "0 10px 30px rgba(0,0,0,0.5), inset 0 1px 0 rgba(255,255,255,0.15)"
           }}
         >
           {([
             [
-              { t: "select",  icon: <MousePointer size={17} />, tip: "Cursor (V)"  },
-              { t: "hand",    icon: <Hand         size={17} />, tip: "Hand (H)" },
+              { t: "select",  icon: <MousePointer size={16} />, tip: "Cursor"  },
+              { t: "hand",    icon: <Hand         size={16} />, tip: "Pan" },
             ],
             [
-              { t: "paper",   icon: <FileText     size={17} />, tip: "Paper Node"  },
-              { t: "note",    icon: <StickyNote   size={17} />, tip: "Note Node" },
-              { t: "question",icon: <MessageSquare size={17} />, tip: "Research Question" },
-              { t: "timeline",icon: <Minus        size={17} />, tip: "Timeline" },
-              { t: "frame",   icon: <Square       size={17} />, tip: "Frame" },
+              { t: "paper",   icon: <FileText     size={16} />, tip: "Paper"  },
+              { t: "note",    icon: <StickyNote   size={16} />, tip: "Note" },
+              { t: "question",icon: <MessageSquare size={16} />, tip: "Question" },
+              { t: "timeline",icon: <Minus        size={16} />, tip: "Timeline" },
+              { t: "frame",   icon: <Square       size={16} />, tip: "Frame" },
             ],
             [
-              { t: "connect", icon: <ArrowUpRight size={17} />, tip: "Connection" },
-              { t: "comment", icon: <MessageCircle size={17} />, tip: "Comment" },
+              { t: "connect", icon: <ArrowUpRight size={16} />, tip: "Connect" },
+              { t: "comment", icon: <MessageCircle size={16} />, tip: "Comment" },
             ],
             [
-              { t: "ai",      icon: <Sparkles     size={17} />, tip: "AI Assistant", special: true },
+              { t: "ai",      icon: <Sparkles     size={16} />, tip: "AI Copilot", special: true },
             ],
             [
-              { t: "export",  icon: <Download     size={17} />, tip: "Export" },
+              { t: "export",  icon: <Download     size={16} />, tip: "Export" },
             ]
-          ] as any[][]).map((group, groupIndex) => (
-            <div key={groupIndex} className="flex items-center gap-1 relative">
-              {group.map((item) => (
-                <button 
-                  key={item.t} 
-                  className={`relative group w-9 h-9 flex items-center justify-center rounded-[12px] transition-all duration-300 active:scale-95 ${
-                    item.special ? "hover:scale-105 hover:-translate-y-0.5" : "hover:bg-[rgba(255,255,255,0.08)] hover:text-white"
-                  }`}
-                  onClick={() => {
-                    if (item.t === "paper") {
-                      setShowAdd(true);
-                    } else if (item.t === "ai") {
-                      setActiveTool("ai" as Tool);
-                    } else {
-                      setActiveTool(item.t as Tool);
-                    }
-                  }}
-                  style={item.special ? {
-                    background: "linear-gradient(135deg, #3b82f6, #8b5cf6)",
-                    boxShadow: "0 4px 15px rgba(139, 92, 246, 0.4), inset 0 1px 1px rgba(255,255,255,0.4)",
-                    color: "#ffffff"
-                  } : {
-                    background: activeTool === item.t ? "rgba(255,255,255,0.12)" : "transparent",
-                    color:      activeTool === item.t ? "#ffffff" : "#94a3b8",
-                    boxShadow:  activeTool === item.t ? "inset 0 1px 3px rgba(255,255,255,0.1), 0 1px 2px rgba(0,0,0,0.2)" : "none",
-                  }}
-                >
-                  {item.icon}
-                  {/* Tooltip */}
-                  <div className="absolute -top-[52px] left-1/2 -translate-x-1/2 px-3 py-1.5 rounded-[10px] text-[12px] font-semibold opacity-0 group-hover:opacity-100 transition-all duration-200 pointer-events-none whitespace-nowrap shadow-2xl backdrop-blur-xl z-50 translate-y-2 group-hover:translate-y-0"
-                    style={{ background: "rgba(10,12,16,0.95)", border: "1px solid rgba(255,255,255,0.15)", color: "#f8fafc", fontFamily: SF, boxShadow: "0 10px 25px rgba(0,0,0,0.5)" }}>
-                    {item.tip}
-                  </div>
-                </button>
-              ))}
+          ] as any[][]).map((group, groupIndex, arr) => (
+            <div key={groupIndex} className="flex items-center gap-0.5 relative">
+              {group.map((item) => {
+                const isActive = activeTool === item.t;
+                return (
+                  <button 
+                    key={item.t} 
+                    className={`relative group w-8 h-8 flex items-center justify-center rounded-[10px] transition-all duration-300 active:scale-95 ${
+                      item.special ? "hover:scale-105 hover:-translate-y-0.5 mx-1" : "hover:bg-[rgba(255,255,255,0.06)] hover:text-white"
+                    }`}
+                    onClick={() => {
+                      if (item.t === "paper") setShowAdd(true);
+                      else if (item.t === "ai") setActiveTool("ai" as Tool);
+                      else setActiveTool(item.t as Tool);
+                    }}
+                    style={item.special ? {
+                      background: "linear-gradient(135deg, #3BC9DB, #8B5CF6)",
+                      boxShadow: "0 4px 15px rgba(139, 92, 246, 0.4), inset 0 1px 1px rgba(255,255,255,0.4)",
+                      color: "#ffffff"
+                    } : {
+                      background: isActive ? "rgba(255,255,255,0.1)" : "transparent",
+                      color: isActive ? "#ffffff" : "#94a3b8",
+                      boxShadow: isActive ? "inset 0 1px 2px rgba(255,255,255,0.1), 0 1px 2px rgba(0,0,0,0.2)" : "none",
+                    }}
+                  >
+                    {item.icon}
+                    {/* Premium Tooltip */}
+                    <div className="absolute -top-[48px] left-1/2 -translate-x-1/2 px-2.5 py-1.5 rounded-[8px] text-[11px] font-semibold opacity-0 group-hover:opacity-100 transition-all duration-200 pointer-events-none whitespace-nowrap shadow-2xl backdrop-blur-xl z-50 translate-y-1 group-hover:translate-y-0"
+                      style={{ background: "rgba(5, 5, 5, 0.95)", border: "1px solid rgba(255,255,255,0.1)", color: "#f8fafc", fontFamily: SF, letterSpacing: "0.02em" }}>
+                      {item.tip}
+                    </div>
+                  </button>
+                );
+              })}
+              {groupIndex < arr.length - 1 && <div className="w-[1px] h-4 mx-1.5 bg-[rgba(255,255,255,0.08)]"></div>}
             </div>
           ))}
         </div>
@@ -1344,189 +1259,271 @@ export default function MapPage() {
 
         <div className="flex-1 overflow-hidden relative">
           
+          
           {/* ── DESIGN TAB ── */}
           {activeSidebarTab === "design" && (
-            <div className="absolute inset-0 overflow-y-auto flex flex-col" style={{ WebkitOverflowScrolling: "touch" }}>
+            <div className="absolute inset-0 overflow-y-auto flex flex-col custom-scrollbar" style={{ WebkitOverflowScrolling: "touch" }}>
+              
+              <style>{`
+                .custom-scrollbar::-webkit-scrollbar { width: 4px; }
+                .custom-scrollbar::-webkit-scrollbar-track { background: transparent; }
+                .custom-scrollbar::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.1); border-radius: 4px; }
+                .custom-scrollbar::-webkit-scrollbar-thumb:hover { background: rgba(255,255,255,0.2); }
+                
+                .nagi-slider { -webkit-appearance: none; width: 100%; height: 2px; background: rgba(255,255,255,0.1); border-radius: 2px; outline: none; }
+                .nagi-slider::-webkit-slider-thumb { -webkit-appearance: none; appearance: none; width: 12px; height: 12px; border-radius: 50%; background: #fff; cursor: pointer; border: 1px solid rgba(0,0,0,0.1); box-shadow: 0 1px 3px rgba(0,0,0,0.3); transition: transform 0.1s; }
+                .nagi-slider::-webkit-slider-thumb:hover { transform: scale(1.2); }
+              `}</style>
+
               {!selectedNode && !selectedEdge ? (
-                <div className="flex-1 flex flex-col items-center justify-center text-[#808080] text-[12px] gap-3" style={{ fontFamily: SF }}>
-                  <div className="w-12 h-12 rounded border border-[#1a2535] flex items-center justify-center border-dashed">
-                    <MousePointer size={16} />
+                <div className="flex-1 flex flex-col items-center justify-center text-[#64748B] text-[12px] gap-4" style={{ fontFamily: SF }}>
+                  <div className="w-16 h-16 rounded-2xl flex items-center justify-center border border-dashed border-[#1a2535] bg-[rgba(255,255,255,0.02)]">
+                    <MousePointer size={20} className="opacity-50" />
                   </div>
-                  <span>Select an object to inspect</span>
+                  <span className="font-medium">Select an object to inspect</span>
                 </div>
               ) : (
-                <div className="flex flex-col pb-6">
+                <div className="flex flex-col pb-8">
                   
                   {/* === NODE INSPECTOR === */}
                   {selectedNode && (
                     <>
-                      {/* Header / Type */}
-                      <div className="flex items-center justify-between px-4 py-3 shrink-0" style={{ borderBottom: "1px solid #1a2535" }}>
-                        <div className="flex items-center gap-2">
-                          <div className="w-2 h-2 rounded-[2px]" style={{ background: selectedNode.customColor || TYPE_COLOR[selectedNode.type] }} />
-                          <span className="text-[10px] font-bold tracking-[0.15em] uppercase"
-                            style={{ color: "#E2E8F0", fontFamily: MONO }}>
-                            {TYPE_LABEL[selectedNode.type]}
+                      {/* Global Type Indicator */}
+                      <div className="flex items-center justify-between px-5 py-4 shrink-0 bg-[#070b14]" style={{ borderBottom: "1px solid #1a2535" }}>
+                        <div className="flex items-center gap-2.5">
+                          <div className="w-2.5 h-2.5 rounded-sm shadow-[0_0_8px_rgba(255,255,255,0.2)]" style={{ background: selectedNode.customColor || TYPE_COLOR[selectedNode.type] }} />
+                          <span className="text-[11px] font-bold tracking-[0.15em] uppercase text-[#E2E8F0]" style={{ fontFamily: SF }}>
+                            {TYPE_LABEL[selectedNode.type] || selectedNode.type}
                           </span>
                         </div>
                       </div>
 
-                      {/* Title & Description Editor */}
-                      <div className="flex flex-col gap-1.5 px-4 py-4" style={{ borderBottom: "1px solid #1a2535" }}>
-                         <textarea
-                           value={selectedNode.title}
-                           onChange={(e) => updateSelectedNode({ title: e.target.value })}
-                           className="text-[14px] font-semibold leading-snug bg-transparent border-none outline-none resize-none placeholder-gray-500 w-full tracking-tight"
-                           style={{ color: "#F8FAFC", fontFamily: SF }}
-                           placeholder="Object Title..."
-                           rows={Math.max(1, Math.ceil(selectedNode.title.length / 30))}
-                         />
-                         <textarea
-                           value={selectedNode.description || ""}
-                           onChange={(e) => updateSelectedNode({ description: e.target.value })}
-                           className="text-[12px] leading-relaxed bg-transparent border-none outline-none resize-none placeholder-gray-600 w-full"
-                           style={{ color: "#94A3B8", minHeight: "40px", fontFamily: SF }}
-                           placeholder="Add a description..."
-                         />
+                      {/* --- GENERAL SECTION --- */}
+                      <div className="flex flex-col border-b border-[#1a2535]">
+                        <button onClick={() => toggleSection('general')} className="flex items-center justify-between px-5 py-3 hover:bg-[rgba(255,255,255,0.02)] transition-colors w-full text-left">
+                          <span className="text-[11px] font-bold uppercase tracking-wider text-[#94A3B8]" style={{ fontFamily: SF }}>General</span>
+                          <ChevronDown size={14} className={`text-[#64748B] transition-transform duration-200 ${openSections.general ? 'rotate-180' : ''}`} />
+                        </button>
+                        {openSections.general && (
+                          <div className="flex flex-col gap-3 px-5 pb-4 pt-1">
+                            <input
+                              value={selectedNode.title}
+                              onChange={(e) => updateSelectedNode({ title: e.target.value })}
+                              className="text-[14px] font-semibold leading-snug bg-transparent border border-transparent hover:border-[#1a2535] focus:border-[#3BC9DB] focus:bg-[rgba(255,255,255,0.02)] rounded-[6px] outline-none px-2 py-1 -mx-2 transition-all w-[calc(100%+16px)]"
+                              style={{ color: "#F8FAFC", fontFamily: SF }}
+                              placeholder="Title..."
+                            />
+                            <textarea
+                              value={selectedNode.description || ""}
+                              onChange={(e) => updateSelectedNode({ description: e.target.value })}
+                              className="text-[12px] leading-relaxed bg-transparent border border-transparent hover:border-[#1a2535] focus:border-[#3BC9DB] focus:bg-[rgba(255,255,255,0.02)] rounded-[6px] outline-none resize-none px-2 py-1 -mx-2 transition-all w-[calc(100%+16px)]"
+                              style={{ color: "#94A3B8", minHeight: "60px", fontFamily: SF }}
+                              placeholder="Add a description..."
+                            />
+                          </div>
+                        )}
                       </div>
 
-                      {/* Color Picker */}
-                      <div className="flex items-center justify-between px-4 py-3" style={{ borderBottom: "1px solid #1a2535" }}>
-                        <span className="text-[10px] font-bold uppercase tracking-wider shrink-0" style={{ color: "#808080", fontFamily: SF }}>Fill</span>
-                        <div className="flex gap-1 flex-wrap justify-end">
-                          {["", "#ef4444", "#f59e0b", "#10b981", "#3bc9db", "#6366f1", "#a855f7", "#ec4899", "#ffffff", "#444444"].map((c) => (
-                            <button key={c || "default"} onClick={() => updateSelectedNode({ customColor: c || undefined })}
-                              className="w-4 h-4 rounded-[3px] border flex items-center justify-center transition-transform hover:scale-110"
-                              style={{
-                                background: c || "transparent",
-                                borderColor: selectedNode.customColor === c || (!selectedNode.customColor && !c) ? "#fff" : "#444",
-                              }}>
-                              {!c && <X size={10} color="#666" />}
-                            </button>
-                          ))}
-                        </div>
-                      </div>
-
-                      {/* Tags */}
-                      <div className="flex flex-col gap-1.5 px-4 py-3" style={{ borderBottom: "1px solid #1a2535" }}>
-                        <span className="text-[10px] font-bold uppercase tracking-wider shrink-0" style={{ color: "#808080", fontFamily: SF }}>Tags</span>
-                        <input 
-                          type="text"
-                          value={(selectedNode.tags || []).join(", ")}
-                          onChange={(e) => updateSelectedNode({ tags: e.target.value.split(",").map(t => t.trim()).filter(Boolean) })}
-                          placeholder="tag1, tag2..."
-                          className="text-[11px] bg-[#050810] border border-[#1a2535] rounded px-2.5 py-1.5 outline-none placeholder-[#666] w-full focus:border-[#555] transition-colors"
-                          style={{ color: "#D1D5DB", fontFamily: SF }}
-                        />
-                      </div>
-
-                      {/* Note Editor */}
-                      <div className="flex flex-col gap-1.5 px-4 py-3" style={{ borderBottom: "1px solid #1a2535" }}>
-                        <span className="text-[10px] font-bold uppercase tracking-wider shrink-0" style={{ color: "#808080", fontFamily: SF }}>Notes</span>
-                        <textarea
-                           value={selectedNode.note || ""}
-                           onChange={(e) => updateSelectedNode({ note: e.target.value })}
-                           className="text-[11px] leading-relaxed rounded bg-[#050810] border border-[#1a2535] px-2.5 py-2 outline-none resize-y placeholder-[#666] w-full focus:border-[#555] transition-colors"
-                           style={{ color: "#D1D5DB", minHeight: "80px", fontFamily: SF }}
-                           placeholder="Markdown supported..."
-                         />
-                      </div>
-                      
-                      {/* Type-Specific Fields (Paper) */}
-                      {selectedNode.type === "paper" && (
-                        <div className="flex flex-col gap-2 px-4 py-3" style={{ borderBottom: "1px solid #1a2535" }}>
-                          <span className="text-[10px] font-bold uppercase tracking-wider shrink-0 mb-1" style={{ color: "#808080", fontFamily: SF }}>Metadata</span>
-                          {[
-                            { key: "author", label: "Author", value: selectedNode.author },
-                            { key: "year", label: "Year", value: selectedNode.year?.toString() },
-                            { key: "citations", label: "Citations", value: selectedNode.citations?.toString(), isNumber: true },
-                            { key: "field", label: "Field", value: selectedNode.field },
-                            { key: "journal", label: "Journal", value: selectedNode.journal },
-                          ].map(row => (
-                            <div key={row.label} className="flex items-center justify-between gap-2 group">
-                              <span className="text-[10px] font-medium" style={{ color: "#808080", fontFamily: SF }}>{row.label}</span>
-                              <input 
-                                type="text"
-                                value={row.value || ""}
-                                onChange={(e) => updateSelectedNode({ [row.key]: row.isNumber ? (parseInt(e.target.value) || 0) : e.target.value })}
-                                className="text-[11px] font-medium text-right bg-transparent border-b border-transparent group-hover:border-[#333539] focus:border-[#555] outline-none placeholder-[#555] w-32 transition-colors py-0.5"
-                                style={{ color: "#E2E8F0", fontFamily: SF }}
-                                placeholder="-"
-                              />
+                      {/* --- APPEARANCE SECTION --- */}
+                      <div className="flex flex-col border-b border-[#1a2535]">
+                        <button onClick={() => toggleSection('appearance')} className="flex items-center justify-between px-5 py-3 hover:bg-[rgba(255,255,255,0.02)] transition-colors w-full text-left">
+                          <span className="text-[11px] font-bold uppercase tracking-wider text-[#94A3B8]" style={{ fontFamily: SF }}>Appearance</span>
+                          <ChevronDown size={14} className={`text-[#64748B] transition-transform duration-200 ${openSections.appearance ? 'rotate-180' : ''}`} />
+                        </button>
+                        {openSections.appearance && (
+                          <div className="flex flex-col gap-4 px-5 pb-5 pt-1">
+                            
+                            {/* Color Picker Swatches */}
+                            <div className="flex flex-col gap-2">
+                              <span className="text-[10px] font-medium text-[#64748B]" style={{ fontFamily: SF }}>Accent Color</span>
+                              <div className="flex gap-1.5 flex-wrap">
+                                {["", "#ef4444", "#f59e0b", "#10b981", "#3bc9db", "#6366f1", "#a855f7", "#ec4899", "#ffffff", "#444444"].map((c) => (
+                                  <button key={c || "default"} onClick={() => updateSelectedNode({ customColor: c || undefined })}
+                                    className="w-5 h-5 rounded-full border-2 flex items-center justify-center transition-transform hover:scale-110 shadow-sm"
+                                    style={{
+                                      background: c || "rgba(255,255,255,0.05)",
+                                      borderColor: selectedNode.customColor === c || (!selectedNode.customColor && !c) ? "#fff" : "transparent",
+                                    }}>
+                                    {!c && <X size={10} color="#64748B" />}
+                                  </button>
+                                ))}
+                              </div>
                             </div>
-                          ))}
+
+                            {/* Opacity Slider (Mock) */}
+                            <div className="flex flex-col gap-2">
+                               <div className="flex justify-between items-center">
+                                  <span className="text-[10px] font-medium text-[#64748B]" style={{ fontFamily: SF }}>Opacity</span>
+                                  <span className="text-[10px] font-mono text-[#E2E8F0]">100%</span>
+                               </div>
+                               <input type="range" min="0" max="100" defaultValue="100" className="nagi-slider" />
+                            </div>
+
+                          </div>
+                        )}
+                      </div>
+
+                      {/* --- SIZE & LAYOUT SECTION --- */}
+                      <div className="flex flex-col border-b border-[#1a2535]">
+                        <button onClick={() => toggleSection('layout')} className="flex items-center justify-between px-5 py-3 hover:bg-[rgba(255,255,255,0.02)] transition-colors w-full text-left">
+                          <span className="text-[11px] font-bold uppercase tracking-wider text-[#94A3B8]" style={{ fontFamily: SF }}>Layout</span>
+                          <ChevronDown size={14} className={`text-[#64748B] transition-transform duration-200 ${openSections.layout ? 'rotate-180' : ''}`} />
+                        </button>
+                        {openSections.layout && (
+                          <div className="flex flex-col gap-4 px-5 pb-5 pt-1">
+                            <div className="flex items-center gap-3">
+                              <div className="flex-1 flex flex-col gap-1.5">
+                                <span className="text-[10px] font-medium text-[#64748B]" style={{ fontFamily: SF }}>W</span>
+                                <input type="text" disabled value="Auto" className="w-full bg-[rgba(255,255,255,0.03)] border border-[#1a2535] rounded-[6px] px-2 py-1.5 text-[11px] text-[#94A3B8] font-mono" />
+                              </div>
+                              <div className="w-4 flex justify-center text-[#475569]"><Link2 size={12}/></div>
+                              <div className="flex-1 flex flex-col gap-1.5">
+                                <span className="text-[10px] font-medium text-[#64748B]" style={{ fontFamily: SF }}>H</span>
+                                <input type="text" disabled value="Auto" className="w-full bg-[rgba(255,255,255,0.03)] border border-[#1a2535] rounded-[6px] px-2 py-1.5 text-[11px] text-[#94A3B8] font-mono" />
+                              </div>
+                            </div>
+                            
+                            <div className="flex flex-col gap-2 mt-2">
+                               <span className="text-[10px] font-medium text-[#64748B]" style={{ fontFamily: SF }}>Corner Radius</span>
+                               <div className="flex items-center bg-[rgba(255,255,255,0.03)] border border-[#1a2535] p-0.5 rounded-[8px]">
+                                  {["0", "8", "16", "24"].map((r) => (
+                                    <button key={r} className={`flex-1 py-1 rounded-[6px] text-[11px] font-medium ${r === "16" ? 'bg-[#3BC9DB] text-[#050505]' : 'text-[#94A3B8] hover:text-[#fff]'}`}>
+                                      {r}
+                                    </button>
+                                  ))}
+                               </div>
+                            </div>
+                          </div>
+                        )}
+                      </div>
+
+                      {/* --- METADATA SECTION (Papers Only) --- */}
+                      {selectedNode.type === "paper" && (
+                        <div className="flex flex-col border-b border-[#1a2535]">
+                          <button onClick={() => toggleSection('metadata')} className="flex items-center justify-between px-5 py-3 hover:bg-[rgba(255,255,255,0.02)] transition-colors w-full text-left">
+                            <span className="text-[11px] font-bold uppercase tracking-wider text-[#94A3B8]" style={{ fontFamily: SF }}>Metadata</span>
+                            <ChevronDown size={14} className={`text-[#64748B] transition-transform duration-200 ${openSections.metadata ? 'rotate-180' : ''}`} />
+                          </button>
+                          {openSections.metadata && (
+                            <div className="flex flex-col gap-2.5 px-5 pb-5 pt-1">
+                              {[
+                                { key: "author", label: "Author", value: selectedNode.author },
+                                { key: "year", label: "Year", value: selectedNode.year?.toString() },
+                                { key: "citations", label: "Citations", value: selectedNode.citations?.toString(), isNumber: true },
+                                { key: "field", label: "Field", value: selectedNode.field },
+                                { key: "journal", label: "Journal", value: selectedNode.journal },
+                              ].map(row => (
+                                <div key={row.label} className="flex items-center justify-between gap-2 group">
+                                  <span className="text-[11px] font-medium text-[#64748B]" style={{ fontFamily: SF }}>{row.label}</span>
+                                  <input 
+                                    type="text"
+                                    value={row.value || ""}
+                                    onChange={(e) => updateSelectedNode({ [row.key]: row.isNumber ? (parseInt(e.target.value) || 0) : e.target.value })}
+                                    className="text-[11px] font-medium text-right bg-transparent border-b border-transparent group-hover:border-[#1a2535] focus:border-[#3BC9DB] outline-none placeholder-[#334155] w-40 transition-colors py-0.5"
+                                    style={{ color: "#E2E8F0", fontFamily: SF }}
+                                    placeholder="-"
+                                  />
+                                </div>
+                              ))}
+                              
+                              <div className="mt-3">
+                                 <span className="text-[10px] font-medium text-[#64748B] mb-1.5 block" style={{ fontFamily: SF }}>Tags</span>
+                                 <input 
+                                    type="text"
+                                    value={(selectedNode.tags || []).join(", ")}
+                                    onChange={(e) => updateSelectedNode({ tags: e.target.value.split(",").map(t => t.trim()).filter(Boolean) })}
+                                    placeholder="Add tags separated by commas..."
+                                    className="text-[11px] bg-[rgba(255,255,255,0.02)] border border-[#1a2535] rounded-[6px] px-3 py-2 outline-none focus:border-[#3BC9DB] w-full transition-colors"
+                                    style={{ color: "#E2E8F0", fontFamily: SF }}
+                                  />
+                              </div>
+                            </div>
+                          )}
                         </div>
                       )}
 
-                      {/* Properties Editor */}
-                      <div className="flex flex-col gap-1.5 px-4 py-3" style={{ borderBottom: "1px solid #1a2535" }}>
-                        <span className="text-[10px] font-bold uppercase tracking-wider shrink-0" style={{ color: "#808080", fontFamily: SF }}>Dev Properties</span>
-                        <textarea
-                          value={selectedNode.properties ? JSON.stringify(selectedNode.properties, null, 2) : ""}
-                          onChange={(e) => {
-                            try { updateSelectedNode({ properties: JSON.parse(e.target.value) }) } catch(err) {}
-                          }}
-                          className="text-[10px] bg-[#050810] border border-[#1a2535] rounded px-2.5 py-2 outline-none resize-y w-full focus:border-[#555] transition-colors"
-                          style={{ color: "#9CA3AF", fontFamily: MONO, minHeight: "60px" }}
-                          placeholder='{"key": "value"}'
-                        />
+                      {/* --- NOTES SECTION --- */}
+                      <div className="flex flex-col border-b border-[#1a2535]">
+                        <button onClick={() => toggleSection('notes')} className="flex items-center justify-between px-5 py-3 hover:bg-[rgba(255,255,255,0.02)] transition-colors w-full text-left">
+                          <span className="text-[11px] font-bold uppercase tracking-wider text-[#94A3B8]" style={{ fontFamily: SF }}>Notes</span>
+                          <ChevronDown size={14} className={`text-[#64748B] transition-transform duration-200 ${openSections.notes ? 'rotate-180' : ''}`} />
+                        </button>
+                        {openSections.notes && (
+                          <div className="flex flex-col gap-2 px-5 pb-5 pt-1">
+                             <textarea
+                               value={selectedNode.note || ""}
+                               onChange={(e) => updateSelectedNode({ note: e.target.value })}
+                               className="text-[12px] leading-relaxed rounded-[8px] bg-[rgba(255,255,255,0.02)] border border-[#1a2535] px-3 py-2.5 outline-none resize-y placeholder-[#475569] w-full focus:border-[#3BC9DB] transition-colors"
+                               style={{ color: "#E2E8F0", minHeight: "100px", fontFamily: SF }}
+                               placeholder="Supports Markdown..."
+                             />
+                          </div>
+                        )}
                       </div>
 
-                      {/* Connections */}
-                      <div className="flex flex-col gap-2 px-4 py-3" style={{ borderBottom: "1px solid #1a2535" }}>
-                        <span className="text-[10px] font-bold uppercase tracking-wider shrink-0" style={{ color: "#808080", fontFamily: SF }}>Connections</span>
-                        <div className="flex flex-col gap-1.5">
-                          {edges.filter(e => {
-                            const srcId = typeof e.source === "string" ? e.source : e.source.id;
-                            const tgtId = typeof e.target === "string" ? e.target : e.target.id;
-                            return srcId === selectedNode.id || tgtId === selectedNode.id;
-                          }).length === 0 ? (
-                             <span className="text-[11px] text-[#6B7280]" style={{ fontFamily: SF }}>No connections</span>
-                          ) : (
-                            edges.filter(e => {
+                      {/* --- CONNECTIONS SECTION --- */}
+                      <div className="flex flex-col border-b border-[#1a2535]">
+                        <button onClick={() => toggleSection('connections')} className="flex items-center justify-between px-5 py-3 hover:bg-[rgba(255,255,255,0.02)] transition-colors w-full text-left">
+                          <span className="text-[11px] font-bold uppercase tracking-wider text-[#94A3B8]" style={{ fontFamily: SF }}>Connections</span>
+                          <ChevronDown size={14} className={`text-[#64748B] transition-transform duration-200 ${openSections.connections ? 'rotate-180' : ''}`} />
+                        </button>
+                        {openSections.connections && (
+                          <div className="flex flex-col gap-1.5 px-5 pb-5 pt-1">
+                            {edges.filter(e => {
                               const srcId = typeof e.source === "string" ? e.source : e.source.id;
                               const tgtId = typeof e.target === "string" ? e.target : e.target.id;
                               return srcId === selectedNode.id || tgtId === selectedNode.id;
-                            }).map((e, i) => {
-                              const srcId = typeof e.source === "string" ? e.source : e.source.id;
-                              const tgtId = typeof e.target === "string" ? e.target : e.target.id;
-                              const isSource = srcId === selectedNode.id;
-                              const otherId = isSource ? tgtId : srcId;
-                              const otherNode = nodes.find(n => n.id === otherId);
-                              return (
-                                <div key={i} className="flex justify-between items-center bg-[#050810] px-2.5 py-1.5 rounded border border-[#1a2535]">
-                                  <span className="text-[11px] text-[#D1D5DB] truncate w-[140px]" style={{ fontFamily: SF }}>{otherNode?.title || String(otherId)}</span>
-                                  <span className="text-[9px] text-[#9CA3AF] font-bold uppercase" style={{fontFamily: MONO}}>{e.label || e.type}</span>
-                                </div>
-                              );
-                            })
-                          )}
-                        </div>
+                            }).length === 0 ? (
+                               <span className="text-[11px] text-[#475569] py-2" style={{ fontFamily: SF }}>No active connections.</span>
+                            ) : (
+                              edges.filter(e => {
+                                const srcId = typeof e.source === "string" ? e.source : e.source.id;
+                                const tgtId = typeof e.target === "string" ? e.target : e.target.id;
+                                return srcId === selectedNode.id || tgtId === selectedNode.id;
+                              }).map((e, i) => {
+                                const srcId = typeof e.source === "string" ? e.source : e.source.id;
+                                const tgtId = typeof e.target === "string" ? e.target : e.target.id;
+                                const isSource = srcId === selectedNode.id;
+                                const otherId = isSource ? tgtId : srcId;
+                                const otherNode = nodes.find(n => n.id === otherId);
+                                return (
+                                  <div key={i} className="flex justify-between items-center bg-[rgba(255,255,255,0.02)] px-3 py-2 rounded-[6px] border border-[#1a2535] hover:border-[#334155] transition-colors cursor-pointer group">
+                                    <span className="text-[11px] text-[#E2E8F0] font-medium truncate w-[130px]" style={{ fontFamily: SF }}>{otherNode?.title || String(otherId)}</span>
+                                    <span className="text-[9px] font-bold uppercase py-0.5 px-1.5 rounded-[4px]" style={{fontFamily: MONO, color: EDGE_COLOR[e.type], background: `${EDGE_COLOR[e.type]}22`}}>{e.label || e.type}</span>
+                                  </div>
+                                );
+                              })
+                            )}
+                          </div>
+                        )}
                       </div>
 
-                      {/* Actions */}
-                      <div className="flex flex-col gap-1.5 px-4 py-4">
+                      {/* --- ACTIONS & DANGER ZONE --- */}
+                      <div className="flex flex-col px-5 py-6 gap-2.5">
                         {selectedNode.type === "paper" && (
-                          <>
+                          <div className="flex gap-2">
                             <button onClick={() => { window.location.href = `/paper/${selectedNode.id}`; }}
-                              className="w-full flex items-center justify-center gap-1.5 py-1.5 rounded text-[11px] font-semibold transition-all hover:bg-[#2A2B30]"
-                              style={{ border: "1px solid #333539", color: "#E2E8F0", fontFamily: SF }}>
-                              <BookOpen size={12} /> View Paper
+                              className="flex-1 flex items-center justify-center gap-1.5 py-2 rounded-[8px] text-[11px] font-semibold transition-all hover:bg-[rgba(255,255,255,0.08)] bg-[rgba(255,255,255,0.04)]"
+                              style={{ color: "#E2E8F0", fontFamily: SF }}>
+                              <BookOpen size={14} /> View
                             </button>
                             <button onClick={() => { window.location.href = `/map/${selectedNode.id}`; }}
-                              className="w-full flex items-center justify-center gap-1.5 py-1.5 rounded text-[11px] font-semibold transition-all hover:bg-[#2A2B30]"
-                              style={{ border: "1px solid #333539", color: "#E2E8F0", fontFamily: SF }}>
-                              <Map size={12} /> Map Paper
+                              className="flex-1 flex items-center justify-center gap-1.5 py-2 rounded-[8px] text-[11px] font-semibold transition-all hover:bg-[rgba(255,255,255,0.08)] bg-[rgba(255,255,255,0.04)]"
+                              style={{ color: "#E2E8F0", fontFamily: SF }}>
+                              <Map size={14} /> Map
                             </button>
-                          </>
+                          </div>
                         )}
                         {selectedNode.url && (
                           <a href={selectedNode.url} target="_blank" rel="noopener noreferrer"
-                            className="w-full flex items-center justify-center gap-1.5 py-1.5 rounded text-[11px] font-semibold transition-all hover:bg-[#2A2B30]"
-                            style={{ border: "1px solid #333539", color: "#E2E8F0", fontFamily: SF }}>
-                            <ExternalLink size={12} /> Source Link
+                            className="w-full flex items-center justify-center gap-1.5 py-2 rounded-[8px] text-[11px] font-semibold transition-all hover:bg-[rgba(255,255,255,0.08)] bg-[rgba(255,255,255,0.04)]"
+                            style={{ color: "#E2E8F0", fontFamily: SF }}>
+                            <ExternalLink size={14} /> Source Link
                           </a>
                         )}
+                        
+                        <div className="h-4"></div>
+                        
                         <button
                           onClick={() => {
                             const newNodes = nodes.filter(n => n.id !== selectedNode!.id);
@@ -1538,9 +1535,9 @@ export default function MapPage() {
                             pushHistory(newNodes, newEdges);
                             setSelectedNodeIds([]);
                           }}
-                          className="w-full flex items-center justify-center gap-1.5 py-1.5 rounded text-[11px] font-semibold transition-all hover:bg-[rgba(239,68,68,0.1)]"
-                          style={{ border: "1px solid rgba(239,68,68,0.2)", color: "#F87171", fontFamily: SF }}>
-                          <Trash2 size={12} /> Delete Node
+                          className="w-full flex items-center justify-center gap-2 py-2 rounded-[8px] text-[12px] font-semibold transition-all hover:bg-[rgba(239,68,68,0.15)] bg-[rgba(239,68,68,0.05)] border border-[rgba(239,68,68,0.2)]"
+                          style={{ color: "#F87171", fontFamily: SF }}>
+                          <Trash2 size={14} /> Delete Node
                         </button>
                       </div>
                     </>
@@ -1549,121 +1546,63 @@ export default function MapPage() {
                   {/* === EDGE INSPECTOR === */}
                   {selectedEdge && !selectedNode && (
                     <>
-                      <div className="flex items-center gap-2 px-4 py-3 shrink-0" style={{ borderBottom: "1px solid #1a2535" }}>
-                        <Link size={12} color="#808080" />
-                        <span className="text-[10px] font-bold tracking-[0.15em] uppercase"
-                          style={{ color: EDGE_COLOR[selectedEdge.type] || "#E2E8F0", fontFamily: MONO }}>
-                          {EDGE_LABEL[selectedEdge.type]}
+                      <div className="flex items-center gap-2 px-5 py-4 shrink-0 bg-[#070b14]" style={{ borderBottom: "1px solid #1a2535" }}>
+                        <Link2 size={14} color="#64748B" />
+                        <span className="text-[11px] font-bold tracking-[0.15em] uppercase"
+                          style={{ color: EDGE_COLOR[selectedEdge.type] || "#E2E8F0", fontFamily: SF }}>
+                          Connection
                         </span>
                       </div>
 
-                      {/* Relationship Type */}
-                      <div className="flex flex-col gap-1.5 px-4 py-3" style={{ borderBottom: "1px solid #1a2535" }}>
-                        <span className="text-[10px] font-bold uppercase tracking-wider shrink-0" style={{ color: "#808080", fontFamily: SF }}>Relationship</span>
-                        <select
-                          value={selectedEdge.type}
-                          onChange={(e) => {
-                            const newType = e.target.value as EdgeType;
-                            setEdges(edges.map(ed => ed.id === selectedEdge.id ? { ...ed, type: newType, label: EDGE_LABEL[newType] } : ed));
-                            setSelectedEdge({ ...selectedEdge, type: newType, label: EDGE_LABEL[newType] });
-                          }}
-                          className="w-full text-[11px] font-semibold bg-[#050810] border border-[#1a2535] rounded px-2.5 py-1.5 outline-none cursor-pointer focus:border-[#555] transition-colors"
-                          style={{ color: "#E2E8F0", fontFamily: SF }}>
-                          {Object.keys(EDGE_COLOR).map((t) => (
-                            <option key={t} value={t}>{EDGE_LABEL[t as EdgeType]}</option>
-                          ))}
-                        </select>
-                      </div>
-
-                      {/* Custom Label */}
-                      <div className="flex flex-col gap-1.5 px-4 py-3" style={{ borderBottom: "1px solid #1a2535" }}>
-                        <span className="text-[10px] font-bold uppercase tracking-wider shrink-0" style={{ color: "#808080", fontFamily: SF }}>Custom Label</span>
-                        <input
-                          type="text"
-                          value={selectedEdge.label || EDGE_LABEL[selectedEdge.type]}
-                          onChange={(e) => {
-                            setEdges(edges.map(ed => ed.id === selectedEdge.id ? { ...ed, label: e.target.value } : ed));
-                            setSelectedEdge({ ...selectedEdge, label: e.target.value });
-                          }}
-                          className="text-[11px] font-medium bg-[#050810] border border-[#1a2535] rounded px-2.5 py-1.5 outline-none placeholder-[#666] w-full focus:border-[#555] transition-colors"
-                          style={{ color: "#D1D5DB", fontFamily: SF }}
-                          placeholder="Connection label..."
-                        />
-                      </div>
-
-                      {/* Metadata Fields */}
-                      <div className="flex flex-col gap-2 px-4 py-3" style={{ borderBottom: "1px solid #1a2535" }}>
-                        <span className="text-[10px] font-bold uppercase tracking-wider shrink-0 mb-1" style={{ color: "#808080", fontFamily: SF }}>Metadata</span>
+                      <div className="flex flex-col gap-3 px-5 py-5" style={{ borderBottom: "1px solid #1a2535" }}>
+                        <span className="text-[11px] font-bold uppercase tracking-wider text-[#94A3B8]" style={{ fontFamily: SF }}>Properties</span>
                         
-                        <div className="flex items-center justify-between gap-2">
-                          <span className="text-[10px] font-medium" style={{ color: "#808080", fontFamily: SF }}>Strength</span>
+                        <div className="flex flex-col gap-1.5 mt-2">
+                          <span className="text-[10px] font-medium text-[#64748B]" style={{ fontFamily: SF }}>Relationship Type</span>
                           <select
-                            value={selectedEdge.metadata?.strength || ""}
+                            value={selectedEdge.type}
                             onChange={(e) => {
-                              const strength = e.target.value as any;
-                              setEdges(edges.map(ed => ed.id === selectedEdge.id ? { ...ed, metadata: { ...ed.metadata, strength } } : ed));
-                              setSelectedEdge({ ...selectedEdge, metadata: { ...selectedEdge.metadata, strength } });
+                              const newType = e.target.value as EdgeType;
+                              setEdges(edges.map(ed => ed.id === selectedEdge.id ? { ...ed, type: newType, label: EDGE_LABEL[newType] } : ed));
+                              setSelectedEdge({ ...selectedEdge, type: newType, label: EDGE_LABEL[newType] });
                             }}
-                            className="text-[11px] font-medium text-right bg-transparent border-none outline-none cursor-pointer"
+                            className="w-full text-[12px] font-medium bg-[rgba(255,255,255,0.03)] border border-[#1a2535] rounded-[6px] px-3 py-2 outline-none cursor-pointer focus:border-[#3BC9DB] transition-colors"
                             style={{ color: "#E2E8F0", fontFamily: SF }}>
-                            <option value="">None</option>
-                            <option value="weak">Weak</option>
-                            <option value="medium">Medium</option>
-                            <option value="strong">Strong</option>
+                            {Object.keys(EDGE_COLOR).map((t) => (
+                              <option key={t} value={t} style={{background: "#0a0f1a"}}>{EDGE_LABEL[t as EdgeType]}</option>
+                            ))}
                           </select>
                         </div>
 
-                        <div className="flex items-center justify-between gap-2 mt-1">
-                          <span className="text-[10px] font-medium" style={{ color: "#808080", fontFamily: SF }}>Confidence</span>
-                          <select
-                            value={selectedEdge.metadata?.confidence || ""}
+                        <div className="flex flex-col gap-1.5 mt-2">
+                          <span className="text-[10px] font-medium text-[#64748B]" style={{ fontFamily: SF }}>Custom Label (Pill)</span>
+                          <input
+                            type="text"
+                            value={selectedEdge.label || EDGE_LABEL[selectedEdge.type]}
                             onChange={(e) => {
-                              const confidence = e.target.value as any;
-                              setEdges(edges.map(ed => ed.id === selectedEdge.id ? { ...ed, metadata: { ...ed.metadata, confidence } } : ed));
-                              setSelectedEdge({ ...selectedEdge, metadata: { ...selectedEdge.metadata, confidence } });
+                              setEdges(edges.map(ed => ed.id === selectedEdge.id ? { ...ed, label: e.target.value } : ed));
+                              setSelectedEdge({ ...selectedEdge, label: e.target.value });
                             }}
-                            className="text-[11px] font-medium text-right bg-transparent border-none outline-none cursor-pointer"
-                            style={{ color: "#E2E8F0", fontFamily: SF }}>
-                            <option value="">None</option>
-                            <option value="low">Low</option>
-                            <option value="medium">Medium</option>
-                            <option value="high">High</option>
-                          </select>
+                            className="w-full text-[12px] font-medium bg-[rgba(255,255,255,0.03)] border border-[#1a2535] rounded-[6px] px-3 py-2 outline-none focus:border-[#3BC9DB] transition-colors"
+                            style={{ color: "#E2E8F0", fontFamily: SF }}
+                          />
                         </div>
                       </div>
 
-                      {/* Note Editor */}
-                      <div className="flex flex-col gap-1.5 px-4 py-3" style={{ borderBottom: "1px solid #1a2535" }}>
-                        <span className="text-[10px] font-bold uppercase tracking-wider shrink-0" style={{ color: "#808080", fontFamily: SF }}>Notes</span>
-                        <textarea
-                           value={selectedEdge.metadata?.notes || ""}
-                           onChange={(e) => {
-                             const notes = e.target.value;
-                             setEdges(edges.map(ed => ed.id === selectedEdge.id ? { ...ed, metadata: { ...ed.metadata, notes } } : ed));
-                             setSelectedEdge({ ...selectedEdge, metadata: { ...selectedEdge.metadata, notes } });
-                           }}
-                           className="text-[11px] leading-relaxed rounded bg-[#050810] border border-[#1a2535] px-2.5 py-2 outline-none resize-y placeholder-[#666] w-full focus:border-[#555] transition-colors"
-                           style={{ color: "#D1D5DB", minHeight: "80px", fontFamily: SF }}
-                           placeholder="Connection rationale..."
-                         />
-                      </div>
-                      
-                      {/* Actions */}
-                      <div className="flex flex-col gap-1.5 px-4 py-4">
+                      <div className="px-5 py-6">
                         <button
                           onClick={() => {
                             const newEdges = edges.filter(e => e.id !== selectedEdge.id);
                             pushHistory(nodes, newEdges);
                             setSelectedEdge(null);
                           }}
-                          className="w-full flex items-center justify-center gap-1.5 py-1.5 rounded text-[11px] font-semibold transition-all hover:bg-[rgba(239,68,68,0.1)]"
-                          style={{ border: "1px solid rgba(239,68,68,0.2)", color: "#F87171", fontFamily: SF }}>
-                          <Trash2 size={12} /> Delete Connection
+                          className="w-full flex items-center justify-center gap-2 py-2 rounded-[8px] text-[12px] font-semibold transition-all hover:bg-[rgba(239,68,68,0.15)] bg-[rgba(239,68,68,0.05)] border border-[rgba(239,68,68,0.2)]"
+                          style={{ color: "#F87171", fontFamily: SF }}>
+                          <Trash2 size={14} /> Delete Connection
                         </button>
                       </div>
                     </>
                   )}
-
                 </div>
               )}
             </div>
