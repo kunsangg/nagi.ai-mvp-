@@ -147,6 +147,9 @@ export default function MapPage() {
     ? idParam.map(decodeURIComponent).join("/")
     : (idParam as string);
 
+  const stateRef = useRef({ activeTool, connectSource, selectedNode });
+  stateRef.current = { activeTool, connectSource, selectedNode };
+
   // Measure canvas
   useEffect(() => {
     const el = svgRef.current?.parentElement;
@@ -214,6 +217,10 @@ export default function MapPage() {
       .on("zoom", ev => g.attr("transform", ev.transform));
     svg.call(zoom);
     zoomRef.current = zoom;
+    const currentTransform = d3.zoomTransform(el);
+    if (currentTransform !== d3.zoomIdentity) {
+      g.attr("transform", currentTransform.toString());
+    }
 
     // Edge path helper
     function edgePath(e: MapEdge): string {
@@ -249,7 +256,7 @@ export default function MapPage() {
       .attr("cursor",         "pointer")
       .attr("d",              edgePath as any)
       .on("click", (_ev, d: any) => {
-        if (activeTool === "delete") {
+        if (stateRef.current.activeTool === "delete") {
           setEdges(p => p.filter(e => !(getId(e.source) === getId(d.source) && getId(e.target) === getId(d.target))));
         } else {
           setSelectedEdge(d);
@@ -305,16 +312,17 @@ export default function MapPage() {
 
     // Card body
     nodeSel.append("rect")
+      .attr("class", "card-body")
       .attr("x", -NODE_W / 2).attr("y", -NODE_H / 2)
       .attr("width", NODE_W).attr("height", NODE_H).attr("rx", 8)
       .attr("fill", (d: MapNode) => d.type === "center" ? "#0f1e30" : "#0d1520")
       .attr("stroke", (d: MapNode) => {
-        if (d.id === selectedNode?.id) return "#fff";
+        if (d.id === stateRef.current.selectedNode?.id) return "#fff";
         return PRIORITY_COLOR[d.priority] ?? TYPE_COLOR[d.type];
       })
-      .attr("stroke-width", (d: MapNode) => d.id === selectedNode?.id ? 2 : 1)
+      .attr("stroke-width", (d: MapNode) => d.id === stateRef.current.selectedNode?.id ? 2 : 1)
       .on("mouseover", function(_ev, d) {
-        if (d.id !== selectedNode?.id)
+        if (d.id !== stateRef.current.selectedNode?.id)
           d3.select(this).attr("fill", "#111f30");
       })
       .on("mouseout", function(_ev, d) {
@@ -430,7 +438,7 @@ export default function MapPage() {
       .attr("fill", "none")
       .attr("stroke", (d: MapNode) => TYPE_COLOR[d.type])
       .attr("stroke-width", 2).attr("stroke-dasharray", "5,3")
-      .attr("opacity", (d: MapNode) => d.id === selectedNode?.id ? 1 : 0);
+      .attr("opacity", (d: MapNode) => d.id === stateRef.current.selectedNode?.id ? 1 : 0);
 
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [nodes, edges, dims]);
@@ -440,9 +448,13 @@ export default function MapPage() {
     if (!svgRef.current) return;
     d3.select(svgRef.current).selectAll<SVGRectElement, MapNode>(".sel-ring")
       .attr("opacity", (d: MapNode) => d.id === selectedNode?.id ? 1 : 0);
+    d3.select(svgRef.current).selectAll<SVGRectElement, MapNode>(".card-body")
+      .attr("stroke", (d: MapNode) => d.id === selectedNode?.id ? "#fff" : (PRIORITY_COLOR[d.priority] ?? TYPE_COLOR[d.type]))
+      .attr("stroke-width", (d: MapNode) => d.id === selectedNode?.id ? 2 : 1);
   }, [selectedNode]);
 
   function handleNodeClick(d: MapNode) {
+    const { activeTool, connectSource } = stateRef.current;
     if (activeTool === "delete") {
       setNodes(p => p.filter(n => n.id !== d.id));
       setEdges(p => p.filter(e => getId(e.source) !== d.id && getId(e.target) !== d.id));
