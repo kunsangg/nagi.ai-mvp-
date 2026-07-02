@@ -621,23 +621,23 @@ export default function MapPage() {
       {/* ── Floating Bottom Center Toolbar ── */}
       <div className="absolute bottom-6 left-1/2 -translate-x-1/2 z-30 flex flex-col items-center gap-3 pointer-events-none">
         {/* AI Pill */}
-        <button className="flex items-center gap-1.5 px-3 py-1.5 rounded-full text-[10px] font-medium pointer-events-auto transition-opacity hover:opacity-80"
-          style={{ background: "#0d1520", border: "1px solid #1a2535", color: "#94a3b8" }}>
+        <button className="flex items-center gap-1.5 px-3 py-1.5 rounded-full text-[11px] font-medium pointer-events-auto transition-opacity hover:opacity-80"
+          style={{ background: "#11151c", border: "1px solid #1e2430", color: "#8b9db1" }}>
           Build with AI <Sparkles size={11} />
         </button>
 
         {/* Main Toolbar */}
-        <div className="flex items-center gap-2 px-3 py-2 rounded-2xl pointer-events-auto shadow-2xl"
-          style={{ background: "#0a0f1a", border: "1px solid #1a2535" }}>
+        <div className="flex items-center gap-1.5 px-2 py-1.5 rounded-2xl pointer-events-auto shadow-2xl"
+          style={{ background: "#0a0d14", border: "1px solid #161a23" }}>
           {([
-            { t: "select"  as Tool, icon: <MousePointer size={14} />, tip: "Select"  },
-            { t: "pan"     as Tool, icon: <Hand         size={14} />, tip: "Pan"     },
-            { t: "ai"      as Tool, icon: <Sparkles     size={14} />, tip: "AI Actions" },
-            { t: "note"    as Tool, icon: <StickyNote   size={14} />, tip: "Add Note"},
-            { t: "upload"  as Tool, icon: <Upload       size={14} />, tip: "Add Papers"  },
-            { t: "delete"  as Tool, icon: <Trash2       size={14} />, tip: "Delete"  },
-            { t: "connect" as Tool, icon: <Link2        size={14} />, tip: "Connect Nodes" },
-            { t: "box"     as Tool, icon: <BoxSelect    size={14} />, tip: "Box Select"},
+            { t: "select"  as Tool, icon: <MousePointer size={15} />, tip: "Select"  },
+            { t: "pan"     as Tool, icon: <Hand         size={15} />, tip: "Pan"     },
+            { t: "ai"      as Tool, icon: <Sparkles     size={15} />, tip: "AI Actions" },
+            { t: "note"    as Tool, icon: <StickyNote   size={15} />, tip: "Add Note"},
+            { t: "upload"  as Tool, icon: <Upload       size={15} />, tip: "Add Papers"  },
+            { t: "delete"  as Tool, icon: <Trash2       size={15} />, tip: "Delete"  },
+            { t: "connect" as Tool, icon: <Link2        size={15} />, tip: "Connect Nodes" },
+            { t: "box"     as Tool, icon: <BoxSelect    size={15} />, tip: "Box Select"},
           ] as const).map(({ t, icon, tip }) => (
             <button key={t} title={tip}
               onClick={() => {
@@ -648,21 +648,20 @@ export default function MapPage() {
                   setConnectSource(null);
                 }
               }}
-              className="w-10 h-10 rounded-xl flex items-center justify-center transition-all"
+              className="w-10 h-10 rounded-[14px] flex items-center justify-center transition-all"
               style={{
-                background: activeTool === t && t !== "upload" ? "#1a2535" : "transparent",
-                color:      activeTool === t && t !== "upload" ? "#f1f5f9" : "#64748b",
-                border:     `1px solid ${activeTool === t && t !== "upload" ? "#243044" : "transparent"}`,
+                background: activeTool === t && t !== "upload" ? "#1e2532" : "transparent",
+                color:      activeTool === t && t !== "upload" ? "#e2e8f0" : "#6b7c93",
               }}>
               {icon}
             </button>
           ))}
           
-          <div className="w-[1px] h-6 mx-1" style={{ background: "#1a2535" }} />
+          <div className="w-[1px] h-6 mx-1.5" style={{ background: "#1e2532" }} />
           
           <button title="Test / Run"
-            className="w-10 h-10 rounded-xl flex items-center justify-center bg-white text-black hover:bg-gray-100 transition-colors shadow-lg">
-            <Play size={14} className="fill-black" />
+            className="w-11 h-11 rounded-[14px] flex items-center justify-center bg-white text-black hover:bg-gray-100 transition-colors shadow-lg">
+            <Play size={16} className="fill-black" />
           </button>
         </div>
       </div>
@@ -670,13 +669,13 @@ export default function MapPage() {
       {/* ── Floating Bottom Right (Zoom) ── */}
       <div className="absolute bottom-6 right-6 z-30 flex items-center gap-1.5 pointer-events-none">
         {([
-          { fn: () => doZoom("out"), icon: <ZoomOut    size={13} />, tip: "Zoom out" },
-          { fn: () => doZoom("in"),  icon: <ZoomIn     size={13} />, tip: "Zoom in"  },
-          { fn: () => doZoom("fit"), icon: <Maximize2  size={13} />, tip: "Reset"    },
+          { fn: () => doZoom("out"), icon: <ZoomOut    size={14} />, tip: "Zoom out" },
+          { fn: () => doZoom("in"),  icon: <ZoomIn     size={14} />, tip: "Zoom in"  },
+          { fn: () => doZoom("fit"), icon: <Maximize2  size={14} />, tip: "Reset"    },
         ]).map((z, i) => (
           <button key={i} title={z.tip} onClick={z.fn}
-            className="w-9 h-9 flex items-center justify-center rounded-xl transition-opacity hover:opacity-80 pointer-events-auto shadow-lg"
-            style={{ background: "#0d1520", border: "1px solid #1a2535", color: "#64748b" }}>
+            className="w-10 h-10 flex items-center justify-center rounded-[12px] transition-opacity hover:opacity-80 pointer-events-auto shadow-lg"
+            style={{ background: "#0a0d14", border: "1px solid #161a23", color: "#6b7c93" }}>
             {z.icon}
           </button>
         ))}
