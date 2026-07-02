@@ -242,6 +242,14 @@ export default function MapPage() {
     : (idParam as string);
 
   const selectedNode = selectedNodeIds.length === 1 ? nodes.find(n => n.id === selectedNodeIds[0]) || null : null;
+
+  const [activeSidebarTab, setActiveSidebarTab] = useState<"design" | "copilot">("copilot");
+
+  useEffect(() => {
+    if (selectedNodeIds.length > 0 || selectedEdge) {
+      setActiveSidebarTab("design");
+    }
+  }, [selectedNodeIds, selectedEdge]);
   const stateRef = useRef({ activeTool, connectSource, selectedNodeIds, selectedEdge, nodes, edges, history, historyIndex, clipboard });
   stateRef.current = { activeTool, connectSource, selectedNodeIds, selectedEdge, nodes, edges, history, historyIndex, clipboard };
 
@@ -1222,7 +1230,446 @@ export default function MapPage() {
 
 
 
+      {/* ── Fixed Right Sidebar (Unified) ── */}
+      <aside className="w-[320px] flex-shrink-0 h-full flex flex-col z-40 transition-all duration-300" style={{ background: "#222327", borderLeft: "1px solid #333539" }}>
+        
+        {/* Tab Header */}
+        <div className="flex items-center px-4 pt-4 gap-4" style={{ borderBottom: "1px solid #333539" }}>
+          <button 
+            onClick={() => setActiveSidebarTab("design")}
+            className={`pb-2.5 text-[11px] font-bold uppercase tracking-wider transition-colors ${activeSidebarTab === "design" ? "text-[#E2E8F0] border-b-2 border-blue-500" : "text-[#808080] hover:text-[#B0B0B0] border-b-2 border-transparent"}`}
+            style={{ fontFamily: SF }}
+          >
+            Design
+          </button>
+          <button 
+            onClick={() => setActiveSidebarTab("copilot")}
+            className={`pb-2.5 text-[11px] font-bold uppercase tracking-wider transition-colors ${activeSidebarTab === "copilot" ? "text-[#E2E8F0] border-b-2 border-blue-500" : "text-[#808080] hover:text-[#B0B0B0] border-b-2 border-transparent"}`}
+            style={{ fontFamily: SF }}
+          >
+            Copilot
+          </button>
+        </div>
 
+        <div className="flex-1 overflow-hidden relative">
+          
+          {/* ── DESIGN TAB ── */}
+          {activeSidebarTab === "design" && (
+            <div className="absolute inset-0 overflow-y-auto flex flex-col" style={{ WebkitOverflowScrolling: "touch" }}>
+              {!selectedNode && !selectedEdge ? (
+                <div className="flex-1 flex flex-col items-center justify-center text-[#808080] text-[12px] gap-3" style={{ fontFamily: SF }}>
+                  <div className="w-12 h-12 rounded border border-[#333539] flex items-center justify-center border-dashed">
+                    <MousePointer size={16} />
+                  </div>
+                  <span>Select an object to inspect</span>
+                </div>
+              ) : (
+                <div className="flex flex-col pb-6">
+                  
+                  {/* === NODE INSPECTOR === */}
+                  {selectedNode && (
+                    <>
+                      {/* Header / Type */}
+                      <div className="flex items-center justify-between px-4 py-3 shrink-0" style={{ borderBottom: "1px solid #333539" }}>
+                        <div className="flex items-center gap-2">
+                          <div className="w-2 h-2 rounded-[2px]" style={{ background: selectedNode.customColor || TYPE_COLOR[selectedNode.type] }} />
+                          <span className="text-[10px] font-bold tracking-[0.15em] uppercase"
+                            style={{ color: "#E2E8F0", fontFamily: MONO }}>
+                            {TYPE_LABEL[selectedNode.type]}
+                          </span>
+                        </div>
+                      </div>
+
+                      {/* Title & Description Editor */}
+                      <div className="flex flex-col gap-1.5 px-4 py-4" style={{ borderBottom: "1px solid #333539" }}>
+                         <textarea
+                           value={selectedNode.title}
+                           onChange={(e) => updateSelectedNode({ title: e.target.value })}
+                           className="text-[14px] font-semibold leading-snug bg-transparent border-none outline-none resize-none placeholder-gray-500 w-full tracking-tight"
+                           style={{ color: "#F8FAFC", fontFamily: SF }}
+                           placeholder="Object Title..."
+                           rows={Math.max(1, Math.ceil(selectedNode.title.length / 30))}
+                         />
+                         <textarea
+                           value={selectedNode.description || ""}
+                           onChange={(e) => updateSelectedNode({ description: e.target.value })}
+                           className="text-[12px] leading-relaxed bg-transparent border-none outline-none resize-none placeholder-gray-600 w-full"
+                           style={{ color: "#94A3B8", minHeight: "40px", fontFamily: SF }}
+                           placeholder="Add a description..."
+                         />
+                      </div>
+
+                      {/* Color Picker */}
+                      <div className="flex items-center justify-between px-4 py-3" style={{ borderBottom: "1px solid #333539" }}>
+                        <span className="text-[10px] font-bold uppercase tracking-wider shrink-0" style={{ color: "#808080", fontFamily: SF }}>Fill</span>
+                        <div className="flex gap-1 flex-wrap justify-end">
+                          {["", "#ef4444", "#f59e0b", "#10b981", "#3bc9db", "#6366f1", "#a855f7", "#ec4899", "#ffffff", "#444444"].map((c) => (
+                            <button key={c || "default"} onClick={() => updateSelectedNode({ customColor: c || undefined })}
+                              className="w-4 h-4 rounded-[3px] border flex items-center justify-center transition-transform hover:scale-110"
+                              style={{
+                                background: c || "transparent",
+                                borderColor: selectedNode.customColor === c || (!selectedNode.customColor && !c) ? "#fff" : "#444",
+                              }}>
+                              {!c && <X size={10} color="#666" />}
+                            </button>
+                          ))}
+                        </div>
+                      </div>
+
+                      {/* Tags */}
+                      <div className="flex flex-col gap-1.5 px-4 py-3" style={{ borderBottom: "1px solid #333539" }}>
+                        <span className="text-[10px] font-bold uppercase tracking-wider shrink-0" style={{ color: "#808080", fontFamily: SF }}>Tags</span>
+                        <input 
+                          type="text"
+                          value={(selectedNode.tags || []).join(", ")}
+                          onChange={(e) => updateSelectedNode({ tags: e.target.value.split(",").map(t => t.trim()).filter(Boolean) })}
+                          placeholder="tag1, tag2..."
+                          className="text-[11px] bg-[#1A1A1A] border border-[#333539] rounded px-2.5 py-1.5 outline-none placeholder-[#666] w-full focus:border-[#555] transition-colors"
+                          style={{ color: "#D1D5DB", fontFamily: SF }}
+                        />
+                      </div>
+
+                      {/* Note Editor */}
+                      <div className="flex flex-col gap-1.5 px-4 py-3" style={{ borderBottom: "1px solid #333539" }}>
+                        <span className="text-[10px] font-bold uppercase tracking-wider shrink-0" style={{ color: "#808080", fontFamily: SF }}>Notes</span>
+                        <textarea
+                           value={selectedNode.note || ""}
+                           onChange={(e) => updateSelectedNode({ note: e.target.value })}
+                           className="text-[11px] leading-relaxed rounded bg-[#1A1A1A] border border-[#333539] px-2.5 py-2 outline-none resize-y placeholder-[#666] w-full focus:border-[#555] transition-colors"
+                           style={{ color: "#D1D5DB", minHeight: "80px", fontFamily: SF }}
+                           placeholder="Markdown supported..."
+                         />
+                      </div>
+                      
+                      {/* Type-Specific Fields (Paper) */}
+                      {selectedNode.type === "paper" && (
+                        <div className="flex flex-col gap-2 px-4 py-3" style={{ borderBottom: "1px solid #333539" }}>
+                          <span className="text-[10px] font-bold uppercase tracking-wider shrink-0 mb-1" style={{ color: "#808080", fontFamily: SF }}>Metadata</span>
+                          {[
+                            { key: "author", label: "Author", value: selectedNode.author },
+                            { key: "year", label: "Year", value: selectedNode.year?.toString() },
+                            { key: "citations", label: "Citations", value: selectedNode.citations?.toString(), isNumber: true },
+                            { key: "field", label: "Field", value: selectedNode.field },
+                            { key: "journal", label: "Journal", value: selectedNode.journal },
+                          ].map(row => (
+                            <div key={row.label} className="flex items-center justify-between gap-2 group">
+                              <span className="text-[10px] font-medium" style={{ color: "#808080", fontFamily: SF }}>{row.label}</span>
+                              <input 
+                                type="text"
+                                value={row.value || ""}
+                                onChange={(e) => updateSelectedNode({ [row.key]: row.isNumber ? (parseInt(e.target.value) || 0) : e.target.value })}
+                                className="text-[11px] font-medium text-right bg-transparent border-b border-transparent group-hover:border-[#333539] focus:border-[#555] outline-none placeholder-[#555] w-32 transition-colors py-0.5"
+                                style={{ color: "#E2E8F0", fontFamily: SF }}
+                                placeholder="-"
+                              />
+                            </div>
+                          ))}
+                        </div>
+                      )}
+
+                      {/* Properties Editor */}
+                      <div className="flex flex-col gap-1.5 px-4 py-3" style={{ borderBottom: "1px solid #333539" }}>
+                        <span className="text-[10px] font-bold uppercase tracking-wider shrink-0" style={{ color: "#808080", fontFamily: SF }}>Dev Properties</span>
+                        <textarea
+                          value={selectedNode.properties ? JSON.stringify(selectedNode.properties, null, 2) : ""}
+                          onChange={(e) => {
+                            try { updateSelectedNode({ properties: JSON.parse(e.target.value) }) } catch(err) {}
+                          }}
+                          className="text-[10px] bg-[#1A1A1A] border border-[#333539] rounded px-2.5 py-2 outline-none resize-y w-full focus:border-[#555] transition-colors"
+                          style={{ color: "#9CA3AF", fontFamily: MONO, minHeight: "60px" }}
+                          placeholder='{"key": "value"}'
+                        />
+                      </div>
+
+                      {/* Connections */}
+                      <div className="flex flex-col gap-2 px-4 py-3" style={{ borderBottom: "1px solid #333539" }}>
+                        <span className="text-[10px] font-bold uppercase tracking-wider shrink-0" style={{ color: "#808080", fontFamily: SF }}>Connections</span>
+                        <div className="flex flex-col gap-1.5">
+                          {edges.filter(e => {
+                            const srcId = typeof e.source === "string" ? e.source : e.source.id;
+                            const tgtId = typeof e.target === "string" ? e.target : e.target.id;
+                            return srcId === selectedNode.id || tgtId === selectedNode.id;
+                          }).length === 0 ? (
+                             <span className="text-[11px] text-[#6B7280]" style={{ fontFamily: SF }}>No connections</span>
+                          ) : (
+                            edges.filter(e => {
+                              const srcId = typeof e.source === "string" ? e.source : e.source.id;
+                              const tgtId = typeof e.target === "string" ? e.target : e.target.id;
+                              return srcId === selectedNode.id || tgtId === selectedNode.id;
+                            }).map((e, i) => {
+                              const srcId = typeof e.source === "string" ? e.source : e.source.id;
+                              const tgtId = typeof e.target === "string" ? e.target : e.target.id;
+                              const isSource = srcId === selectedNode.id;
+                              const otherId = isSource ? tgtId : srcId;
+                              const otherNode = nodes.find(n => n.id === otherId);
+                              return (
+                                <div key={i} className="flex justify-between items-center bg-[#1A1A1A] px-2.5 py-1.5 rounded border border-[#333539]">
+                                  <span className="text-[11px] text-[#D1D5DB] truncate w-[140px]" style={{ fontFamily: SF }}>{otherNode?.title || String(otherId)}</span>
+                                  <span className="text-[9px] text-[#9CA3AF] font-bold uppercase" style={{fontFamily: MONO}}>{e.label || e.type}</span>
+                                </div>
+                              );
+                            })
+                          )}
+                        </div>
+                      </div>
+
+                      {/* Actions */}
+                      <div className="flex flex-col gap-1.5 px-4 py-4">
+                        {selectedNode.type === "paper" && (
+                          <>
+                            <button onClick={() => { window.location.href = `/paper/${selectedNode.id}`; }}
+                              className="w-full flex items-center justify-center gap-1.5 py-1.5 rounded text-[11px] font-semibold transition-all hover:bg-[#2A2B30]"
+                              style={{ border: "1px solid #333539", color: "#E2E8F0", fontFamily: SF }}>
+                              <BookOpen size={12} /> View Paper
+                            </button>
+                            <button onClick={() => { window.location.href = `/map/${selectedNode.id}`; }}
+                              className="w-full flex items-center justify-center gap-1.5 py-1.5 rounded text-[11px] font-semibold transition-all hover:bg-[#2A2B30]"
+                              style={{ border: "1px solid #333539", color: "#E2E8F0", fontFamily: SF }}>
+                              <Map size={12} /> Map Paper
+                            </button>
+                          </>
+                        )}
+                        {selectedNode.url && (
+                          <a href={selectedNode.url} target="_blank" rel="noopener noreferrer"
+                            className="w-full flex items-center justify-center gap-1.5 py-1.5 rounded text-[11px] font-semibold transition-all hover:bg-[#2A2B30]"
+                            style={{ border: "1px solid #333539", color: "#E2E8F0", fontFamily: SF }}>
+                            <ExternalLink size={12} /> Source Link
+                          </a>
+                        )}
+                        <button
+                          onClick={() => {
+                            const newNodes = nodes.filter(n => n.id !== selectedNode!.id);
+                            const newEdges = edges.filter(e => {
+                              const srcId = typeof e.source === "string" ? e.source : e.source.id;
+                              const tgtId = typeof e.target === "string" ? e.target : e.target.id;
+                              return srcId !== selectedNode!.id && tgtId !== selectedNode!.id;
+                            });
+                            pushHistory(newNodes, newEdges);
+                            setSelectedNodeIds([]);
+                          }}
+                          className="w-full flex items-center justify-center gap-1.5 py-1.5 rounded text-[11px] font-semibold transition-all hover:bg-[rgba(239,68,68,0.1)]"
+                          style={{ border: "1px solid rgba(239,68,68,0.2)", color: "#F87171", fontFamily: SF }}>
+                          <Trash2 size={12} /> Delete Node
+                        </button>
+                      </div>
+                    </>
+                  )}
+
+                  {/* === EDGE INSPECTOR === */}
+                  {selectedEdge && !selectedNode && (
+                    <>
+                      <div className="flex items-center gap-2 px-4 py-3 shrink-0" style={{ borderBottom: "1px solid #333539" }}>
+                        <Link size={12} color="#808080" />
+                        <span className="text-[10px] font-bold tracking-[0.15em] uppercase"
+                          style={{ color: EDGE_COLOR[selectedEdge.type] || "#E2E8F0", fontFamily: MONO }}>
+                          {EDGE_LABEL[selectedEdge.type]}
+                        </span>
+                      </div>
+
+                      {/* Relationship Type */}
+                      <div className="flex flex-col gap-1.5 px-4 py-3" style={{ borderBottom: "1px solid #333539" }}>
+                        <span className="text-[10px] font-bold uppercase tracking-wider shrink-0" style={{ color: "#808080", fontFamily: SF }}>Relationship</span>
+                        <select
+                          value={selectedEdge.type}
+                          onChange={(e) => {
+                            const newType = e.target.value as EdgeType;
+                            setEdges(edges.map(ed => ed.id === selectedEdge.id ? { ...ed, type: newType, label: EDGE_LABEL[newType] } : ed));
+                            setSelectedEdge({ ...selectedEdge, type: newType, label: EDGE_LABEL[newType] });
+                          }}
+                          className="w-full text-[11px] font-semibold bg-[#1A1A1A] border border-[#333539] rounded px-2.5 py-1.5 outline-none cursor-pointer focus:border-[#555] transition-colors"
+                          style={{ color: "#E2E8F0", fontFamily: SF }}>
+                          {Object.keys(EDGE_COLOR).map((t) => (
+                            <option key={t} value={t}>{EDGE_LABEL[t as EdgeType]}</option>
+                          ))}
+                        </select>
+                      </div>
+
+                      {/* Custom Label */}
+                      <div className="flex flex-col gap-1.5 px-4 py-3" style={{ borderBottom: "1px solid #333539" }}>
+                        <span className="text-[10px] font-bold uppercase tracking-wider shrink-0" style={{ color: "#808080", fontFamily: SF }}>Custom Label</span>
+                        <input
+                          type="text"
+                          value={selectedEdge.label || EDGE_LABEL[selectedEdge.type]}
+                          onChange={(e) => {
+                            setEdges(edges.map(ed => ed.id === selectedEdge.id ? { ...ed, label: e.target.value } : ed));
+                            setSelectedEdge({ ...selectedEdge, label: e.target.value });
+                          }}
+                          className="text-[11px] font-medium bg-[#1A1A1A] border border-[#333539] rounded px-2.5 py-1.5 outline-none placeholder-[#666] w-full focus:border-[#555] transition-colors"
+                          style={{ color: "#D1D5DB", fontFamily: SF }}
+                          placeholder="Connection label..."
+                        />
+                      </div>
+
+                      {/* Metadata Fields */}
+                      <div className="flex flex-col gap-2 px-4 py-3" style={{ borderBottom: "1px solid #333539" }}>
+                        <span className="text-[10px] font-bold uppercase tracking-wider shrink-0 mb-1" style={{ color: "#808080", fontFamily: SF }}>Metadata</span>
+                        
+                        <div className="flex items-center justify-between gap-2">
+                          <span className="text-[10px] font-medium" style={{ color: "#808080", fontFamily: SF }}>Strength</span>
+                          <select
+                            value={selectedEdge.metadata?.strength || ""}
+                            onChange={(e) => {
+                              const strength = e.target.value as any;
+                              setEdges(edges.map(ed => ed.id === selectedEdge.id ? { ...ed, metadata: { ...ed.metadata, strength } } : ed));
+                              setSelectedEdge({ ...selectedEdge, metadata: { ...selectedEdge.metadata, strength } });
+                            }}
+                            className="text-[11px] font-medium text-right bg-transparent border-none outline-none cursor-pointer"
+                            style={{ color: "#E2E8F0", fontFamily: SF }}>
+                            <option value="">None</option>
+                            <option value="weak">Weak</option>
+                            <option value="medium">Medium</option>
+                            <option value="strong">Strong</option>
+                          </select>
+                        </div>
+
+                        <div className="flex items-center justify-between gap-2 mt-1">
+                          <span className="text-[10px] font-medium" style={{ color: "#808080", fontFamily: SF }}>Confidence</span>
+                          <select
+                            value={selectedEdge.metadata?.confidence || ""}
+                            onChange={(e) => {
+                              const confidence = e.target.value as any;
+                              setEdges(edges.map(ed => ed.id === selectedEdge.id ? { ...ed, metadata: { ...ed.metadata, confidence } } : ed));
+                              setSelectedEdge({ ...selectedEdge, metadata: { ...selectedEdge.metadata, confidence } });
+                            }}
+                            className="text-[11px] font-medium text-right bg-transparent border-none outline-none cursor-pointer"
+                            style={{ color: "#E2E8F0", fontFamily: SF }}>
+                            <option value="">None</option>
+                            <option value="low">Low</option>
+                            <option value="medium">Medium</option>
+                            <option value="high">High</option>
+                          </select>
+                        </div>
+                      </div>
+
+                      {/* Note Editor */}
+                      <div className="flex flex-col gap-1.5 px-4 py-3" style={{ borderBottom: "1px solid #333539" }}>
+                        <span className="text-[10px] font-bold uppercase tracking-wider shrink-0" style={{ color: "#808080", fontFamily: SF }}>Notes</span>
+                        <textarea
+                           value={selectedEdge.metadata?.notes || ""}
+                           onChange={(e) => {
+                             const notes = e.target.value;
+                             setEdges(edges.map(ed => ed.id === selectedEdge.id ? { ...ed, metadata: { ...ed.metadata, notes } } : ed));
+                             setSelectedEdge({ ...selectedEdge, metadata: { ...selectedEdge.metadata, notes } });
+                           }}
+                           className="text-[11px] leading-relaxed rounded bg-[#1A1A1A] border border-[#333539] px-2.5 py-2 outline-none resize-y placeholder-[#666] w-full focus:border-[#555] transition-colors"
+                           style={{ color: "#D1D5DB", minHeight: "80px", fontFamily: SF }}
+                           placeholder="Connection rationale..."
+                         />
+                      </div>
+                      
+                      {/* Actions */}
+                      <div className="flex flex-col gap-1.5 px-4 py-4">
+                        <button
+                          onClick={() => {
+                            const newEdges = edges.filter(e => e.id !== selectedEdge.id);
+                            pushHistory(nodes, newEdges);
+                            setSelectedEdge(null);
+                          }}
+                          className="w-full flex items-center justify-center gap-1.5 py-1.5 rounded text-[11px] font-semibold transition-all hover:bg-[rgba(239,68,68,0.1)]"
+                          style={{ border: "1px solid rgba(239,68,68,0.2)", color: "#F87171", fontFamily: SF }}>
+                          <Trash2 size={12} /> Delete Connection
+                        </button>
+                      </div>
+                    </>
+                  )}
+
+                </div>
+              )}
+            </div>
+          )}
+
+          {/* ── COPILOT TAB ── */}
+          {activeSidebarTab === "copilot" && (
+            <div className="absolute inset-0 flex flex-col">
+              {/* Chat History */}
+              <div className="flex-1 overflow-y-auto px-4 py-4 flex flex-col gap-6" style={{ WebkitOverflowScrolling: "touch" }}>
+                {chatMessages.length === 0 && !isProcessingAI && (
+                  <div className="text-[#808080] text-[12px] px-1" style={{ fontFamily: SF }}>
+                    I'll help you create or modify the canvas. Let me know what you need.
+                  </div>
+                )}
+                
+                {chatMessages.map((msg, i) => (
+                  <div key={i} className="flex gap-3">
+                    <div className="shrink-0 mt-0.5">
+                      {msg.role === "user" ? (
+                        <div className="w-5 h-5 rounded-[4px] bg-[#333539] flex items-center justify-center border border-[#444]">
+                          <User size={10} className="text-[#E2E8F0]" />
+                        </div>
+                      ) : (
+                        <div className="w-5 h-5 rounded-[4px] flex items-center justify-center bg-blue-600 shadow-[0_0_8px_rgba(37,99,235,0.4)]">
+                          <Sparkles size={10} className="text-white" />
+                        </div>
+                      )}
+                    </div>
+                    <div className="flex-1 text-[12px] leading-relaxed text-[#D1D5DB] whitespace-pre-wrap" style={{ fontFamily: SF }}>
+                      {msg.text}
+                    </div>
+                  </div>
+                ))}
+                {isProcessingAI && (
+                  <div className="flex gap-3">
+                    <div className="shrink-0 mt-0.5">
+                      <div className="w-5 h-5 rounded-[4px] flex items-center justify-center bg-blue-600 shadow-[0_0_8px_rgba(37,99,235,0.4)]">
+                        <Sparkles size={10} className="text-white" />
+                      </div>
+                    </div>
+                    <div className="flex-1 flex items-center h-5">
+                      <Loader2 size={12} className="animate-spin text-[#808080]" />
+                    </div>
+                  </div>
+                )}
+              </div>
+
+              {/* Input Area */}
+              <div className="p-3 pt-2" style={{ borderTop: "1px solid #333539" }}>
+                <div className="bg-[#1A1A1A] border border-[#333539] rounded-[8px] overflow-hidden flex flex-col transition-colors focus-within:border-[#555]">
+                  
+                  {/* Context Pill */}
+                  <div className="px-2 py-1.5 flex items-center" style={{ borderBottom: "1px solid #2A2A2A" }}>
+                    <button className="flex items-center gap-1.5 px-1.5 py-0.5 rounded bg-[#2A2A2A] hover:bg-[#333] text-[#A0A0A0] hover:text-[#E2E8F0] transition-colors text-[10px] font-medium" style={{ fontFamily: SF }}>
+                      <Paperclip size={10} /> Add Context
+                    </button>
+                  </div>
+
+                  {/* Textarea */}
+                  <form onSubmit={handleAIChatSubmit} className="flex flex-col">
+                    <textarea
+                      value={aiCommand}
+                      onChange={(e) => setAiCommand(e.target.value)}
+                      onKeyDown={(e) => {
+                        if (e.key === 'Enter' && !e.shiftKey) {
+                          e.preventDefault();
+                          handleAIChatSubmit(e as any);
+                        }
+                      }}
+                      disabled={isProcessingAI}
+                      placeholder="Ask Copilot..."
+                      className="w-full bg-transparent resize-none outline-none px-3 py-2.5 text-[12px] text-[#E2E8F0] placeholder-[#666] min-h-[50px]"
+                      style={{ fontFamily: SF }}
+                    />
+                    
+                    {/* Bottom Row Controls */}
+                    <div className="flex items-center justify-between px-2 py-1.5 border-t border-[#2A2A2A]">
+                      <div className="flex items-center gap-0.5">
+                        <button type="button" className="p-1.5 rounded hover:bg-[#2A2A2A] text-[#808080] hover:text-[#D1D5DB] transition-colors">
+                          <Mic size={12} />
+                        </button>
+                        <button type="button" className="flex items-center gap-1 px-1.5 py-1 rounded hover:bg-[#2A2A2A] text-[#808080] hover:text-[#D1D5DB] transition-colors text-[10px] font-medium" style={{ fontFamily: SF }}>
+                          Claude 3.7 <ChevronDown size={10} />
+                        </button>
+                      </div>
+                      <button type="submit" disabled={isProcessingAI || !aiCommand.trim()} className="p-1.5 rounded hover:bg-[#2A2A2A] text-[#808080] hover:text-white transition-colors disabled:opacity-50 disabled:hover:bg-transparent disabled:hover:text-[#666]">
+                        <Send size={12} />
+                      </button>
+                    </div>
+                  </form>
+                </div>
+              </div>
+            </div>
+          )}
+        </div>
+      </aside>
 
       {/* ── Floating Bottom Center Toolbar (Glassmorphism Dock) ── */}
       <div className="absolute bottom-6 left-1/2 -translate-x-1/2 z-30 flex flex-col items-center gap-4 pointer-events-none">
@@ -1311,325 +1758,7 @@ export default function MapPage() {
         ))}
       </div>
 
-      {/* ── Floating Right Panel ── */}
-      {selectedNode && activeTool === "select" && (
-        <aside className="absolute top-24 right-4 w-[340px] max-h-[80vh] flex flex-col overflow-hidden nagi-glass-panel z-40 pointer-events-auto transition-transform duration-200">
-          <div className="flex items-center justify-between px-5 py-4 shrink-0 nagi-glass-header">
-            <div className="flex items-center gap-2.5">
-              <div className="w-2.5 h-2.5 rounded-sm shadow-[0_0_8px_rgba(255,255,255,0.2)]" style={{ background: selectedNode.customColor || TYPE_COLOR[selectedNode.type] }} />
-              <span className="text-[10px] font-bold tracking-[0.15em] uppercase"
-                style={{ color: selectedNode.customColor || TYPE_COLOR[selectedNode.type], fontFamily: MONO }}>
-                {TYPE_LABEL[selectedNode.type]}
-              </span>
-            </div>
-            <button onClick={() => setSelectedNodeIds([])} style={{ color: "#64748b" }} className="hover:text-white hover:scale-110 active:scale-95 transition-all">
-              <X size={14} />
-            </button>
-          </div>
 
-          <div className="flex-1 overflow-y-auto px-5 py-5 flex flex-col gap-6" style={{ WebkitOverflowScrolling: "touch" }}>
-            
-            {/* Title & Description Editor */}
-            <div className="flex flex-col gap-2">
-               <textarea
-                 value={selectedNode.title}
-                 onChange={(e) => updateSelectedNode({ title: e.target.value })}
-                 className="text-[15px] font-semibold leading-snug bg-transparent border-none outline-none resize-none placeholder-gray-500 w-full tracking-tight"
-                 style={{ color: "#f1f5f9" }}
-                 placeholder="Object Title..."
-                 rows={Math.max(1, Math.ceil(selectedNode.title.length / 30))}
-               />
-               <textarea
-                 value={selectedNode.description || ""}
-                 onChange={(e) => updateSelectedNode({ description: e.target.value })}
-                 className="text-[12px] leading-relaxed bg-transparent border-none outline-none resize-none placeholder-gray-600 w-full"
-                 style={{ color: "#a0a0a0", minHeight: "40px" }}
-                 placeholder="Add a description..."
-               />
-            </div>
-
-            {/* Color Picker */}
-            <div className="flex flex-col gap-2 pt-4" style={{ borderTop: "1px solid rgba(255,255,255,0.05)" }}>
-              <span className="text-[9px] font-bold uppercase tracking-widest shrink-0" style={{ color: "#808080", fontFamily: MONO }}>Color</span>
-              <div className="flex gap-1.5 flex-wrap">
-                {["", "#ef4444", "#f59e0b", "#10b981", "#3bc9db", "#6366f1", "#a855f7", "#ec4899", "#ffffff", "#444444"].map((c) => (
-                  <button key={c || "default"} onClick={() => updateSelectedNode({ customColor: c || undefined })}
-                    className="w-5 h-5 rounded-full border flex items-center justify-center transition-transform hover:scale-110"
-                    style={{
-                      background: c || "transparent",
-                      borderColor: selectedNode.customColor === c || (!selectedNode.customColor && !c) ? "#fff" : "rgba(255,255,255,0.1)",
-                    }}>
-                    {!c && <X size={10} color="#808080" />}
-                  </button>
-                ))}
-              </div>
-            </div>
-
-            {/* Tags */}
-            <div className="flex flex-col gap-2 pt-4" style={{ borderTop: "1px solid rgba(255,255,255,0.05)" }}>
-              <span className="text-[9px] font-bold uppercase tracking-widest shrink-0" style={{ color: "#808080", fontFamily: MONO }}>Tags</span>
-              <input 
-                type="text"
-                value={(selectedNode.tags || []).join(", ")}
-                onChange={(e) => updateSelectedNode({ tags: e.target.value.split(",").map(t => t.trim()).filter(Boolean) })}
-                placeholder="tag1, tag2..."
-                className="text-[11px] bg-transparent border-none outline-none placeholder-gray-600 w-full"
-                style={{ color: "#a0a0a0" }}
-              />
-            </div>
-
-            {/* Note Editor */}
-            <div className="flex flex-col gap-2 pt-4" style={{ borderTop: "1px solid rgba(255,255,255,0.05)" }}>
-              <span className="text-[9px] font-bold uppercase tracking-widest shrink-0" style={{ color: "#808080", fontFamily: MONO }}>Notes</span>
-              <textarea
-                 value={selectedNode.note || ""}
-                 onChange={(e) => updateSelectedNode({ note: e.target.value })}
-                 className="text-[12px] leading-relaxed rounded-lg px-3 py-2.5 outline-none resize-y placeholder-gray-600 w-full"
-                 style={{ background: "rgba(0,0,0,0.5)", border: "1px solid rgba(255,255,255,0.05)", color: "#a0a0a0", minHeight: "80px" }}
-                 placeholder="Markdown supported notes..."
-               />
-            </div>
-            
-            {/* Type-Specific Fields */}
-            {selectedNode.type === "paper" && (
-              <div className="flex flex-col gap-2.5 pt-4" style={{ borderTop: "1px solid rgba(255,255,255,0.05)" }}>
-                <span className="text-[9px] font-bold uppercase tracking-widest shrink-0" style={{ color: "#808080", fontFamily: MONO }}>Metadata</span>
-                {[
-                  { key: "author", label: "Author", value: selectedNode.author },
-                  { key: "year", label: "Year", value: selectedNode.year?.toString() },
-                  { key: "citations", label: "Citations", value: selectedNode.citations?.toString(), isNumber: true },
-                  { key: "field", label: "Field", value: selectedNode.field },
-                  { key: "journal", label: "Journal", value: selectedNode.journal },
-                ].map(row => (
-                  <div key={row.label} className="flex items-center justify-between gap-2">
-                    <span className="text-[9px] font-bold uppercase tracking-widest shrink-0"
-                      style={{ color: "#64748b", fontFamily: MONO }}>{row.label}</span>
-                    <input 
-                      type="text"
-                      value={row.value || ""}
-                      onChange={(e) => updateSelectedNode({ [row.key]: row.isNumber ? (parseInt(e.target.value) || 0) : e.target.value })}
-                      className="text-[11px] font-medium text-right leading-snug bg-transparent border-none outline-none placeholder-gray-700 w-full"
-                      style={{ color: "#a0a0a0" }}
-                      placeholder={`Add ${row.label}...`}
-                    />
-                  </div>
-                ))}
-              </div>
-            )}
-
-            {/* Properties Editor */}
-            <div className="flex flex-col gap-2 pt-4" style={{ borderTop: "1px solid rgba(255,255,255,0.05)" }}>
-              <span className="text-[9px] font-bold uppercase tracking-widest shrink-0" style={{ color: "#808080", fontFamily: MONO }}>Properties</span>
-              <textarea
-                value={selectedNode.properties ? JSON.stringify(selectedNode.properties, null, 2) : ""}
-                onChange={(e) => {
-                  try { updateSelectedNode({ properties: JSON.parse(e.target.value) }) } catch(err) {}
-                }}
-                className="text-[10px] bg-[rgba(0,0,0,0.5)] border border-[rgba(255,255,255,0.05)] rounded px-2 py-2 outline-none resize-y w-full"
-                style={{ color: "#a0a0a0", fontFamily: MONO, minHeight: "60px" }}
-                placeholder='{"key": "value"}'
-              />
-            </div>
-
-            {/* Connections */}
-            <div className="flex flex-col gap-2 pt-4" style={{ borderTop: "1px solid rgba(255,255,255,0.05)" }}>
-              <span className="text-[9px] font-bold uppercase tracking-widest shrink-0" style={{ color: "#808080", fontFamily: MONO }}>Connections</span>
-              <div className="flex flex-col gap-1.5">
-                {edges.filter(e => {
-                  const srcId = typeof e.source === "string" ? e.source : e.source.id;
-                  const tgtId = typeof e.target === "string" ? e.target : e.target.id;
-                  return srcId === selectedNode.id || tgtId === selectedNode.id;
-                }).length === 0 ? (
-                   <span className="text-[10px] text-gray-600">No connections</span>
-                ) : (
-                  edges.filter(e => {
-                    const srcId = typeof e.source === "string" ? e.source : e.source.id;
-                    const tgtId = typeof e.target === "string" ? e.target : e.target.id;
-                    return srcId === selectedNode.id || tgtId === selectedNode.id;
-                  }).map((e, i) => {
-                    const srcId = typeof e.source === "string" ? e.source : e.source.id;
-                    const tgtId = typeof e.target === "string" ? e.target : e.target.id;
-                    const isSource = srcId === selectedNode.id;
-                    const otherId = isSource ? tgtId : srcId;
-                    const otherNode = nodes.find(n => n.id === otherId);
-                    return (
-                      <div key={i} className="flex justify-between items-center bg-[rgba(0,0,0,0.5)] px-2.5 py-1.5 rounded border border-[rgba(255,255,255,0.05)]">
-                        <span className="text-[10px] text-[#a0a0a0] truncate w-[140px]">{otherNode?.title || String(otherId)}</span>
-                        <span className="text-[9px] text-[#666] font-bold uppercase" style={{fontFamily: MONO}}>{e.label || e.type}</span>
-                      </div>
-                    );
-                  })
-                )}
-              </div>
-            </div>
-
-            {/* Actions */}
-            <div className="flex flex-col gap-2 pt-4 pb-2" style={{ borderTop: "1px solid rgba(255,255,255,0.05)" }}>
-              {selectedNode.type === "paper" && (
-                <>
-                  <button onClick={() => { window.location.href = `/paper/${selectedNode.id}`; }}
-                    className="w-full flex items-center justify-center gap-2 py-2.5 rounded-xl text-[11px] font-semibold transition-all hover:opacity-80"
-                    style={{ background: "#111", border: "1px solid #2b2d2d", color: "#e8e8e6" }}>
-                    <BookOpen size={12} /> View Full Paper
-                  </button>
-                  <button onClick={() => { window.location.href = `/map/${selectedNode.id}`; }}
-                    className="w-full flex items-center justify-center gap-2 py-2.5 rounded-xl text-[11px] font-semibold transition-all hover:opacity-80"
-                    style={{ background: "#1a1a1a", border: "1px solid #333", color: "#e8e8e6" }}>
-                    <Map size={12} /> Map This Paper
-                  </button>
-                </>
-              )}
-              {selectedNode.url && (
-                <a href={selectedNode.url} target="_blank" rel="noopener noreferrer"
-                  className="w-full flex items-center justify-center gap-2 py-2.5 rounded-xl text-[11px] font-semibold transition-all hover:opacity-80"
-                  style={{ background: "#111", border: "1px solid #2b2d2d", color: "#a0a0a0" }}>
-                  <ExternalLink size={12} /> Open Source Link
-                </a>
-              )}
-              <button
-                onClick={() => {
-                  const newNodes = nodes.filter(n => n.id !== selectedNode!.id);
-                  const newEdges = edges.filter(e => {
-                    const srcId = typeof e.source === "string" ? e.source : e.source.id;
-                    const tgtId = typeof e.target === "string" ? e.target : e.target.id;
-                    return srcId !== selectedNode!.id && tgtId !== selectedNode!.id;
-                  });
-                  pushHistory(newNodes, newEdges);
-                  setSelectedNodeIds([]);
-                }}
-                className="w-full flex items-center justify-center gap-2 py-2.5 rounded-xl text-[11px] font-semibold transition-all hover:opacity-80"
-                style={{ background: "rgba(239,68,68,0.05)", border: "1px solid rgba(239,68,68,0.15)", color: "#f87171" }}>
-                <Trash2 size={12} /> Remove Node
-              </button>
-            </div>
-          </div>
-        </aside>
-      )}
-
-      {selectedEdge && activeTool === "select" && (
-        <aside className="absolute right-4 top-24 bottom-24 w-[340px] flex flex-col overflow-hidden nagi-glass-panel z-40 pointer-events-auto transition-transform duration-200">
-          <div className="flex items-center justify-between px-5 py-4 nagi-glass-header">
-            <div className="flex items-center gap-2">
-              <Link size={12} color="#a0a0a0" />
-              <span className="text-[10px] font-bold tracking-widest uppercase"
-                style={{ color: EDGE_COLOR[selectedEdge.type] || "#ffffff", fontFamily: MONO }}>
-                {EDGE_LABEL[selectedEdge.type]}
-              </span>
-            </div>
-            <button onClick={() => setSelectedEdge(null)} style={{ color: "#64748b" }} className="hover:text-white hover:scale-110 active:scale-95 transition-all">
-              <X size={14} />
-            </button>
-          </div>
-
-          <div className="flex-1 overflow-y-auto px-5 py-5 flex flex-col gap-6" style={{ WebkitOverflowScrolling: "touch" }}>
-            
-            {/* Relationship Type */}
-            <div className="flex flex-col gap-2">
-              <span className="text-[9px] font-bold uppercase tracking-widest shrink-0" style={{ color: "#808080", fontFamily: MONO }}>Relationship</span>
-              <select
-                value={selectedEdge.type}
-                onChange={(e) => {
-                  const newType = e.target.value as EdgeType;
-                  setEdges(edges.map(ed => ed.id === selectedEdge.id ? { ...ed, type: newType, label: EDGE_LABEL[newType] } : ed));
-                  setSelectedEdge({ ...selectedEdge, type: newType, label: EDGE_LABEL[newType] });
-                }}
-                className="w-full text-[11px] font-semibold bg-[rgba(0,0,0,0.5)] border border-[rgba(255,255,255,0.05)] rounded-lg px-3 py-2.5 outline-none cursor-pointer"
-                style={{ color: "#e2e8f0" }}>
-                {Object.keys(EDGE_COLOR).map((t) => (
-                  <option key={t} value={t}>{EDGE_LABEL[t as EdgeType]}</option>
-                ))}
-              </select>
-            </div>
-
-            {/* Custom Label */}
-            <div className="flex flex-col gap-2 pt-4" style={{ borderTop: "1px solid rgba(255,255,255,0.05)" }}>
-              <span className="text-[9px] font-bold uppercase tracking-widest shrink-0" style={{ color: "#808080", fontFamily: MONO }}>Custom Label</span>
-              <input
-                type="text"
-                value={selectedEdge.label || EDGE_LABEL[selectedEdge.type]}
-                onChange={(e) => {
-                  setEdges(edges.map(ed => ed.id === selectedEdge.id ? { ...ed, label: e.target.value } : ed));
-                  setSelectedEdge({ ...selectedEdge, label: e.target.value });
-                }}
-                className="text-[11px] font-medium leading-snug bg-transparent border-none outline-none placeholder-gray-700 w-full"
-                style={{ color: "#a0a0a0" }}
-                placeholder="Connection label..."
-              />
-            </div>
-
-            {/* Metadata Fields */}
-            <div className="flex flex-col gap-2.5 pt-4" style={{ borderTop: "1px solid rgba(255,255,255,0.05)" }}>
-              <span className="text-[9px] font-bold uppercase tracking-widest shrink-0" style={{ color: "#808080", fontFamily: MONO }}>Metadata</span>
-              
-              <div className="flex items-center justify-between gap-2">
-                <span className="text-[9px] font-bold uppercase tracking-widest shrink-0" style={{ color: "#64748b", fontFamily: MONO }}>Strength</span>
-                <select
-                  value={selectedEdge.metadata?.strength || ""}
-                  onChange={(e) => {
-                    const strength = e.target.value as any;
-                    setEdges(edges.map(ed => ed.id === selectedEdge.id ? { ...ed, metadata: { ...ed.metadata, strength } } : ed));
-                    setSelectedEdge({ ...selectedEdge, metadata: { ...selectedEdge.metadata, strength } });
-                  }}
-                  className="text-[11px] font-medium text-right bg-transparent border-none outline-none cursor-pointer"
-                  style={{ color: "#a0a0a0" }}>
-                  <option value="">None</option>
-                  <option value="weak">Weak</option>
-                  <option value="medium">Medium</option>
-                  <option value="strong">Strong</option>
-                </select>
-              </div>
-
-              <div className="flex items-center justify-between gap-2">
-                <span className="text-[9px] font-bold uppercase tracking-widest shrink-0" style={{ color: "#64748b", fontFamily: MONO }}>Confidence</span>
-                <select
-                  value={selectedEdge.metadata?.confidence || ""}
-                  onChange={(e) => {
-                    const confidence = e.target.value as any;
-                    setEdges(edges.map(ed => ed.id === selectedEdge.id ? { ...ed, metadata: { ...ed.metadata, confidence } } : ed));
-                    setSelectedEdge({ ...selectedEdge, metadata: { ...selectedEdge.metadata, confidence } });
-                  }}
-                  className="text-[11px] font-medium text-right bg-transparent border-none outline-none cursor-pointer"
-                  style={{ color: "#a0a0a0" }}>
-                  <option value="">None</option>
-                  <option value="low">Low</option>
-                  <option value="medium">Medium</option>
-                  <option value="high">High</option>
-                </select>
-              </div>
-            </div>
-
-            {/* Note Editor */}
-            <div className="flex flex-col gap-2 pt-4" style={{ borderTop: "1px solid rgba(255,255,255,0.05)" }}>
-              <span className="text-[9px] font-bold uppercase tracking-widest shrink-0" style={{ color: "#808080", fontFamily: MONO }}>Notes</span>
-              <textarea
-                 value={selectedEdge.metadata?.notes || ""}
-                 onChange={(e) => {
-                   const notes = e.target.value;
-                   setEdges(edges.map(ed => ed.id === selectedEdge.id ? { ...ed, metadata: { ...ed.metadata, notes } } : ed));
-                   setSelectedEdge({ ...selectedEdge, metadata: { ...selectedEdge.metadata, notes } });
-                 }}
-                 className="text-[12px] leading-relaxed rounded-lg px-3 py-2.5 outline-none resize-y placeholder-gray-600 w-full"
-                 style={{ background: "rgba(0,0,0,0.5)", border: "1px solid rgba(255,255,255,0.05)", color: "#a0a0a0", minHeight: "80px" }}
-                 placeholder="Connection rationale..."
-               />
-            </div>
-            
-            {/* Actions */}
-            <div className="flex flex-col gap-2 pt-4 pb-2" style={{ borderTop: "1px solid rgba(255,255,255,0.05)" }}>
-              <button
-                onClick={() => {
-                  const newEdges = edges.filter(e => e.id !== selectedEdge.id);
-                  pushHistory(nodes, newEdges);
-                  setSelectedEdge(null);
-                }}
-                className="w-full flex items-center justify-center gap-2 py-2.5 rounded-xl text-[11px] font-semibold transition-all hover:opacity-80"
-                style={{ background: "rgba(239,68,68,0.05)", border: "1px solid rgba(239,68,68,0.15)", color: "#f87171" }}>
-                <Trash2 size={12} /> Remove Connection
-              </button>
-            </div>
-          </div>
-        </aside>
-      )}
 
       </div>
 
@@ -1831,114 +1960,6 @@ export default function MapPage() {
           </div>
         </div>
       )}
-
-      {/* ── Fixed AI Copilot Panel (Right Side) ── */}
-      <aside className="absolute right-0 top-0 bottom-0 w-[360px] flex-shrink-0 flex flex-col z-40" style={{ background: "#11131A", borderLeft: "1px solid rgba(255,255,255,0.05)" }}>
-        {/* Header */}
-        <div className="flex items-center justify-between px-4 py-3" style={{ borderBottom: "1px solid rgba(255,255,255,0.05)" }}>
-          <span className="text-[10px] font-semibold tracking-widest text-gray-400" style={{ fontFamily: SF }}>CHAT</span>
-          <div className="flex items-center gap-1">
-            <button className="p-1.5 hover:bg-[rgba(255,255,255,0.1)] rounded text-gray-400 hover:text-white transition-colors">
-              <Plus size={14} />
-            </button>
-            <button className="p-1.5 hover:bg-[rgba(255,255,255,0.1)] rounded text-gray-400 hover:text-white transition-colors">
-              <History size={14} />
-            </button>
-            <button className="p-1.5 hover:bg-[rgba(255,255,255,0.1)] rounded text-gray-400 hover:text-white transition-colors">
-              <MoreHorizontal size={14} />
-            </button>
-          </div>
-        </div>
-
-        {/* Chat History */}
-        <div className="flex-1 overflow-y-auto px-4 py-4 flex flex-col gap-6" style={{ WebkitOverflowScrolling: "touch" }}>
-          {chatMessages.length === 0 && !isProcessingAI && (
-            <div className="text-gray-500 text-[13px] px-2" style={{ fontFamily: SF }}>
-              I'll help you create or modify the canvas. Let me know what you need.
-            </div>
-          )}
-          
-          {chatMessages.map((msg, i) => (
-            <div key={i} className="flex gap-3">
-              <div className="shrink-0 mt-0.5">
-                {msg.role === "user" ? (
-                  <div className="w-6 h-6 rounded-full bg-[#1e293b] flex items-center justify-center">
-                    <User size={12} className="text-gray-300" />
-                  </div>
-                ) : (
-                  <div className="w-6 h-6 rounded flex items-center justify-center bg-[#2563eb]">
-                    <Sparkles size={12} className="text-white" />
-                  </div>
-                )}
-              </div>
-              <div className="flex-1 text-[13px] leading-relaxed text-gray-300 whitespace-pre-wrap" style={{ fontFamily: SF }}>
-                {msg.text}
-              </div>
-            </div>
-          ))}
-          {isProcessingAI && (
-            <div className="flex gap-3">
-              <div className="shrink-0 mt-0.5">
-                <div className="w-6 h-6 rounded flex items-center justify-center bg-[#2563eb]">
-                  <Sparkles size={12} className="text-white" />
-                </div>
-              </div>
-              <div className="flex-1 flex items-center h-6">
-                <Loader2 size={14} className="animate-spin text-gray-400" />
-              </div>
-            </div>
-          )}
-        </div>
-
-        {/* Input Area */}
-        <div className="p-4 pt-2">
-          <div className="bg-[#1e1e1e] border border-[rgba(255,255,255,0.1)] rounded-lg overflow-hidden flex flex-col transition-colors focus-within:border-gray-500">
-            
-            {/* Context Pill */}
-            <div className="px-3 py-2 flex items-center" style={{ borderBottom: "1px solid rgba(255,255,255,0.05)" }}>
-              <button className="flex items-center gap-1.5 px-2 py-1 rounded bg-[rgba(255,255,255,0.05)] hover:bg-[rgba(255,255,255,0.1)] text-gray-400 hover:text-gray-200 transition-colors text-[11px]" style={{ fontFamily: SF }}>
-                <Paperclip size={12} /> Add Context...
-              </button>
-            </div>
-
-            {/* Textarea */}
-            <form onSubmit={handleAIChatSubmit} className="flex flex-col">
-              <textarea
-                value={aiCommand}
-                onChange={(e) => setAiCommand(e.target.value)}
-                onKeyDown={(e) => {
-                  if (e.key === 'Enter' && !e.shiftKey) {
-                    e.preventDefault();
-                    handleAIChatSubmit(e as any);
-                  }
-                }}
-                disabled={isProcessingAI}
-                placeholder="Ask Copilot or type / for commands"
-                className="w-full bg-transparent resize-none outline-none px-3 py-2 text-[13px] text-gray-300 placeholder-gray-500 min-h-[60px]"
-                style={{ fontFamily: SF }}
-              />
-              
-              {/* Bottom Row Controls */}
-              <div className="flex items-center justify-between px-2 py-2 border-t border-[rgba(255,255,255,0.05)]">
-                <div className="flex items-center gap-1">
-                  <button type="button" className="p-1.5 rounded hover:bg-[rgba(255,255,255,0.1)] text-gray-400 transition-colors">
-                    <Mic size={14} />
-                  </button>
-                  <button type="button" className="flex items-center gap-1 px-2 py-1 rounded hover:bg-[rgba(255,255,255,0.1)] text-gray-400 transition-colors text-[11px]" style={{ fontFamily: SF }}>
-                    Agent <ChevronDown size={12} />
-                  </button>
-                  <button type="button" className="flex items-center gap-1 px-2 py-1 rounded hover:bg-[rgba(255,255,255,0.1)] text-gray-400 transition-colors text-[11px]" style={{ fontFamily: SF }}>
-                    Claude 3.7 Sonnet <ChevronDown size={12} />
-                  </button>
-                </div>
-                <button type="submit" disabled={isProcessingAI || !aiCommand.trim()} className="p-1.5 rounded hover:bg-[rgba(255,255,255,0.1)] text-gray-400 hover:text-white transition-colors disabled:opacity-50 disabled:hover:bg-transparent disabled:hover:text-gray-400">
-                  <Send size={14} />
-                </button>
-              </div>
-            </form>
-          </div>
-        </div>
-      </aside>
     </div>
   );
 }
