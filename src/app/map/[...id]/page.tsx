@@ -8,7 +8,8 @@ import {
   X, Search, Loader2, ZoomIn, ZoomOut, Maximize2,
   BookOpen, Map, LayoutGrid, StickyNote, Diamond,
   Circle, Square, Minus, ExternalLink, AlignLeft,
-  Hand, Sparkles, Play, CheckCircle2, Upload, BoxSelect
+  Hand, Sparkles, Play, CheckCircle2, Upload, BoxSelect,
+  Database, Phone, Megaphone, Users, LineChart, Webhook, Link, Code
 } from "lucide-react";
 
 const SF   = "-apple-system, BlinkMacSystemFont, 'SF Pro Text', 'Helvetica Neue', sans-serif";
@@ -196,8 +197,8 @@ export default function MapPage() {
     const pat = defs.append("pattern")
       .attr("id", "dotgrid").attr("width", 24).attr("height", 24)
       .attr("patternUnits", "userSpaceOnUse");
-    pat.append("circle").attr("cx", 1).attr("cy", 1).attr("r", 1).attr("fill", "#141f2e");
-    svg.append("rect").attr("width", W).attr("height", H).attr("fill", "#050810");
+    pat.append("circle").attr("cx", 1).attr("cy", 1).attr("r", 1).attr("fill", "rgba(255,255,255,0.15)");
+    svg.append("rect").attr("width", W).attr("height", H).attr("fill", "#050505");
     svg.append("rect").attr("width", W).attr("height", H).attr("fill", "url(#dotgrid)");
 
     // Arrows
@@ -540,41 +541,142 @@ export default function MapPage() {
   const centerPaper = nodes.find(n => n.id === centerId);
 
   return (
-    <div className="w-full h-full relative overflow-hidden"
-      style={{ background: "#050810", fontFamily: SF }}>
+    <div className="w-full h-full flex overflow-hidden"
+      style={{ background: "#050505", fontFamily: SF }}>
 
-      {/* ── Floating Canvas ── */}
-      <div ref={containerRef} className="absolute inset-0">
-        {activeTool === "connect" && (
-          <div className="absolute top-24 left-1/2 -translate-x-1/2 z-20 px-4 py-1.5 rounded-full text-[11px] font-medium pointer-events-none"
-            style={{
-              background: "#0a0f1a",
-              border: `1px solid ${connectSource ? "#f59e0b" : "#3bc9db"}`,
-              color:  connectSource ? "#f59e0b" : "#3bc9db",
-            }}>
-            {connectSource ? `Click target node to connect from "${truncate(connectSource.title, 28)}"` : "Click source node"}
-          </div>
-        )}
+      {/* ── Left Sidebar ── */}
+      <div className="w-[260px] h-full shrink-0 flex flex-col z-40 shadow-2xl relative"
+        style={{ background: "#0a0a0a", borderRight: "1px solid #1a2535" }}>
+        
+        {/* Logo Area */}
+        <div className="px-5 pt-6 pb-5 flex items-center gap-2">
+          <Sparkles size={20} className="text-white" />
+          <span className="text-[18px] font-semibold text-white tracking-tight">Nagi</span>
+        </div>
 
-        {isLoading && (
-          <div className="absolute inset-0 flex flex-col items-center justify-center gap-4 z-10">
-            <Loader2 size={18} className="animate-spin" style={{ color: "#3bc9db" }} />
-            <p className="text-[13px] font-medium animate-pulse" style={{ color: "#3bc9db" }}>Building research map…</p>
-            <p className="text-[10px] uppercase tracking-widest" style={{ color: "#1a2535", fontFamily: MONO }}>
-              citations · references · related works
-            </p>
+        {/* Workspace Dropdown */}
+        <div className="px-5 pb-6">
+          <button className="w-full flex items-center justify-between px-3 py-2.5 rounded-xl transition-colors hover:bg-white/5"
+            style={{ border: "1px solid #1a2535" }}>
+            <div className="flex items-center gap-2.5">
+              <div className="w-6 h-6 rounded-full flex items-center justify-center font-bold text-[10px] bg-white text-black shrink-0">
+                K
+              </div>
+              <span className="text-[12px] font-medium text-white truncate max-w-[120px]">Kunsang's Workspace</span>
+            </div>
+            <ArrowLeft size={12} className="rotate-[-90deg] text-gray-500" />
+          </button>
+        </div>
+
+        {/* Navigation */}
+        <div className="flex-1 overflow-y-auto px-3 flex flex-col gap-1.5">
+          <div className="px-2 py-1 mb-1">
+            <span className="text-[10px] font-bold tracking-widest uppercase" style={{ color: "#475569", fontFamily: MONO }}>
+              Research
+            </span>
           </div>
-        )}
-        {error && (
-          <div className="absolute inset-0 flex items-center justify-center z-10">
-            <p className="text-[14px]" style={{ color: "#ef4444" }}>Error: {error}</p>
+          
+          <button className="w-full flex items-center gap-3 px-3 py-2 rounded-lg transition-colors bg-white/5 text-white">
+            <Map size={15} />
+            <span className="text-[13px] font-medium">Research Maps</span>
+          </button>
+          <button className="w-full flex items-center gap-3 px-3 py-2 rounded-lg transition-colors hover:bg-white/5 text-[#94a3b8] hover:text-white">
+            <BookOpen size={15} />
+            <span className="text-[13px] font-medium">My Library</span>
+          </button>
+          <button className="w-full flex items-center gap-3 px-3 py-2 rounded-lg transition-colors hover:bg-white/5 text-[#94a3b8] hover:text-white">
+            <Search size={15} />
+            <span className="text-[13px] font-medium">Semantic Search</span>
+          </button>
+          <button className="w-full flex items-center gap-3 px-3 py-2 rounded-lg transition-colors hover:bg-white/5 text-[#94a3b8] hover:text-white">
+            <Sparkles size={15} />
+            <span className="text-[13px] font-medium">Co-pilot Chat</span>
+          </button>
+
+          <div className="px-2 pt-5 py-1 mb-1">
+            <span className="text-[10px] font-bold tracking-widest uppercase" style={{ color: "#475569", fontFamily: MONO }}>
+              Knowledge Base
+            </span>
           </div>
-        )}
-        {!isLoading && !error && <svg ref={svgRef} className="w-full h-full" />}
+
+          <button className="w-full flex items-center gap-3 px-3 py-2 rounded-lg transition-colors hover:bg-white/5 text-[#94a3b8] hover:text-white">
+            <Database size={15} />
+            <span className="text-[13px] font-medium">Papers</span>
+          </button>
+          <button className="w-full flex items-center gap-3 px-3 py-2 rounded-lg transition-colors hover:bg-white/5 text-[#94a3b8] hover:text-white">
+            <StickyNote size={15} />
+            <span className="text-[13px] font-medium">Notes & Highlights</span>
+          </button>
+
+          <div className="px-2 pt-5 py-1 mb-1">
+            <span className="text-[10px] font-bold tracking-widest uppercase" style={{ color: "#475569", fontFamily: MONO }}>
+              Settings
+            </span>
+          </div>
+
+          <button className="w-full flex items-center gap-3 px-3 py-2 rounded-lg transition-colors hover:bg-white/5 text-[#94a3b8] hover:text-white">
+            <Webhook size={15} />
+            <span className="text-[13px] font-medium">API Keys</span>
+          </button>
+        </div>
+
+        {/* Footer Plan Area */}
+        <div className="p-5 mt-auto" style={{ borderTop: "1px solid #1a2535" }}>
+          <div className="flex justify-between items-center mb-1.5">
+            <span className="text-[12px] font-medium text-gray-400">Plan</span>
+            <span className="text-[12px] font-medium text-white">Pro Researcher</span>
+          </div>
+          <div className="flex justify-between items-center mb-3">
+            <span className="text-[12px] font-medium text-gray-400">Credits</span>
+            <span className="text-[12px] font-medium text-white">1200 / 2000</span>
+          </div>
+          
+          {/* Progress bar */}
+          <div className="w-full h-1.5 rounded-full bg-gray-800 mb-4 overflow-hidden">
+            <div className="h-full bg-white rounded-full" style={{ width: "60%" }}></div>
+          </div>
+
+          <button className="w-full flex items-center justify-center gap-2 py-2 rounded-lg text-[13px] font-semibold bg-white text-black hover:bg-gray-100 transition-colors">
+            <Plus size={14} /> Upgrade Plan
+          </button>
+        </div>
       </div>
 
-      {/* ── Floating Top Left ── */}
-      <div className="absolute top-6 left-6 z-30 flex flex-col gap-4 pointer-events-none">
+      {/* ── Main Canvas Area ── */}
+      <div className="flex-1 relative overflow-hidden">
+      
+        {/* ── Floating Canvas ── */}
+        <div ref={containerRef} className="absolute inset-0">
+          {activeTool === "connect" && (
+            <div className="absolute top-24 left-1/2 -translate-x-1/2 z-20 px-4 py-1.5 rounded-full text-[11px] font-medium pointer-events-none"
+              style={{
+                background: "#0a0f1a",
+                border: `1px solid ${connectSource ? "#f59e0b" : "#3bc9db"}`,
+                color:  connectSource ? "#f59e0b" : "#3bc9db",
+              }}>
+              {connectSource ? `Click target node to connect from "${truncate(connectSource.title, 28)}"` : "Click source node"}
+            </div>
+          )}
+
+          {isLoading && (
+            <div className="absolute inset-0 flex flex-col items-center justify-center gap-4 z-10">
+              <Loader2 size={18} className="animate-spin" style={{ color: "#3bc9db" }} />
+              <p className="text-[13px] font-medium animate-pulse" style={{ color: "#3bc9db" }}>Building research map…</p>
+              <p className="text-[10px] uppercase tracking-widest" style={{ color: "#1a2535", fontFamily: MONO }}>
+                citations · references · related works
+              </p>
+            </div>
+          )}
+          {error && (
+            <div className="absolute inset-0 flex items-center justify-center z-10">
+              <p className="text-[14px]" style={{ color: "#ef4444" }}>Error: {error}</p>
+            </div>
+          )}
+          {!isLoading && !error && <svg ref={svgRef} className="w-full h-full" />}
+        </div>
+
+        {/* ── Floating Top Left ── */}
+        <div className="absolute top-6 left-6 z-30 flex flex-col gap-4 pointer-events-none">
         <button onClick={() => router.back()}
           className="flex items-center gap-1.5 text-[12px] font-medium transition-opacity pointer-events-auto w-max"
           style={{ color: "#94a3b8" }}>
@@ -608,8 +710,8 @@ export default function MapPage() {
           <CheckCircle2 size={13} />
           <span className="text-[11px] font-medium">Auto saved</span>
         </div>
-        <button className="px-4 py-2 rounded-lg text-[12px] font-semibold bg-white text-black hover:bg-gray-100 transition-colors pointer-events-auto shadow-lg">
-          Publish Changes
+        <button className="px-5 py-2 rounded-lg text-[13px] font-semibold bg-white text-black hover:bg-gray-100 transition-colors pointer-events-auto shadow-lg flex items-center gap-2">
+          <CheckCircle2 size={14} className="opacity-50" /> Save
         </button>
       </div>
 
@@ -680,7 +782,7 @@ export default function MapPage() {
       {/* ── Floating Right Panel ── */}
       {selectedNode && activeTool === "select" && (
         <aside className="absolute top-24 right-6 w-72 max-h-[70vh] flex flex-col overflow-hidden rounded-2xl shadow-2xl z-40 pointer-events-auto"
-          style={{ background: "#0a0f1a", border: "1px solid #1a2535" }}>
+          style={{ background: "#0a0a0a", border: "1px solid #1a2535" }}>
           <div className="flex items-center justify-between px-4 py-3 shrink-0"
             style={{ borderBottom: "1px solid #1a2535" }}>
             <div className="flex items-center gap-2">
@@ -719,7 +821,7 @@ export default function MapPage() {
 
             {/* Note */}
             {selectedNode.note && (
-              <div className="rounded-lg px-3 py-2.5" style={{ background: "#0d1520", border: "1px solid #1a2535" }}>
+              <div className="rounded-lg px-3 py-2.5" style={{ background: "#111", border: "1px solid #1a2535" }}>
                 <div className="text-[9px] font-bold uppercase tracking-widest mb-1.5"
                   style={{ color: "#334155", fontFamily: MONO }}>Note</div>
                 <p className="text-[12px] leading-relaxed" style={{ color: "#64748b" }}>{selectedNode.note}</p>
@@ -735,7 +837,7 @@ export default function MapPage() {
                   <button key={p} onClick={() => updateNodePriority(p)}
                     className="flex-1 py-1.5 rounded-lg text-[10px] font-semibold capitalize transition-all hover:opacity-80"
                     style={{
-                      background: selectedNode.priority === p ? PRIORITY_COLOR[p] + "18" : "#0d1520",
+                      background: selectedNode.priority === p ? PRIORITY_COLOR[p] + "18" : "#111",
                       border: `1px solid ${selectedNode.priority === p ? PRIORITY_COLOR[p] + "40" : "#1a2535"}`,
                       color: selectedNode.priority === p ? PRIORITY_COLOR[p] : "#334155",
                     }}>
@@ -749,12 +851,12 @@ export default function MapPage() {
             <div className="flex gap-2">
               <button onClick={() => { setNoteInput(selectedNode.note || ""); setShowNoteModal(true); }}
                 className="flex-1 flex items-center justify-center gap-1.5 py-2 rounded-lg text-[11px] font-medium transition-all hover:opacity-80"
-                style={{ background: "#0d1520", border: "1px solid #1a2535", color: "#64748b" }}>
+                style={{ background: "#111", border: "1px solid #1a2535", color: "#64748b" }}>
                 <AlignLeft size={12} /> Note
               </button>
               <button onClick={() => { setUrlInput(selectedNode.url || ""); setShowUrlModal(true); }}
                 className="flex-1 flex items-center justify-center gap-1.5 py-2 rounded-lg text-[11px] font-medium transition-all hover:opacity-80"
-                style={{ background: "#0d1520", border: "1px solid #1a2535", color: "#64748b" }}>
+                style={{ background: "#111", border: "1px solid #1a2535", color: "#64748b" }}>
                 <ExternalLink size={12} /> Link
               </button>
             </div>
@@ -774,7 +876,7 @@ export default function MapPage() {
               {selectedNode.url && (
                 <a href={selectedNode.url} target="_blank" rel="noopener noreferrer"
                   className="w-full flex items-center justify-center gap-2 py-2.5 rounded-xl text-[11px] font-semibold transition-all hover:opacity-80"
-                  style={{ background: "#0d1520", border: "1px solid #1a2535", color: "#64748b" }}>
+                  style={{ background: "#111", border: "1px solid #1a2535", color: "#64748b" }}>
                   <ExternalLink size={12} /> Open Source Link
                 </a>
               )}
@@ -794,6 +896,8 @@ export default function MapPage() {
           </div>
         </aside>
       )}
+
+      </div>
 
       {/* ── Add paper modal ── */}
       {showAdd && (
