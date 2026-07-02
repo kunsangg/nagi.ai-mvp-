@@ -45,6 +45,9 @@ interface MapNode {
   properties?: Record<string, string>;
   x: number;
   y: number;
+  width?: number;
+  height?: number;
+  borderRadius?: number;
 }
 
 interface EdgeMetadata {
@@ -529,8 +532,8 @@ export default function MapPage() {
         }
         const [[x0, y0], [x1, y1]] = ev.selection;
         const selected = stateRef.current.nodes.filter(n => {
-           const w = getNodeW(n.type);
-           const h = getNodeH(n.type);
+           const w = getNodeW(n);
+           const h = getNodeH(n);
            const nx0 = n.x - w/2;
            const ny0 = n.y - h/2;
            const nx1 = n.x + w/2;
@@ -549,8 +552,10 @@ export default function MapPage() {
     g.append("g").attr("class", "brush").call(brush);
 
     // Modern spacing dimensions
-    const getNodeW = (t: NodeType) => t === "frame" ? 800 : t === "center" ? 320 : t === "timeline" ? 380 : t === "question" ? 300 : t === "note" ? 260 : t === "comment" ? 280 : ["paper", "reference", "citing", "related", "custom"].includes(t) ? 320 : 240;
-    const getNodeH = (t: NodeType) => t === "frame" ? 600 : t === "center" ? 100 : t === "timeline" ? 90 : t === "question" ? 100 : t === "note" ? 180 : t === "comment" ? 140 : ["paper", "reference", "citing", "related", "custom"].includes(t) ? 140 : 90;
+    const getNodeW = (n: MapNode) => n.width !== undefined ? n.width : (n.type === "frame" ? 800 : n.type === "center" ? 320 : n.type === "timeline" ? 380 : n.type === "question" ? 300 : n.type === "note" ? 260 : n.type === "comment" ? 280 : ["paper", "reference", "citing", "related", "custom"].includes(n.type) ? 320 : 240);
+    const getNodeH = (n: MapNode) => n.height !== undefined ? n.height : (n.type === "frame" ? 600 : n.type === "center" ? 100 : n.type === "timeline" ? 90 : n.type === "question" ? 100 : n.type === "note" ? 180 : n.type === "comment" ? 140 : ["paper", "reference", "citing", "related", "custom"].includes(n.type) ? 140 : 90);
+    const getNodeRx = (n: MapNode) => n.borderRadius !== undefined ? n.borderRadius : (n.type === "frame" ? 0 : 20);
+    
 
     svg.on("click", (ev) => {
       if (ev.defaultPrevented) return;
@@ -579,10 +584,10 @@ export default function MapPage() {
       const t = typeof d.target === "string" ? nodes.find(n => n.id === d.target) : d.target as MapNode;
       if (!s || !t) return "";
 
-      const sW = getNodeW(s.type);
-      const tW = getNodeW(t.type);
-      const sH = getNodeH(s.type);
-      const tH = getNodeH(t.type);
+      const sW = getNodeW(s);
+      const tW = getNodeW(t);
+      const sH = getNodeH(s);
+      const tH = getNodeH(t);
 
       let sx = s.x, sy = s.y, tx = t.x, ty = t.y;
 
@@ -736,22 +741,22 @@ export default function MapPage() {
     // Premium shadow for cards
     nodeSel.append("rect")
       .attr("class", "card-shadow")
-      .attr("x", d => -getNodeW(d.type) / 2)
-      .attr("y", d => -getNodeH(d.type) / 2)
-      .attr("width", d => getNodeW(d.type))
-      .attr("height", d => getNodeH(d.type))
-      .attr("rx", 20) // Much softer rounded corners
+      .attr("x", d => -getNodeW(d) / 2)
+      .attr("y", d => -getNodeH(d) / 2)
+      .attr("width", d => getNodeW(d))
+      .attr("height", d => getNodeH(d))
+      .attr("rx", d => getNodeRx(d)) // Much softer rounded corners
       .attr("fill", "transparent")
       .attr("filter", "url(#shadow)");
 
     // Main Card body (Glass aesthetic)
     nodeSel.append("rect")
       .attr("class", "card-body")
-      .attr("x", d => -getNodeW(d.type) / 2)
-      .attr("y", d => -getNodeH(d.type) / 2)
-      .attr("width", d => getNodeW(d.type))
-      .attr("height", d => getNodeH(d.type))
-      .attr("rx", 20) // Much softer rounded corners
+      .attr("x", d => -getNodeW(d) / 2)
+      .attr("y", d => -getNodeH(d) / 2)
+      .attr("width", d => getNodeW(d))
+      .attr("height", d => getNodeH(d))
+      .attr("rx", d => getNodeRx(d)) // Much softer rounded corners
       .attr("fill", d => {
         if (d.customColor) return d.customColor + "1A";
         return "rgba(10,15,26,0.65)"; // Ultra-premium glass background
@@ -775,10 +780,10 @@ export default function MapPage() {
 
     // HTML ForeignObject for flawless text layout
     nodeSel.append("foreignObject")
-      .attr("x", d => -getNodeW(d.type) / 2)
-      .attr("y", d => -getNodeH(d.type) / 2)
-      .attr("width", d => getNodeW(d.type))
-      .attr("height", d => getNodeH(d.type))
+      .attr("x", d => -getNodeW(d) / 2)
+      .attr("y", d => -getNodeH(d) / 2)
+      .attr("width", d => getNodeW(d))
+      .attr("height", d => getNodeH(d))
       .style("pointer-events", "none")
       .append("xhtml:div")
       .attr("class", "w-full h-full flex flex-col pointer-events-none")
@@ -834,10 +839,10 @@ export default function MapPage() {
 
     // Port dots (Left, Right, Top, Bottom)
     const ports = [
-      { id: "left", x: (d: MapNode) => -getNodeW(d.type) / 2, y: () => 0 },
-      { id: "right", x: (d: MapNode) => getNodeW(d.type) / 2, y: () => 0 },
-      { id: "top", x: () => 0, y: (d: MapNode) => -getNodeH(d.type) / 2 },
-      { id: "bottom", x: () => 0, y: (d: MapNode) => getNodeH(d.type) / 2 }
+      { id: "left", x: (d: MapNode) => -getNodeW(d) / 2, y: () => 0 },
+      { id: "right", x: (d: MapNode) => getNodeW(d) / 2, y: () => 0 },
+      { id: "top", x: () => 0, y: (d: MapNode) => -getNodeH(d) / 2 },
+      { id: "bottom", x: () => 0, y: (d: MapNode) => getNodeH(d) / 2 }
     ];
     
     let tempLink: any = null;
@@ -868,8 +873,8 @@ export default function MapPage() {
         let targetNode = null;
         for (const n of nodes) {
           if (n.id === d.id) continue;
-          const nw = getNodeW(n.type);
-          const nh = getNodeH(n.type);
+          const nw = getNodeW(n);
+          const nh = getNodeH(n);
           if (pointerX >= n.x - nw/2 - 30 && pointerX <= n.x + nw/2 + 30 &&
               pointerY >= n.y - nh/2 - 30 && pointerY <= n.y + nh/2 + 30) {
             targetNode = n; break;
@@ -1374,23 +1379,46 @@ export default function MapPage() {
                             <div className="flex items-center gap-3">
                               <div className="flex-1 flex flex-col gap-1.5">
                                 <span className="text-[10px] font-medium text-[#64748B]" style={{ fontFamily: SF }}>W</span>
-                                <input type="text" disabled value="Auto" className="w-full bg-[rgba(255,255,255,0.03)] border border-[#1a2535] rounded-[6px] px-2 py-1.5 text-[11px] text-[#94A3B8] font-mono" />
+                                <input 
+                                  type="text" 
+                                  value={selectedNode.width || "Auto"} 
+                                  onChange={(e) => {
+                                    const val = parseInt(e.target.value);
+                                    updateSelectedNode({ width: isNaN(val) ? undefined : val });
+                                  }}
+                                  className="w-full bg-[rgba(255,255,255,0.03)] border border-[#1a2535] focus:border-[#3BC9DB] outline-none rounded-[6px] px-2 py-1.5 text-[11px] text-[#E2E8F0] font-mono transition-colors" 
+                                />
                               </div>
                               <div className="w-4 flex justify-center text-[#475569]"><Link2 size={12}/></div>
                               <div className="flex-1 flex flex-col gap-1.5">
                                 <span className="text-[10px] font-medium text-[#64748B]" style={{ fontFamily: SF }}>H</span>
-                                <input type="text" disabled value="Auto" className="w-full bg-[rgba(255,255,255,0.03)] border border-[#1a2535] rounded-[6px] px-2 py-1.5 text-[11px] text-[#94A3B8] font-mono" />
+                                <input 
+                                  type="text" 
+                                  value={selectedNode.height || "Auto"} 
+                                  onChange={(e) => {
+                                    const val = parseInt(e.target.value);
+                                    updateSelectedNode({ height: isNaN(val) ? undefined : val });
+                                  }}
+                                  className="w-full bg-[rgba(255,255,255,0.03)] border border-[#1a2535] focus:border-[#3BC9DB] outline-none rounded-[6px] px-2 py-1.5 text-[11px] text-[#E2E8F0] font-mono transition-colors" 
+                                />
                               </div>
                             </div>
                             
                             <div className="flex flex-col gap-2 mt-2">
                                <span className="text-[10px] font-medium text-[#64748B]" style={{ fontFamily: SF }}>Corner Radius</span>
                                <div className="flex items-center bg-[rgba(255,255,255,0.03)] border border-[#1a2535] p-0.5 rounded-[8px]">
-                                  {["0", "8", "16", "24"].map((r) => (
-                                    <button key={r} className={`flex-1 py-1 rounded-[6px] text-[11px] font-medium ${r === "16" ? 'bg-[#3BC9DB] text-[#050505]' : 'text-[#94A3B8] hover:text-[#fff]'}`}>
-                                      {r}
-                                    </button>
-                                  ))}
+                                  {[0, 8, 16, 24].map((r) => {
+                                    const isActive = selectedNode.borderRadius === r || (!selectedNode.borderRadius && r === 16);
+                                    return (
+                                      <button 
+                                        key={r} 
+                                        onClick={() => updateSelectedNode({ borderRadius: r })}
+                                        className={`flex-1 py-1 rounded-[6px] text-[11px] font-medium ${isActive ? 'bg-[#3BC9DB] text-[#050505]' : 'text-[#94A3B8] hover:text-[#fff]'}`}
+                                      >
+                                        {r}
+                                      </button>
+                                    );
+                                  })}
                                </div>
                             </div>
                           </div>
