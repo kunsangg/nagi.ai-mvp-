@@ -114,6 +114,7 @@ function assignPositions(nodes: any[], centerId: string, W: number, H: number): 
 export default function MapPage() {
   const params = useParams();
   const router = useRouter();
+  const containerRef = useRef<HTMLDivElement>(null);
   const svgRef  = useRef<SVGSVGElement>(null);
   const zoomRef = useRef<d3.ZoomBehavior<SVGSVGElement, unknown> | null>(null);
 
@@ -152,11 +153,13 @@ export default function MapPage() {
 
   // Measure canvas
   useEffect(() => {
-    const el = svgRef.current?.parentElement;
+    const el = containerRef.current;
     if (!el) return;
     const ro = new ResizeObserver(([e]) => {
       const { width, height } = e.contentRect;
-      setDims({ w: width, h: height });
+      if (width > 0 && height > 0) {
+        setDims({ w: width, h: height });
+      }
     });
     ro.observe(el);
     return () => ro.disconnect();
@@ -214,7 +217,10 @@ export default function MapPage() {
     const g = svg.append("g");
     const zoom = d3.zoom<SVGSVGElement, unknown>()
       .scaleExtent([0.15, 3])
-      .on("zoom", ev => g.attr("transform", ev.transform));
+      .on("zoom", ev => {
+        g.attr("transform", ev.transform);
+        pat.attr("patternTransform", ev.transform);
+      });
     svg.call(zoom);
     zoomRef.current = zoom;
     const currentTransform = d3.zoomTransform(el);
@@ -533,7 +539,7 @@ export default function MapPage() {
   const centerPaper = nodes.find(n => n.id === centerId);
 
   return (
-    <div className="w-screen h-screen flex flex-col overflow-hidden"
+    <div className="w-full h-full flex flex-col overflow-hidden"
       style={{ background: "#050810", fontFamily: SF }}>
 
       {/* ── Top bar ── */}
@@ -619,7 +625,7 @@ export default function MapPage() {
         )}
 
         {/* Canvas */}
-        <div className="flex-1 relative overflow-hidden">
+        <div ref={containerRef} className="flex-1 relative overflow-hidden">
           {activeTool === "connect" && (
             <div className="absolute top-3 left-1/2 -translate-x-1/2 z-20 px-4 py-1.5 rounded-full text-[11px] font-medium pointer-events-none"
               style={{
