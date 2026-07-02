@@ -109,9 +109,9 @@ export async function GET(req: Request) {
 
     // Build edges
     const edges = [
-      ...referenceNodes.map((n: any) => ({ source: centerNode.id, target: n.id, type: 'reference' })),
-      ...citingNodes.map((n: any) => ({ source: n.id, target: centerNode.id, type: 'citing' })),
-      ...relatedNodes.map((n: any) => ({ source: centerNode.id, target: n.id, type: 'related' })),
+      ...referenceNodes.map((n: any) => ({ id: `edge-${Date.now()}-${Math.random()}`, source: centerNode.id, target: n.id, type: 'references' })),
+      ...citingNodes.map((n: any) => ({ id: `edge-${Date.now()}-${Math.random()}`, source: n.id, target: centerNode.id, type: 'references' })),
+      ...relatedNodes.map((n: any) => ({ id: `edge-${Date.now()}-${Math.random()}`, source: centerNode.id, target: n.id, type: 'custom' })),
     ];
 
     return NextResponse.json({ nodes, edges, center: centerNode.id });

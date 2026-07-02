@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { Plus, Compass, Network, Folder, Library, MessageSquare, Settings, UserCircle2, FileText, PanelLeftClose, PanelLeft, X, Users, Database } from "lucide-react";
+import { Plus, Compass, Network, Folder, Library, MessageSquare, Settings, UserCircle2, FileText, PanelLeftClose, PanelLeft, X, Users, Database, LayoutGrid } from "lucide-react";
 
 export default function Sidebar() {
   const [isCollapsed, setIsCollapsed] = useState(false);
@@ -79,12 +79,13 @@ export default function Sidebar() {
       {/* Main Nav */}
       <nav className="flex-1 space-y-1 overflow-y-auto overflow-x-hidden no-scrollbar pr-1">
         <NavItem icon={<Compass size={18} />} label="Discover" active isCollapsed={isCollapsed} />
-        <NavItem icon={<Network size={18} />} label="Research Maps" isCollapsed={isCollapsed} />
-        <NavItem icon={<FileText size={18} />} label="Papers" isCollapsed={isCollapsed} />
-        <NavItem icon={<Users size={18} />} label="Authors" isCollapsed={isCollapsed} />
-        <NavItem icon={<Database size={18} />} label="Datasets" isCollapsed={isCollapsed} />
-        <NavItem icon={<Folder size={18} />} label="Workspaces" isCollapsed={isCollapsed} />
+        <NavItem icon={<Folder size={18} />} label="Projects" isCollapsed={isCollapsed} />
+        <NavItem icon={<Network size={18} />} label="Maps" isCollapsed={isCollapsed} />
         <NavItem icon={<Library size={18} />} label="Collections" isCollapsed={isCollapsed} />
+        <NavItem icon={<Database size={18} />} label="Datasets" isCollapsed={isCollapsed} />
+        <NavItem icon={<Users size={18} />} label="Authors" isCollapsed={isCollapsed} />
+        <NavItem icon={<FileText size={18} />} label="Saved Papers" isCollapsed={isCollapsed} />
+        <NavItem icon={<LayoutGrid size={18} />} label="Workspaces" isCollapsed={isCollapsed} />
         
         {!isCollapsed && recentItems.length > 0 && (
           <div className="mt-8 mb-3">

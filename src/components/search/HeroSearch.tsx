@@ -324,7 +324,7 @@ export default function HeroSearch() {
                             ? "bg-[#202222] text-white"
                             : "text-[#a0a0a0] hover:bg-[#1a1c1c] hover:text-white"
                         }`}>
-                        <FileText size={14} className={selectedIndex === idx ? "text-white" : "text-[#808080]"} shrink-0 />
+                        <FileText size={14} className={(selectedIndex === idx ? "text-white" : "text-[#808080]") + " shrink-0"} />
                         <span className="truncate text-left font-medium">{title}</span>
                         <ChevronRight size={14} className="text-[#6a6a6a] shrink-0 ml-auto" />
                       </button>
