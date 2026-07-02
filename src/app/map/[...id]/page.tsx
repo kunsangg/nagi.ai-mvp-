@@ -601,7 +601,7 @@ export default function MapPage() {
 
     // Edge labels
     edgeGroups.each(function(d: any) {
-      const labelText = d.label || EDGE_LABEL[d.type];
+      const labelText = d.label || EDGE_LABEL[d.type as EdgeType];
       if (!labelText) return;
       const s = typeof d.source === "string" ? nodes.find(n => n.id === d.source) : d.source as MapNode;
       const t = typeof d.target === "string" ? nodes.find(n => n.id === d.target) : d.target as MapNode;
@@ -612,7 +612,7 @@ export default function MapPage() {
       d3.select(this).append("rect")
         .attr("x", mx - width/2).attr("y", my - 12)
         .attr("width", width).attr("height", 24).attr("rx", 12)
-        .attr("fill", "#121212").attr("stroke", EDGE_COLOR[d.type] || "#2b2d2d")
+        .attr("fill", "#121212").attr("stroke", EDGE_COLOR[d.type as EdgeType] || "#2b2d2d")
         .attr("stroke-width", stateRef.current.selectedEdge?.id === d.id ? 2 : 1)
         .attr("cursor", "pointer")
         .on("click", () => {
