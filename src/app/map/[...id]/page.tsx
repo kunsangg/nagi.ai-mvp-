@@ -577,10 +577,10 @@ export default function MapPage() {
       .data(edges).join("g");
     const linkSel = edgeGroups.append("path")
       .attr("fill", "none")
-      .attr("stroke", (d: any) => stateRef.current.selectedEdge?.id === d.id ? "#ffffff" : EDGE_COLOR[d.type] || "#4F46E5")
+      .attr("stroke", (d: any) => stateRef.current.selectedEdge?.id === d.id ? "#ffffff" : EDGE_COLOR[d.type as EdgeType] || "#4F46E5")
       .attr("stroke-width", (d: any) => stateRef.current.selectedEdge?.id === d.id ? 3 : 2)
       .attr("stroke-opacity", 0.8)
-      .attr("stroke-dasharray", (d: any) => EDGE_DASH[d.type] || "none")
+      .attr("stroke-dasharray", (d: any) => EDGE_DASH[d.type as EdgeType] || "none")
       .attr("marker-end", (d: any) => `url(#arr-${d.type})`)
       .attr("cursor", "pointer")
       .attr("class", "animated-edge")
@@ -680,7 +680,7 @@ export default function MapPage() {
       .attr("y", d => -getNodeH(d.type) / 2 - 4)
       .attr("width", d => getNodeW(d.type) + 8)
       .attr("height", d => getNodeH(d.type) + 8)
-      .attr("rx", d => d.type === "center" ? 12 : ["paper", "reference", "citing", "related", "custom"].includes(d.type) ? 16 : 24)
+      .attr("rx", 16)
       .attr("fill", d => {
         if (d.customColor) return d.customColor + "33";
         return d.type === "frame" ? "transparent" : d.type === "ai" ? "rgba(59,201,219,0.2)" : d.type === "dataset" ? "rgba(16,185,129,0.2)" : d.type === "prompt" ? "rgba(245,158,11,0.2)" : d.type === "question" ? "rgba(236,72,153,0.2)" : "rgba(0,0,0,0.5)";
@@ -694,7 +694,7 @@ export default function MapPage() {
       .attr("y", d => -getNodeH(d.type) / 2)
       .attr("width", d => getNodeW(d.type))
       .attr("height", d => getNodeH(d.type))
-      .attr("rx", d => d.type === "center" ? 12 : ["paper", "reference", "citing", "related", "custom"].includes(d.type) ? 16 : 24)
+      .attr("rx", 16)
       .attr("fill", d => {
         if (d.customColor) return d.customColor + "1A";
         if (d.type === "center") return "#1A1D27";
@@ -769,7 +769,7 @@ export default function MapPage() {
       .attr("width", d => getNodeW(d.type))
       .attr("height", d => getNodeH(d.type))
       .append("xhtml:div")
-      .attr("class", "flex flex-col h-full p-3 pointer-events-none")
+      .attr("class", "flex flex-col h-full p-4 pointer-events-none")
       .html(d => `
         <div class="flex items-center gap-1.5 mb-1 opacity-70">
           <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="text-[#94A3B8]"><path d="M14 2H6a2 2 0 0 0-2 2v16c0 1.1.9 2 2 2h12a2 2 0 0 0 2-2V8l-6-6z"/><path d="M14 3v5h5M16 13H8M16 17H8M10 9H8"/></svg>
@@ -1230,19 +1230,11 @@ export default function MapPage() {
         </button>
       </div>
 
-      {/* ── Floating Bottom Center Toolbar (Glassmorphism Dock) ── */}
-      <div className="absolute bottom-6 left-1/2 -translate-x-1/2 z-30 flex flex-col items-center gap-4 pointer-events-none">
-        
       {/* ── AI Chat Bot Panel (Right Side) ── */}
       {activeTool === "ai" && (
-        <aside className="absolute right-4 top-24 bottom-24 w-[340px] rounded-2xl flex flex-col shadow-2xl overflow-hidden backdrop-blur-xl z-50 pointer-events-auto transition-transform"
-          style={{
-            background: "rgba(10, 15, 26, 0.85)",
-            border: "1px solid rgba(59, 201, 219, 0.3)",
-            boxShadow: "0 25px 50px -12px rgba(0, 0, 0, 0.7), 0 0 40px rgba(59,201,219,0.1), inset 0 1px 1px rgba(255,255,255,0.1)"
-          }}>
+        <aside className="absolute right-4 top-24 bottom-24 w-[340px] flex flex-col overflow-hidden nagi-glass-panel z-50 pointer-events-auto transition-transform">
           {/* Header */}
-          <div className="flex items-center justify-between px-5 py-4" style={{ background: "rgba(59,201,219,0.1)", borderBottom: "1px solid rgba(59,201,219,0.2)" }}>
+          <div className="flex items-center justify-between px-5 py-4 nagi-glass-header">
             <div className="flex items-center gap-2">
               <Sparkles size={14} color="#3bc9db" className={isProcessingAI ? "animate-pulse" : ""} />
               <span className="text-[12px] font-bold tracking-widest uppercase" style={{ color: "#3bc9db", fontFamily: MONO }}>
@@ -1297,9 +1289,10 @@ export default function MapPage() {
         </aside>
       )}
 
+      {/* ── Floating Bottom Center Toolbar (Glassmorphism Dock) ── */}
+      <div className="absolute bottom-6 left-1/2 -translate-x-1/2 z-30 flex flex-col items-center gap-4 pointer-events-none">
       {/* Main Toolbar */}
-        <div className="flex items-center gap-1.5 px-4 py-2.5 rounded-[24px] pointer-events-auto shadow-[0_24px_48px_rgba(0,0,0,0.6)] backdrop-blur-3xl transition-transform"
-          style={{ background: "rgba(12,12,14,0.75)", border: "1px solid rgba(255,255,255,0.12)" }}>
+        <div className="flex items-center gap-1.5 px-4 py-2.5 pointer-events-auto nagi-glass-toolbar transition-transform">
           {([
             { t: "select",  icon: <MousePointer size={15} />, tip: "Cursor (V)"  },
             { t: "hand",    icon: <Hand         size={15} />, tip: "Hand (H)" },
@@ -1335,15 +1328,14 @@ export default function MapPage() {
       </div>
 
       {/* ── Floating Bottom Right (Zoom) ── */}
-      <div className="absolute bottom-6 right-6 z-30 flex items-center gap-1.5 pointer-events-none">
+      <div className="absolute bottom-6 right-6 z-30 flex items-center gap-1.5 pointer-events-auto nagi-glass-toolbar px-3 py-2">
         {([
           { fn: () => doZoom("out"), icon: <ZoomOut    size={14} />, tip: "Zoom out" },
           { fn: () => doZoom("in"),  icon: <ZoomIn     size={14} />, tip: "Zoom in"  },
           { fn: () => doZoom("fit"), icon: <Maximize2  size={14} />, tip: "Reset"    },
         ]).map((z, i) => (
           <button key={i} title={z.tip} onClick={z.fn}
-            className="w-10 h-10 flex items-center justify-center rounded-[14px] transition-all hover:bg-[rgba(255,255,255,0.1)] active:scale-95 pointer-events-auto shadow-[0_12px_24px_rgba(0,0,0,0.5)] backdrop-blur-2xl"
-            style={{ background: "rgba(12,12,14,0.7)", border: "1px solid rgba(255,255,255,0.1)", color: "#a1a1aa" }}>
+            className="w-8 h-8 flex items-center justify-center rounded-full transition-all hover:bg-[rgba(255,255,255,0.1)] active:scale-95 text-[#a1a1aa] hover:text-white">
             {z.icon}
           </button>
         ))}
@@ -1351,10 +1343,8 @@ export default function MapPage() {
 
       {/* ── Floating Right Panel ── */}
       {selectedNode && activeTool === "select" && (
-        <aside className="absolute top-24 right-8 w-80 max-h-[80vh] flex flex-col overflow-hidden rounded-2xl shadow-[0_24px_48px_rgba(0,0,0,0.6)] z-40 pointer-events-auto backdrop-blur-3xl transition-transform duration-200"
-          style={{ background: "rgba(12,12,14,0.75)", border: "1px solid rgba(255,255,255,0.12)" }}>
-          <div className="flex items-center justify-between px-5 py-4 shrink-0"
-            style={{ borderBottom: "1px solid rgba(255,255,255,0.06)" }}>
+        <aside className="absolute top-24 right-4 w-[340px] max-h-[80vh] flex flex-col overflow-hidden nagi-glass-panel z-40 pointer-events-auto transition-transform duration-200">
+          <div className="flex items-center justify-between px-5 py-4 shrink-0 nagi-glass-header">
             <div className="flex items-center gap-2.5">
               <div className="w-2.5 h-2.5 rounded-sm shadow-[0_0_8px_rgba(255,255,255,0.2)]" style={{ background: selectedNode.customColor || TYPE_COLOR[selectedNode.type] }} />
               <span className="text-[10px] font-bold tracking-[0.15em] uppercase"
@@ -1547,13 +1537,8 @@ export default function MapPage() {
       )}
 
       {selectedEdge && activeTool === "select" && (
-        <aside className="absolute right-4 top-24 bottom-24 w-[280px] rounded-2xl flex flex-col shadow-2xl overflow-hidden backdrop-blur-xl"
-          style={{
-            background: "rgba(10, 15, 26, 0.85)",
-            border: "1px solid rgba(255,255,255,0.08)",
-            boxShadow: "0 25px 50px -12px rgba(0, 0, 0, 0.7), inset 0 1px 1px rgba(255,255,255,0.1)"
-          }}>
-          <div className="flex items-center justify-between px-5 py-4" style={{ background: "rgba(0,0,0,0.2)", borderBottom: "1px solid rgba(255,255,255,0.05)" }}>
+        <aside className="absolute right-4 top-24 bottom-24 w-[340px] flex flex-col overflow-hidden nagi-glass-panel z-40 pointer-events-auto transition-transform duration-200">
+          <div className="flex items-center justify-between px-5 py-4 nagi-glass-header">
             <div className="flex items-center gap-2">
               <Link size={12} color="#a0a0a0" />
               <span className="text-[10px] font-bold tracking-widest uppercase"

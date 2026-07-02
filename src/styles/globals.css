@@ -40,3 +40,52 @@ body {
 ::-webkit-scrollbar-track { background: transparent; }
 ::-webkit-scrollbar-thumb { background: #1a2535; border-radius: 9999px; }
 ::-webkit-scrollbar-thumb:hover { background: #243044; }
+
+/* --- Nagi Premium Design System Utilities --- */
+
+.nagi-glass-panel {
+  background: rgba(10, 15, 26, 0.85);
+  backdrop-filter: blur(24px);
+  -webkit-backdrop-filter: blur(24px);
+  border: 1px solid rgba(59, 201, 219, 0.25);
+  box-shadow: 0 24px 48px -12px rgba(0, 0, 0, 0.8), 
+              0 0 40px rgba(59, 201, 219, 0.08), 
+              inset 0 1px 1px rgba(255, 255, 255, 0.1);
+  border-radius: 1rem;
+}
+
+.nagi-glass-header {
+  background: rgba(59, 201, 219, 0.05);
+  border-bottom: 1px solid rgba(59, 201, 219, 0.15);
+}
+
+.nagi-glass-toolbar {
+  background: rgba(12, 12, 14, 0.8);
+  backdrop-filter: blur(32px);
+  -webkit-backdrop-filter: blur(32px);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  box-shadow: 0 24px 48px rgba(0, 0, 0, 0.7), 
+              inset 0 1px 1px rgba(255, 255, 255, 0.1);
+  border-radius: 9999px; /* full pill */
+}
+
+/* Base input and button focus rings */
+.nagi-focus {
+  outline: none;
+}
+.nagi-focus:focus-within, .nagi-focus:focus {
+  border-color: #3bc9db !important;
+  box-shadow: 0 0 0 2px rgba(59, 201, 219, 0.2);
+}
+
+/* Micro-interaction utilities */
+.nagi-click-anim {
+  transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+}
+.nagi-click-anim:active {
+  transform: scale(0.96);
+}
+.nagi-click-anim:hover {
+  filter: brightness(1.1);
+}
+

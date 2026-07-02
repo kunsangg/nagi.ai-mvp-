@@ -8,10 +8,13 @@ export async function POST(req: Request) {
       return NextResponse.json({ error: 'Valid command string is required' }, { status: 400 });
     }
 
-    const cmd = command.toLowerCase();
-    const ops: any[] = [];
-    
-    // Calculate a good spawn point (center of selected nodes, or just somewhere near the center)
+    const groqKey = process.env.GROQ_API_KEY;
+    if (!groqKey) {
+      return NextResponse.json({ 
+        error: 'GROQ_API_KEY is not configured in .env.local. Please add it to your environment variables.'
+      }, { status: 500 });
+    }
+
     const selectedNodes = nodes.filter((n: any) => selectedIds.includes(n.id));
     const centerX = selectedNodes.length > 0 
       ? selectedNodes.reduce((sum: number, n: any) => sum + n.x, 0) / selectedNodes.length
@@ -20,111 +23,70 @@ export async function POST(req: Request) {
       ? selectedNodes.reduce((sum: number, n: any) => sum + n.y, 0) / selectedNodes.length
       : 500;
 
-    // Simulate AI thinking time
-    await new Promise(resolve => setTimeout(resolve, 1500));
+    const systemPrompt = `You are an AI Research Assistant integrated into an infinite canvas app.
+Your job is to understand the user's request and output a JSON object containing:
+1. "message": A conversational reply to the user.
+2. "operations": An array of canvas mutation operations.
 
-    // 1. "Find papers about quantum batteries"
-    if (cmd.includes('find papers') || cmd.includes('quantum batteries')) {
-      const p1Id = `paper-${Date.now()}-1`;
-      const p2Id = `paper-${Date.now()}-2`;
-      const p3Id = `paper-${Date.now()}-3`;
-      
-      ops.push({
-        type: 'add_nodes',
-        nodes: [
-          { id: p1Id, title: "Quantum Batteries: A Review", type: "paper", shape: "card", priority: "normal", x: centerX, y: centerY - 150, author: "Smith et al.", year: 2023 },
-          { id: p2Id, title: "Fast Charging in Quantum Batteries", type: "paper", shape: "card", priority: "normal", x: centerX - 160, y: centerY + 50, author: "Chen et al.", year: 2024 },
-          { id: p3Id, title: "Decoherence in Quantum Storage", type: "paper", shape: "card", priority: "normal", x: centerX + 160, y: centerY + 50, author: "Doe et al.", year: 2022 }
-        ]
-      });
-      ops.push({
-        type: 'add_edges',
-        edges: [
-          { source: p1Id, target: p2Id, type: "reference", label: "References" },
-          { source: p1Id, target: p3Id, type: "reference", label: "References" }
-        ]
-      });
+Allowed operation types:
+- "add_nodes": { type: "add_nodes", nodes: [{ id, title, type, shape, x, y }] }
+  - Allowed node types: "paper", "timeline", "frame", "note", "question"
+- "add_edges": { type: "add_edges", edges: [{ source, target, type, label }] }
+- "update_nodes": { type: "update_nodes", updates: [{ id, changes: { x, y } }] }
+
+Current canvas state:
+- Nodes: ${JSON.stringify(nodes.map((n: any) => ({ id: n.id, title: n.title, type: n.type })))}
+- Selected Node IDs: ${JSON.stringify(selectedIds)}
+- Base Coordinate for new nodes: x=${centerX}, y=${centerY}
+
+Example JSON Output:
+{
+  "message": "I have added 2 papers about quantum batteries.",
+  "operations": [
+    {
+      "type": "add_nodes",
+      "nodes": [
+        { "id": "paper-1", "title": "Quantum Batteries: A Review", "type": "paper", "shape": "card", "x": ${centerX}, "y": ${centerY - 150} }
+      ]
+    }
+  ]
+}
+
+Only return valid JSON matching this schema. Never return markdown blocks.`;
+
+    const response = await fetch("https://api.groq.com/openai/v1/chat/completions", {
+      method: "POST",
+      headers: {
+        "Authorization": `Bearer ${groqKey}`,
+        "Content-Type": "application/json"
+      },
+      body: JSON.stringify({
+        model: "llama-3.3-70b-versatile",
+        messages: [
+          { role: "system", content: systemPrompt },
+          { role: "user", content: command }
+        ],
+        response_format: { type: "json_object" },
+        temperature: 0.2
+      })
+    });
+
+    if (!response.ok) {
+      const text = await response.text();
+      console.error("Groq API Error:", text);
+      return NextResponse.json({ error: "Failed to communicate with Groq API" }, { status: 500 });
     }
 
-    // 2. "Generate a timeline"
-    else if (cmd.includes('timeline')) {
-      const timelineId = `timeline-${Date.now()}`;
-      ops.push({
-        type: 'add_nodes',
-        nodes: [{ id: timelineId, title: "Evolution of Topic", type: "timeline", shape: "card", priority: "normal", x: centerX, y: centerY - 200, customColor: "#6366f1" }]
-      });
-      
-      // Update selected nodes to align horizontally
-      const updates = selectedNodes.map((n: any, i: number) => ({
-        id: n.id,
-        changes: { x: centerX + (i - (selectedNodes.length-1)/2) * 300, y: centerY }
-      }));
-      ops.push({ type: 'update_nodes', updates });
-      
-      // Connect timeline to papers
-      const edgesToAdd = selectedNodes.map((n: any) => ({
-        source: timelineId, target: n.id, type: "custom", label: "Event"
-      }));
-      ops.push({ type: 'add_edges', edges: edgesToAdd });
-    }
+    const data = await response.json();
+    const content = data.choices[0].message.content;
+    const parsed = JSON.parse(content);
 
-    // 3. "Cluster these papers"
-    else if (cmd.includes('cluster')) {
-      const updates = selectedNodes.map((n: any, i: number) => {
-        const angle = (i / selectedNodes.length) * Math.PI * 2;
-        const radius = 250;
-        return {
-          id: n.id,
-          changes: { x: centerX + Math.cos(angle) * radius, y: centerY + Math.sin(angle) * radius }
-        };
-      });
-      ops.push({ type: 'update_nodes', updates });
-      
-      // Spawn a frame behind them
-      ops.push({
-        type: 'add_nodes',
-        nodes: [{ id: `frame-${Date.now()}`, title: "Cluster 1", type: "frame", shape: "card", priority: "normal", x: centerX, y: centerY }]
-      });
-    }
-
-    // 4. "Find contradictions"
-    else if (cmd.includes('contradict')) {
-      if (selectedNodes.length >= 2) {
-        ops.push({
-          type: 'add_edges',
-          edges: [
-            { source: selectedNodes[0].id, target: selectedNodes[1].id, type: "custom", label: "Contradicts" }
-          ]
-        });
-      }
-    }
-
-    // 5. "Generate literature review"
-    else if (cmd.includes('review')) {
-      const reviewText = selectedNodes.length > 0 
-        ? `### Literature Review\n\nReviewed ${selectedNodes.length} papers. The consensus is that quantum advantage in batteries is theoretically sound but faces decoherence challenges...`
-        : `### Literature Review\n\nPlease select some papers first.`;
-        
-      ops.push({
-        type: 'add_nodes',
-        nodes: [
-          { id: `note-${Date.now()}`, title: "Literature Review", note: reviewText, type: "note", shape: "card", priority: "high", x: centerX + 300, y: centerY }
-        ]
-      });
-    }
-
-    // Default response if no match
-    else {
-      ops.push({
-        type: 'add_nodes',
-        nodes: [
-          { id: `note-${Date.now()}`, title: "AI Response", note: `I'm not sure how to "${command}". Try asking me to find papers, generate a timeline, or cluster selected items.`, type: "note", shape: "card", priority: "normal", x: centerX, y: centerY }
-        ]
-      });
-    }
-
-    return NextResponse.json({ operations: ops });
+    return NextResponse.json({
+      message: parsed.message || "Canvas updated.",
+      operations: parsed.operations || []
+    });
   } catch (error: any) {
-    return NextResponse.json({ error: 'Failed to process AI command', details: error.message }, { status: 500 });
+    console.error(error);
+    return NextResponse.json({ error: error.message || 'Internal Server Error' }, { status: 500 });
   }
 }
