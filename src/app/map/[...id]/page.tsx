@@ -232,24 +232,30 @@ export default function MapPage() {
     }
 
     // Edge path helper
-    function edgePath(e: MapEdge): string {
-      const s = typeof e.source === "string" ? nodes.find(n => n.id === e.source) : e.source as MapNode;
-      const t = typeof e.target === "string" ? nodes.find(n => n.id === e.target) : e.target as MapNode;
+    const edgePath = (d: any) => {
+      const s = typeof d.source === "string" ? nodes.find(n => n.id === d.source) : d.source as MapNode;
+      const t = typeof d.target === "string" ? nodes.find(n => n.id === d.target) : d.target as MapNode;
       if (!s || !t) return "";
-      const dx = t.x - s.x, dy = t.y - s.y;
-      let sx: number, sy: number, tx: number, ty: number;
-      if (Math.abs(dx) >= Math.abs(dy)) {
-        sx = s.x + (dx > 0 ?  NODE_W / 2 : -NODE_W / 2); sy = s.y;
-        tx = t.x + (dx > 0 ? -NODE_W / 2 :  NODE_W / 2); ty = t.y;
+
+      const sW = s.type === "center" ? 160 : 64;
+      const tW = t.type === "center" ? 160 : 64;
+      const sH = s.type === "center" ? 56 : 64;
+      const tH = t.type === "center" ? 56 : 64;
+
+      let sx = s.x, sy = s.y, tx = t.x, ty = t.y;
+
+      if (Math.abs(s.x - t.x) > Math.abs(s.y - t.y)) {
+        sx = s.x < t.x ? s.x + sW / 2 : s.x - sW / 2;
+        tx = s.x < t.x ? t.x - tW / 2 : t.x + tW / 2;
         const mx = (sx + tx) / 2;
         return `M${sx},${sy} C${mx},${sy} ${mx},${ty} ${tx},${ty}`;
       } else {
-        sx = s.x; sy = s.y + (dy > 0 ?  NODE_H / 2 : -NODE_H / 2);
-        tx = t.x; ty = t.y + (dy > 0 ? -NODE_H / 2 :  NODE_H / 2);
+        sy = s.y < t.y ? s.y + sH / 2 : s.y - sH / 2;
+        ty = s.y < t.y ? t.y - tH / 2 : t.y + tH / 2;
         const my = (sy + ty) / 2;
         return `M${sx},${sy} C${sx},${my} ${tx},${my} ${tx},${ty}`;
       }
-    }
+    };
 
     // Edges
     const edgeG = g.append("g");
@@ -258,11 +264,10 @@ export default function MapPage() {
 
     const linkSel = edgeGroups.append("path")
       .attr("fill", "none")
-      .attr("stroke",         (d: any) => EDGE_COLOR[d.type as EdgeType])
-      .attr("stroke-width",   1.5)
-      .attr("stroke-opacity", 0.65)
-      .attr("marker-end",     (d: any) => `url(#arr-${d.type})`)
-      .attr("cursor",         "pointer")
+      .attr("stroke", "#4e5569")
+      .attr("stroke-width", 1.5)
+      .attr("stroke-opacity", 0.8)
+      .attr("cursor", "pointer")
       .attr("d",              edgePath as any)
       .on("click", (_ev, d: any) => {
         if (stateRef.current.activeTool === "delete") {
@@ -315,110 +320,108 @@ export default function MapPage() {
 
     // Card shadow
     nodeSel.append("rect")
-      .attr("x", -NODE_W / 2 - 3).attr("y", -NODE_H / 2 - 3)
-      .attr("width", NODE_W + 6).attr("height", NODE_H + 6)
-      .attr("rx", 10).attr("fill", "rgba(0,0,0,0.45)").attr("filter", "url(#shadow)");
+      .attr("x", d => d.type === "center" ? -80 - 4 : -32 - 4)
+      .attr("y", d => d.type === "center" ? -28 - 4 : -32 - 4)
+      .attr("width", d => d.type === "center" ? 160 + 8 : 64 + 8)
+      .attr("height", d => d.type === "center" ? 56 + 8 : 64 + 8)
+      .attr("rx", d => d.type === "center" ? 12 : 20)
+      .attr("fill", "rgba(0,0,0,0.5)")
+      .attr("filter", "url(#shadow)");
 
-    // Card body
+    // Card body (n8n style)
     nodeSel.append("rect")
       .attr("class", "card-body")
-      .attr("x", -NODE_W / 2).attr("y", -NODE_H / 2)
-      .attr("width", NODE_W).attr("height", NODE_H).attr("rx", 8)
-      .attr("fill", "#121212")
-      .attr("stroke", (d: MapNode) => d.id === stateRef.current.selectedNode?.id ? "#e8e8e6" : "#2b2d2d")
-      .attr("stroke-width", (d: MapNode) => d.id === stateRef.current.selectedNode?.id ? 2 : 1)
+      .attr("x", d => d.type === "center" ? -80 : -32)
+      .attr("y", d => d.type === "center" ? -28 : -32)
+      .attr("width", d => d.type === "center" ? 160 : 64)
+      .attr("height", d => d.type === "center" ? 56 : 64)
+      .attr("rx", d => d.type === "center" ? 8 : 16)
+      .attr("fill", d => d.type === "center" ? "#1A1D27" : "#11131A")
+      .attr("stroke", d => d.id === stateRef.current.selectedNode?.id ? "#FFFFFF" : "#2A2E3D")
+      .attr("stroke-width", d => d.id === stateRef.current.selectedNode?.id ? 1.5 : 1)
       .on("mouseover", function(_ev, d) {
-        if (d.id !== stateRef.current.selectedNode?.id)
-          d3.select(this).attr("fill", "#1a1a1a");
+        if (d.id !== stateRef.current.selectedNode?.id) d3.select(this).attr("stroke", "#4e5569");
       })
       .on("mouseout", function(_ev, d) {
-        d3.select(this).attr("fill", "#121212");
+        if (d.id !== stateRef.current.selectedNode?.id) d3.select(this).attr("stroke", "#2A2E3D");
       });
 
-    // Left accent (subtle now)
-    nodeSel.append("rect")
-      .attr("x", -NODE_W / 2).attr("y", -NODE_H / 2)
-      .attr("width", 3).attr("height", NODE_H).attr("rx", 2)
-      .attr("fill", (d: MapNode) => d.type === "center" ? "#e8e8e6" : "#2b2d2d");
+    // Icons inside non-center nodes
+    nodeSel.filter(d => d.type !== "center").append("path")
+      .attr("d", "M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z M14 2v6h6 M16 13H8 M16 17H8 M10 9H8")
+      .attr("fill", "none")
+      .attr("stroke", "#3BC9DB")
+      .attr("stroke-width", 1.5)
+      .attr("stroke-linecap", "round")
+      .attr("stroke-linejoin", "round")
+      .attr("transform", "translate(-12, -12)");
 
-    // Type badge
-    nodeSel.append("rect")
-      .attr("x", -NODE_W / 2 + 14).attr("y", -NODE_H / 2 + 10)
-      .attr("width", 76).attr("height", 15).attr("rx", 3)
-      .attr("fill", "#1a1c1d");
-    nodeSel.append("text")
-      .text((d: MapNode) => TYPE_LABEL[d.type])
-      .attr("x", -NODE_W / 2 + 52).attr("y", -NODE_H / 2 + 21)
-      .attr("text-anchor", "middle")
-      .attr("font-size", "7px").attr("font-weight", "700")
-      .attr("letter-spacing", "0.1em").attr("font-family", MONO)
-      .attr("fill", (d: MapNode) => d.type === "center" ? "#e8e8e6" : "#808080")
-      .attr("pointer-events", "none");
+    // Text inside center node
+    const centerGroup = nodeSel.filter(d => d.type === "center");
+    centerGroup.append("path")
+      .attr("d", "M12 2a2 2 0 0 1 2 2c-.11.66-.5 1.25-1.07 1.62C13.62 6.09 14.33 7 15 8h4a2 2 0 0 1 2 2v6a2 2 0 0 1-2 2h-4c-.67 1-1.38 1.91-2.07 2.38C13.5 20.75 13.89 21.34 14 22a2 2 0 0 1-2 2h-4a2 2 0 0 1-2-2c.11-.66.5-1.25 1.07-1.62C6.38 19.91 5.67 19 5 18H1a2 2 0 0 1-2-2v-6a2 2 0 0 1 2-2h4c.67-1 1.38-1.91 2.07-2.38C6.5 7.25 6.11 6.66 6 6a2 2 0 0 1 2-2h4z M9 12v.01 M15 12v.01")
+      .attr("fill", "none")
+      .attr("stroke", "#E2E8F0")
+      .attr("stroke-width", 1.5)
+      .attr("stroke-linecap", "round")
+      .attr("stroke-linejoin", "round")
+      .attr("transform", "translate(-50, -12)");
+      
+    centerGroup.append("text")
+      .attr("text-anchor", "start")
+      .attr("x", -15).attr("y", -2)
+      .attr("font-size", "11px").attr("font-weight", "600").attr("font-family", SF)
+      .attr("fill", "#FFFFFF").attr("pointer-events", "none")
+      .text(d => truncate(d.title, 18));
 
-    // Priority badge (if not normal)
-    nodeSel.filter((d: MapNode) => d.priority !== "normal").append("text")
-      .text((d: MapNode) => d.priority === "critical" ? "●" : "◆")
-      .attr("x", NODE_W / 2 - 14).attr("y", -NODE_H / 2 + 20)
-      .attr("text-anchor", "middle").attr("font-size", "10px")
-      .attr("fill", (d: MapNode) => PRIORITY_COLOR[d.priority])
-      .attr("pointer-events", "none");
-
-    // Note indicator
-    nodeSel.filter((d: MapNode) => !!d.note).append("text")
-      .text("✎")
-      .attr("x", NODE_W / 2 - 28).attr("y", -NODE_H / 2 + 20)
-      .attr("text-anchor", "middle").attr("font-size", "9px")
-      .attr("fill", "#64748b").attr("pointer-events", "none");
-
-    // Link indicator
-    nodeSel.filter((d: MapNode) => !!d.url).append("text")
-      .text("↗")
-      .attr("x", NODE_W / 2 - 42).attr("y", -NODE_H / 2 + 21)
-      .attr("text-anchor", "middle").attr("font-size", "10px")
-      .attr("fill", "#64748b").attr("pointer-events", "none");
-
-    // Title
-    nodeSel.each(function(d: MapNode) {
-      const title = truncate(d.title, 50);
-      const words = title.split(" ");
-      const half  = Math.ceil(words.length / 2);
-      const l1    = words.slice(0, half).join(" ");
-      const l2    = words.slice(half).join(" ");
-
-      const t = d3.select(this).append("text")
-        .attr("text-anchor", "middle")
-        .attr("font-size", d.type === "center" ? "12px" : "11px")
-        .attr("font-weight", d.type === "center" ? "600" : "500")
-        .attr("font-family", SF)
-        .attr("fill", d.type === "center" ? "#f1f5f9" : "#e2e8f0")
-        .attr("pointer-events", "none");
-
-      t.append("tspan").text(l1).attr("x", 10).attr("y", l2 ? -5 : 5);
-      if (l2) t.append("tspan").text(l2).attr("x", 10).attr("dy", "1.4em");
-    });
-
-    // Year · citations
-    nodeSel.append("text")
-      .attr("x", 10).attr("y", NODE_H / 2 - 11)
-      .attr("text-anchor", "middle")
+    centerGroup.append("text")
+      .attr("text-anchor", "start")
+      .attr("x", -15).attr("y", 12)
       .attr("font-size", "9px").attr("font-family", MONO)
-      .attr("fill", "#808080").attr("pointer-events", "none")
-      .text((d: MapNode) =>
-        [d.year, d.citations ? `${d.citations.toLocaleString()} cit.` : ""].filter(Boolean).join("  ·  ")
-      );
+      .attr("fill", "#64748B").attr("pointer-events", "none")
+      .text("AI Map Center");
 
-    // Port dots
-    [-NODE_W / 2, NODE_W / 2].forEach(px => {
+    // Title outside non-center nodes
+    nodeSel.filter(d => d.type !== "center").append("text")
+      .attr("text-anchor", "middle")
+      .attr("x", 0).attr("y", 52)
+      .attr("font-size", "11px").attr("font-weight", "500").attr("font-family", SF)
+      .attr("fill", "#E2E8F0").attr("pointer-events", "none")
+      .text(d => truncate(d.title, 25));
+
+    // Meta (Year/Cit) outside non-center nodes
+    nodeSel.filter(d => d.type !== "center").append("text")
+      .attr("text-anchor", "middle")
+      .attr("x", 0).attr("y", 66)
+      .attr("font-size", "9px").attr("font-family", MONO)
+      .attr("fill", "#64748B").attr("pointer-events", "none")
+      .text(d => [d.year, d.citations ? `${d.citations.toLocaleString()} cit.` : ""].filter(Boolean).join(" · "));
+
+    // Port dots (Left, Right, Top, Bottom)
+    const ports = [
+      { x: (d: MapNode) => d.type === "center" ? -80 : -32, y: () => 0 },
+      { x: (d: MapNode) => d.type === "center" ? 80 : 32, y: () => 0 },
+      { x: () => 0, y: (d: MapNode) => d.type === "center" ? -28 : -32 },
+      { x: () => 0, y: (d: MapNode) => d.type === "center" ? 28 : 32 }
+    ];
+    
+    ports.forEach(pos => {
       nodeSel.append("circle")
-        .attr("cx", px).attr("cy", 0).attr("r", 3.5)
-        .attr("fill", "#fff").attr("stroke", "none");
+        .attr("cx", pos.x)
+        .attr("cy", pos.y)
+        .attr("r", 3)
+        .attr("fill", "#4e5569")
+        .attr("stroke", "#11131A")
+        .attr("stroke-width", 1);
     });
 
     // Plus button (add child node)
     nodeSel.append("circle")
-      .attr("cx", 0).attr("cy", NODE_H / 2 + 16)
-      .attr("r", 10).attr("fill", "#1a1a1a")
-      .attr("stroke", "#2b2d2d").attr("stroke-width", 1)
+      .attr("cx", d => d.type === "center" ? 92 : 44)
+      .attr("cy", 0)
+      .attr("r", 7)
+      .attr("fill", "#1A1D27")
+      .attr("stroke", "#2A2E3D")
       .attr("cursor", "pointer")
       .on("click", (ev, d) => {
         ev.stopPropagation();
@@ -426,25 +429,16 @@ export default function MapPage() {
           id: `custom-${Date.now()}`,
           title: "New Node",
           type: "custom", shape: "card", priority: "normal",
-          x: d.x + 280, y: d.y,
+          x: d.x + 200, y: d.y + (Math.random() * 40 - 20),
         };
         setNodes(p => [...p, child]);
         setEdges(p => [...p, { source: d.id, target: child.id, type: "custom" }]);
       });
     nodeSel.append("text")
-      .text("+").attr("x", 0).attr("y", NODE_H / 2 + 21)
-      .attr("text-anchor", "middle").attr("font-size", "12px")
-      .attr("fill", "#64748b").attr("font-family", MONO)
+      .text("+").attr("x", d => d.type === "center" ? 92 : 44).attr("y", 3)
+      .attr("text-anchor", "middle").attr("font-size", "10px")
+      .attr("fill", "#64748B").attr("font-family", MONO)
       .attr("pointer-events", "none");
-
-    // Selection ring
-    nodeSel.append("rect").attr("class", "sel-ring")
-      .attr("x", -NODE_W / 2 - 4).attr("y", -NODE_H / 2 - 4)
-      .attr("width", NODE_W + 8).attr("height", NODE_H + 8).attr("rx", 11)
-      .attr("fill", "none")
-      .attr("stroke", (d: MapNode) => TYPE_COLOR[d.type])
-      .attr("stroke-width", 2).attr("stroke-dasharray", "5,3")
-      .attr("opacity", (d: MapNode) => d.id === stateRef.current.selectedNode?.id ? 1 : 0);
 
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [nodes, edges, dims]);
