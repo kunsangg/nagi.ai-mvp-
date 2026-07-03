@@ -244,6 +244,9 @@ export default function MapPage() {
   const [urlInput,       setUrlInput]       = useState("");
   const [aiCommand,      setAiCommand]      = useState("");
   const [isProcessingAI, setIsProcessingAI] = useState(false);
+  const [selectedModel, setSelectedModel] = useState("Claude 3.7");
+  const [isContextAdded, setIsContextAdded] = useState(false);
+  const [showModelDropdown, setShowModelDropdown] = useState(false);
   const [chatMessages, setChatMessages] = useState<{role: "user" | "ai", text: string}[]>([
     { role: "ai", text: "Hi! I'm your AI Research Assistant. How can I help you build your map?" }
   ]);
@@ -1845,13 +1848,18 @@ export default function MapPage() {
                   
                   {/* Context Pill */}
                   <div className="px-2 py-1.5 flex items-center" style={{ borderBottom: "1px solid #1a2535" }}>
-                    <button className="flex items-center gap-1.5 px-1.5 py-0.5 rounded bg-[#1a2535] hover:bg-[#334155] text-[#A0A0A0] hover:text-[#E2E8F0] transition-colors text-[10px] font-medium" style={{ fontFamily: SF }}>
-                      <Paperclip size={10} /> Add Context
+                    <button 
+                      type="button"
+                      onClick={() => setIsContextAdded(!isContextAdded)}
+                      className={`flex items-center gap-1.5 px-1.5 py-0.5 rounded ${isContextAdded ? 'bg-[rgba(59,201,219,0.15)] text-[#3bc9db] border border-[rgba(59,201,219,0.3)]' : 'bg-[#1a2535] hover:bg-[#334155] text-[#A0A0A0] hover:text-[#E2E8F0]'} transition-colors text-[10px] font-medium`} 
+                      style={{ fontFamily: SF }}
+                    >
+                      <Paperclip size={10} /> {isContextAdded ? "Context Added" : "Add Context"}
                     </button>
                   </div>
 
                   {/* Textarea */}
-                  <form onSubmit={handleAIChatSubmit} className="flex flex-col">
+                  <form onSubmit={handleAIChatSubmit} className="flex flex-col relative">
                     <textarea
                       value={aiCommand}
                       onChange={(e) => setAiCommand(e.target.value)}
@@ -1862,20 +1870,46 @@ export default function MapPage() {
                         }
                       }}
                       disabled={isProcessingAI}
-                      placeholder="Ask Copilot..."
+                      placeholder="Ask Nagi..."
                       className="w-full bg-transparent resize-none outline-none px-3 py-2.5 text-[12px] text-[#E2E8F0] placeholder-[#666] min-h-[50px]"
                       style={{ fontFamily: SF }}
                     />
                     
                     {/* Bottom Row Controls */}
-                    <div className="flex items-center justify-between px-2 py-1.5 border-t border-[#1a2535]">
-                      <div className="flex items-center gap-0.5">
+                    <div className="flex items-center justify-between px-2 py-1.5 border-t border-[#1a2535] relative">
+                      <div className="flex items-center gap-0.5 relative">
                         <button type="button" className="p-1.5 rounded hover:bg-[#1a2535] text-[#808080] hover:text-[#D1D5DB] transition-colors">
                           <Mic size={12} />
                         </button>
-                        <button type="button" className="flex items-center gap-1 px-1.5 py-1 rounded hover:bg-[#1a2535] text-[#808080] hover:text-[#D1D5DB] transition-colors text-[10px] font-medium" style={{ fontFamily: SF }}>
-                          Claude 3.7 <ChevronDown size={10} />
-                        </button>
+                        
+                        <div className="relative">
+                          <button 
+                            type="button" 
+                            onClick={() => setShowModelDropdown(!showModelDropdown)}
+                            className="flex items-center gap-1 px-1.5 py-1 rounded hover:bg-[#1a2535] text-[#808080] hover:text-[#D1D5DB] transition-colors text-[10px] font-medium" 
+                            style={{ fontFamily: SF }}
+                          >
+                            {selectedModel} <ChevronDown size={10} />
+                          </button>
+                          
+                          {showModelDropdown && (
+                            <div className="absolute bottom-full left-0 mb-1 w-32 bg-[#0a0f1a] border border-[#1a2535] rounded-md shadow-lg overflow-hidden z-50">
+                              {['Claude 3.7', 'GPT-4o', 'Gemini 1.5 Pro', 'Llama 3 70B'].map(model => (
+                                <button
+                                  key={model}
+                                  type="button"
+                                  onClick={() => {
+                                    setSelectedModel(model);
+                                    setShowModelDropdown(false);
+                                  }}
+                                  className={`w-full text-left px-3 py-1.5 text-[10px] ${selectedModel === model ? 'bg-[rgba(59,201,219,0.1)] text-[#3bc9db]' : 'text-[#A0A0A0] hover:bg-[#1a2535] hover:text-[#E2E8F0]'} transition-colors`}
+                                >
+                                  {model}
+                                </button>
+                              ))}
+                            </div>
+                          )}
+                        </div>
                       </div>
                       <button type="submit" disabled={isProcessingAI || !aiCommand.trim()} className="p-1.5 rounded hover:bg-[#1a2535] text-[#808080] hover:text-white transition-colors disabled:opacity-50 disabled:hover:bg-transparent disabled:hover:text-[#666]">
                         <Send size={12} />
