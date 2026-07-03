@@ -12,17 +12,20 @@ import {
   Hand, Sparkles, Play, CheckCircle2, Upload, BoxSelect,
   Database, Phone, Megaphone, Users, LineChart, Webhook, Link, Code,
   MessageSquare, FileText, Terminal, Settings2, Download, MessageCircle, ArrowUpRight,
-  History, MoreHorizontal, Paperclip, Mic, ChevronDown, User, Send
+  History, MoreHorizontal, Paperclip, Mic, ChevronDown, User, Send,
+  AlignStartVertical, AlignCenterHorizontal, AlignEndVertical,
+  AlignStartHorizontal, AlignCenterVertical, AlignEndHorizontal,
+  AlignHorizontalSpaceBetween, AlignVerticalSpaceBetween
 } from "lucide-react";
 
 const SF   = "-apple-system, BlinkMacSystemFont, 'SF Pro Text', 'Helvetica Neue', sans-serif";
 const MONO = "'SF Mono', SFMono-Regular, ui-monospace, Menlo, monospace";
 
-type NodeType    = "center" | "reference" | "citing" | "related" | "custom" | "paper" | "ai" | "dataset" | "prompt" | "note" | "question" | "timeline" | "comment" | "frame";
-type NodeShape   = "card" | "diamond" | "circle" | "pill";
+type NodeType    = "center" | "reference" | "citing" | "related" | "custom" | "paper" | "ai" | "dataset" | "prompt" | "note" | "question" | "timeline" | "comment" | "frame" | "shape";
+type NodeShape   = "card" | "diamond" | "circle" | "pill" | "rect";
 type Priority    = "normal" | "high" | "critical";
 type EdgeType    = "supports" | "contradicts" | "extends" | "references" | "inspired_by" | "uses_dataset" | "uses_methodology" | "replicates" | "improves" | "limitation" | "future_work" | "open_question" | "literature_review" | "custom";
-type Tool        = "select" | "hand" | "comment" | "note" | "ai" | "paper" | "dataset" | "prompt" | "question" | "timeline" | "connect" | "play" | "export" | "settings" | "frame";
+type Tool        = "select" | "hand" | "comment" | "note" | "ai" | "paper" | "dataset" | "prompt" | "question" | "timeline" | "connect" | "play" | "export" | "settings" | "frame" | "shape";
 
 interface MapNode {
   id: string;
@@ -67,6 +70,10 @@ interface MapEdge {
   metadata?: EdgeMetadata;
 }
 
+export const getNodeW = (n: MapNode) => n.width !== undefined ? n.width : (n.type === "frame" ? 800 : n.type === "center" ? 320 : n.type === "timeline" ? 380 : n.type === "question" ? 300 : n.type === "note" ? 260 : n.type === "comment" ? 280 : ["paper", "reference", "citing", "related", "custom", "shape"].includes(n.type) ? 320 : 240);
+export const getNodeH = (n: MapNode) => n.height !== undefined ? n.height : (n.type === "frame" ? 600 : n.type === "center" ? 100 : n.type === "timeline" ? 90 : n.type === "question" ? 100 : n.type === "note" ? 180 : n.type === "comment" ? 140 : ["paper", "reference", "citing", "related", "custom", "shape"].includes(n.type) ? 140 : 90);
+export const getNodeRx = (n: MapNode) => n.borderRadius !== undefined ? n.borderRadius : (n.type === "frame" ? 0 : 20);
+
 const NODE_W = 220;
 const NODE_H = 88;
 
@@ -91,6 +98,7 @@ const TYPE_COLOR: Record<NodeType, string> = {
   timeline:  "#6366f1",
   comment:   "#a855f7",
   frame:     "#ffffff",
+  shape:     "#808080"
 };
 
 const EDGE_COLOR: Record<EdgeType, string> = {
@@ -159,6 +167,7 @@ const TYPE_LABEL: Record<NodeType, string> = {
   timeline:  "TIMELINE",
   comment:   "COMMENT",
   frame:     "FRAME",
+  shape:     "SHAPE"
 };
 
 function truncate(s: string, n: number) {
@@ -551,16 +560,13 @@ export default function MapPage() {
 
     g.append("g").attr("class", "brush").call(brush);
 
-    // Modern spacing dimensions
-    const getNodeW = (n: MapNode) => n.width !== undefined ? n.width : (n.type === "frame" ? 800 : n.type === "center" ? 320 : n.type === "timeline" ? 380 : n.type === "question" ? 300 : n.type === "note" ? 260 : n.type === "comment" ? 280 : ["paper", "reference", "citing", "related", "custom"].includes(n.type) ? 320 : 240);
-    const getNodeH = (n: MapNode) => n.height !== undefined ? n.height : (n.type === "frame" ? 600 : n.type === "center" ? 100 : n.type === "timeline" ? 90 : n.type === "question" ? 100 : n.type === "note" ? 180 : n.type === "comment" ? 140 : ["paper", "reference", "citing", "related", "custom"].includes(n.type) ? 140 : 90);
-    const getNodeRx = (n: MapNode) => n.borderRadius !== undefined ? n.borderRadius : (n.type === "frame" ? 0 : 20);
+    // Modern spacing dimensions extracted
     
 
     svg.on("click", (ev) => {
       if (ev.defaultPrevented) return;
       const { activeTool, nodes, edges } = stateRef.current;
-      if (["paper", "note", "question", "timeline", "comment", "frame", "ai"].includes(activeTool)) {
+      if (["paper", "note", "question", "timeline", "comment", "frame", "ai", "shape"].includes(activeTool)) {
         const transform = d3.zoomTransform(el);
         const [x, y] = transform.invert(d3.pointer(ev, el));
         
@@ -568,7 +574,7 @@ export default function MapPage() {
           id: `${activeTool}-${Date.now()}`,
           title: `New ${activeTool.charAt(0).toUpperCase() + activeTool.slice(1)}`,
           type: activeTool as NodeType,
-          shape: "card",
+          shape: activeTool === "shape" ? "rect" : "card",
           priority: "normal",
           x: Math.round(x / 20) * 20,
           y: Math.round(y / 20) * 20,
@@ -739,103 +745,126 @@ export default function MapPage() {
       });
 
     // Premium shadow for cards
-    nodeSel.append("rect")
+    const standardNodes = nodeSel.filter((d: MapNode) => d.type !== "shape");
+    const shapeNodes = nodeSel.filter((d: MapNode) => d.type === "shape");
+
+    // --- RENDER STANDARD CARDS ---
+    // Premium shadow for cards
+    standardNodes.append("rect")
       .attr("class", "card-shadow")
-      .attr("x", d => -getNodeW(d) / 2)
-      .attr("y", d => -getNodeH(d) / 2)
-      .attr("width", d => getNodeW(d))
-      .attr("height", d => getNodeH(d))
-      .attr("rx", d => getNodeRx(d)) // Much softer rounded corners
+      .attr("x", (d: MapNode) => -getNodeW(d) / 2)
+      .attr("y", (d: MapNode) => -getNodeH(d) / 2)
+      .attr("width", (d: MapNode) => getNodeW(d))
+      .attr("height", (d: MapNode) => getNodeH(d))
+      .attr("rx", (d: MapNode) => getNodeRx(d))
       .attr("fill", "transparent")
       .attr("filter", "url(#shadow)");
 
-    // Main Card body (Glass aesthetic)
-    nodeSel.append("rect")
+    // Main Card body
+    standardNodes.append("rect")
       .attr("class", "card-body")
-      .attr("x", d => -getNodeW(d) / 2)
-      .attr("y", d => -getNodeH(d) / 2)
-      .attr("width", d => getNodeW(d))
-      .attr("height", d => getNodeH(d))
-      .attr("rx", d => getNodeRx(d)) // Much softer rounded corners
-      .attr("fill", d => {
+      .attr("x", (d: MapNode) => -getNodeW(d) / 2)
+      .attr("y", (d: MapNode) => -getNodeH(d) / 2)
+      .attr("width", (d: MapNode) => getNodeW(d))
+      .attr("height", (d: MapNode) => getNodeH(d))
+      .attr("rx", (d: MapNode) => getNodeRx(d))
+      .attr("fill", (d: MapNode) => {
         if (d.customColor) return d.customColor + "1A";
-        return "rgba(10,15,26,0.65)"; // Ultra-premium glass background
+        return "rgba(10,15,26,0.65)";
       })
-      .attr("stroke", d => {
+      .attr("stroke", (d: MapNode) => {
         if (stateRef.current.selectedNodeIds.includes(d.id)) return "#3BC9DB";
         if (d.customColor) return d.customColor;
         return "rgba(255,255,255,0.08)";
       })
-      .attr("stroke-width", d => stateRef.current.selectedNodeIds.includes(d.id) ? 2 : 1)
-      .style("backdrop-filter", "blur(24px)") // Not strictly supported natively in SVG rects in all browsers, but we use an HTML overlay
-      .on("mouseover", function(_ev, d) {
+      .attr("stroke-width", (d: MapNode) => stateRef.current.selectedNodeIds.includes(d.id) ? 2 : 1)
+      .style("backdrop-filter", "blur(24px)")
+      .on("mouseover", function(_ev, d: MapNode) {
         if (stateRef.current.selectedNodeIds.includes(d.id)) return;
         d3.select(this).transition().duration(250).attr("stroke", "rgba(255,255,255,0.2)");
       })
-      .on("mouseout", function(_ev, d) {
+      .on("mouseout", function(_ev, d: MapNode) {
         if (stateRef.current.selectedNodeIds.includes(d.id)) return;
         const defaultStroke = d.customColor || "rgba(255,255,255,0.08)";
         d3.select(this).transition().duration(250).attr("stroke", defaultStroke);
       });
 
     // HTML ForeignObject for flawless text layout
-    nodeSel.append("foreignObject")
-      .attr("x", d => -getNodeW(d) / 2)
-      .attr("y", d => -getNodeH(d) / 2)
-      .attr("width", d => getNodeW(d))
-      .attr("height", d => getNodeH(d))
-      .style("pointer-events", "none")
-      .append("xhtml:div")
-      .attr("class", "w-full h-full flex flex-col pointer-events-none")
-      .style("padding", "20px 24px")
-      .html(d => {
-         // Render specifically beautifully based on type
-         if (d.type === "center") {
-             return `
-               <div class="flex items-center h-full gap-5">
-                 <div class="flex-shrink-0 flex items-center justify-center w-14 h-14 rounded-full bg-[rgba(59,201,219,0.1)] border border-[rgba(59,201,219,0.3)] shadow-[0_0_20px_rgba(59,201,219,0.2)]">
-                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#3BC9DB" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
-                      <path d="M12 2a2 2 0 0 1 2 2c-.11.66-.5 1.25-1.07 1.62C13.62 6.09 14.33 7 15 8h4a2 2 0 0 1 2 2v6a2 2 0 0 1-2 2h-4c-.67 1-1.38 1.91-2.07 2.38C13.5 20.75 13.89 21.34 14 22a2 2 0 0 1-2 2h-4a2 2 0 0 1-2-2c.11-.66.5-1.25 1.07-1.62C6.38 19.91 5.67 19 5 18H1a2 2 0 0 1-2-2v-6a2 2 0 0 1 2-2h4c.67-1 1.38-1.91 2.07-2.38C6.5 7.25 6.11 6.66 6 6a2 2 0 0 1 2-2h4z"></path>
-                    </svg>
-                 </div>
-                 <div class="flex flex-col overflow-hidden">
-                   <div class="text-[17px] font-semibold text-[#FFFFFF] leading-snug line-clamp-2 tracking-tight" style="font-family: ${SF}">${d.title}</div>
-                   <div class="text-[11px] text-[#3BC9DB] mt-1.5 uppercase tracking-widest font-medium" style="font-family: ${MONO}">Core Research Map</div>
-                 </div>
-               </div>
-             `;
-         }
+    standardNodes.append("foreignObject")
+      .attr("x", (d: MapNode) => -getNodeW(d) / 2)
+      .attr("y", (d: MapNode) => -getNodeH(d) / 2)
+      .attr("width", (d: MapNode) => getNodeW(d))
+      .attr("height", (d: MapNode) => getNodeH(d))
+      .html((d: MapNode) => `
+        <div style="width:100%; height:100%; padding:20px; box-sizing:border-box; display:flex; flex-direction:column; justify-content:space-between;">
+          <!-- Header -->
+          <div style="display:flex; justify-content:space-between; align-items:flex-start;">
+            <div style="display:flex; align-items:center; gap:8px;">
+              <div style="width:24px; height:24px; border-radius:6px; background:${d.customColor ? d.customColor + '33' : 'rgba(255,255,255,0.05)'}; display:flex; align-items:center; justify-content:center; color:${d.customColor || '#94A3B8'}; font-size:12px;">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z"></path><path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z"></path></svg>
+              </div>
+              <span style="font-size:11px; font-weight:600; letter-spacing:0.05em; color:${d.customColor || '#64748B'}; text-transform:uppercase;">
+                ${d.type}
+              </span>
+            </div>
+            ${d.priority === 'high' ? `<div style="width:8px; height:8px; border-radius:4px; background:#F59E0B; box-shadow:0 0 8px #F59E0B;"></div>` : d.priority === 'critical' ? `<div style="width:8px; height:8px; border-radius:4px; background:#EF4444; box-shadow:0 0 8px #EF4444;"></div>` : ''}
+          </div>
+          
+          <!-- Content -->
+          <div style="flex:1; display:flex; align-items:center; margin-top:8px;">
+            <h3 style="margin:0; font-size:${getNodeH(d) < 120 ? '14px' : '16px'}; font-weight:500; color:#F1F5F9; line-height:1.4; display:-webkit-box; -webkit-line-clamp:3; -webkit-box-orient:vertical; overflow:hidden;">
+              ${d.title}
+            </h3>
+          </div>
+        </div>
+      `);
 
-         if (["paper", "reference", "custom", "citing", "related"].includes(d.type)) {
-             return `
-               <div class="flex flex-col h-full justify-between">
-                 <div>
-                   <div class="text-[15px] font-medium text-[#F8FAFC] leading-snug mb-2 line-clamp-3 tracking-tight" style="font-family: ${SF}">${d.title}</div>
-                   <div class="text-[12px] text-[#94A3B8] truncate" style="font-family: ${SF}">${d.author || "Unknown Author"}</div>
-                 </div>
-                 <div class="flex items-center justify-between mt-4 pt-4 border-t border-[rgba(255,255,255,0.06)]">
-                   <div class="flex items-center gap-2">
-                     <span class="text-[10px] text-[#64748B] font-mono font-bold tracking-widest bg-[rgba(255,255,255,0.04)] px-2 py-1 rounded-md">${d.year || "2024"}</span>
-                     ${d.journal ? `<span class="text-[10px] text-[#10B981] font-medium truncate max-w-[120px]" style="font-family: ${SF}">${d.journal}</span>` : ''}
-                   </div>
-                   ${d.citations ? `<span class="text-[11px] text-[#3BC9DB] font-medium" style="font-family: ${SF}">${d.citations.toLocaleString()} cit.</span>` : ''}
-                 </div>
-               </div>
-             `;
-         }
+    // --- RENDER SHAPES ---
+    // Shadow
+    shapeNodes.each(function(d: MapNode) {
+      const g = d3.select(this);
+      const w = getNodeW(d);
+      const h = getNodeH(d);
+      const isSelected = stateRef.current.selectedNodeIds.includes(d.id);
+      const strokeColor = isSelected ? "#3BC9DB" : (d.customColor || "rgba(255,255,255,0.2)");
+      const fillColor = d.customColor ? d.customColor + "33" : "rgba(255,255,255,0.05)";
+      
+      let shapeEl: any;
+      if (d.shape === "circle") {
+        shapeEl = g.append("ellipse")
+          .attr("cx", 0).attr("cy", 0)
+          .attr("rx", w/2).attr("ry", h/2);
+      } else if (d.shape === "diamond") {
+        shapeEl = g.append("polygon")
+          .attr("points", `0,${-h/2} ${w/2},0 0,${h/2} ${-w/2},0`);
+      } else {
+        // rect or pill
+        shapeEl = g.append("rect")
+          .attr("x", -w/2).attr("y", -h/2)
+          .attr("width", w).attr("height", h)
+          .attr("rx", d.shape === "pill" ? Math.min(w, h)/2 : getNodeRx(d));
+      }
 
-         if (d.type === "note") {
-             return `
-               <div class="w-full h-full relative">
-                 <div class="absolute -top-1 -left-1 w-8 h-8 opacity-20"><svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="#EAB308" stroke-width="2"><path d="M14.5 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7.5L14.5 2z"></path></svg></div>
-                 <div class="text-[14px] text-[#E2E8F0] whitespace-pre-wrap leading-relaxed overflow-hidden line-clamp-6 relative z-10" style="font-family: ${SF}">${d.note || d.title}</div>
-               </div>
-             `;
-         }
+      shapeEl
+        .attr("fill", fillColor)
+        .attr("stroke", strokeColor)
+        .attr("stroke-width", isSelected ? 2 : 1)
+        .attr("filter", "url(#shadow)")
+        .style("backdrop-filter", "blur(24px)");
+        
+      if (d.title && d.title !== "New Shape") {
+         g.append("text")
+          .attr("text-anchor", "middle")
+          .attr("dominant-baseline", "central")
+          .attr("fill", "#E2E8F0")
+          .style("font-family", SF)
+          .style("font-size", "14px")
+          .style("font-weight", "500")
+          .text(d.title);
+      }
+    });
 
-         // Generic default
-         return `<div class="flex items-center justify-center h-full w-full"><div class="text-[15px] font-medium text-[#F8FAFC] text-center line-clamp-3 px-2">${d.title}</div></div>`;
-      });
+    // Focus state outline
 
     // Port dots (Left, Right, Top, Bottom)
     const ports = [
@@ -992,6 +1021,85 @@ export default function MapPage() {
       selectedNodeIds.includes(n.id) ? { ...n, ...updates } : n
     );
     pushHistory(newNodes, edges);
+  };
+
+  
+  const handleAlign = (type: 'left' | 'centerHorizontal' | 'right' | 'top' | 'centerVertical' | 'bottom' | 'distributeHorizontal' | 'distributeVertical') => {
+    if (selectedNodeIds.length < 2) return;
+    
+    const selectedNodes = nodes.filter(n => selectedNodeIds.includes(n.id));
+    
+    const bounds = selectedNodes.map(n => {
+      const w = getNodeW(n);
+      const h = getNodeH(n);
+      return {
+        id: n.id,
+        left: n.x - w / 2,
+        right: n.x + w / 2,
+        top: n.y - h / 2,
+        bottom: n.y + h / 2,
+        cx: n.x,
+        cy: n.y,
+        w,
+        h
+      };
+    });
+    
+    const minLeft = Math.min(...bounds.map(b => b.left));
+    const maxRight = Math.max(...bounds.map(b => b.right));
+    const minTop = Math.min(...bounds.map(b => b.top));
+    const maxBottom = Math.max(...bounds.map(b => b.bottom));
+    
+    const selectionCenterX = (minLeft + maxRight) / 2;
+    const selectionCenterY = (minTop + maxBottom) / 2;
+    
+    const updatedNodes = nodes.map(n => {
+      if (!selectedNodeIds.includes(n.id)) return n;
+      const w = getNodeW(n);
+      const h = getNodeH(n);
+      
+      switch (type) {
+        case 'left': return { ...n, x: minLeft + w / 2 };
+        case 'right': return { ...n, x: maxRight - w / 2 };
+        case 'centerHorizontal': return { ...n, x: selectionCenterX };
+        case 'top': return { ...n, y: minTop + h / 2 };
+        case 'bottom': return { ...n, y: maxBottom - h / 2 };
+        case 'centerVertical': return { ...n, y: selectionCenterY };
+        default: return n;
+      }
+    });
+
+    if (type === 'distributeHorizontal' && selectedNodes.length > 2) {
+      const sorted = [...selectedNodes].sort((a, b) => a.x - b.x);
+      const first = sorted[0];
+      const last = sorted[sorted.length - 1];
+      const span = last.x - first.x;
+      const step = span / (sorted.length - 1);
+      
+      sorted.forEach((node, index) => {
+        if (index === 0 || index === sorted.length - 1) return;
+        const targetX = first.x + step * index;
+        const mappedNode = updatedNodes.find(n => n.id === node.id);
+        if (mappedNode) mappedNode.x = targetX;
+      });
+    }
+
+    if (type === 'distributeVertical' && selectedNodes.length > 2) {
+      const sorted = [...selectedNodes].sort((a, b) => a.y - b.y);
+      const first = sorted[0];
+      const last = sorted[sorted.length - 1];
+      const span = last.y - first.y;
+      const step = span / (sorted.length - 1);
+      
+      sorted.forEach((node, index) => {
+        if (index === 0 || index === sorted.length - 1) return;
+        const targetY = first.y + step * index;
+        const mappedNode = updatedNodes.find(n => n.id === node.id);
+        if (mappedNode) mappedNode.y = targetY;
+      });
+    }
+
+    pushHistory(updatedNodes, edges);
   };
 
   return (
@@ -1172,7 +1280,8 @@ export default function MapPage() {
               { t: "note",    icon: <StickyNote   size={16} />, tip: "Note" },
               { t: "question",icon: <MessageSquare size={16} />, tip: "Question" },
               { t: "timeline",icon: <Minus        size={16} />, tip: "Timeline" },
-              { t: "frame",   icon: <Square       size={16} />, tip: "Frame" },
+              { t: "frame",   icon: <BoxSelect    size={16} />, tip: "Frame" },
+              { t: "shape",   icon: <Square       size={16} />, tip: "Shape" },
             ],
             [
               { t: "connect", icon: <ArrowUpRight size={16} />, tip: "Connect" },
@@ -1290,7 +1399,58 @@ export default function MapPage() {
               ) : (
                 <div className="flex flex-col pb-8">
                   
-                  {/* === NODE INSPECTOR === */}
+                                    {/* === MULTIPLE SELECTION INSPECTOR === */}
+                  {selectedNodeIds.length > 1 && (
+                    <div className="flex-1 overflow-y-auto custom-scrollbar">
+                      <div className="px-5 py-4 border-b border-[#1a2535]">
+                        <h2 className="text-[13px] font-semibold text-[#E2E8F0] tracking-wide" style={{ fontFamily: SF }}>Multiple Selected ({selectedNodeIds.length})</h2>
+                      </div>
+                      
+                      <div className="p-4 space-y-6">
+                        {/* ALIGNMENT SECTION */}
+                        <div className="flex flex-col gap-3">
+                          <span className="text-[11px] font-semibold text-[#94A3B8] uppercase tracking-wider" style={{ fontFamily: SF }}>Alignment</span>
+                          <div className="grid grid-cols-6 gap-1 bg-[rgba(255,255,255,0.02)] p-1 rounded-[8px] border border-[#1a2535]">
+                            <button onClick={() => handleAlign('left')} title="Align Left" className="p-1.5 flex items-center justify-center rounded-[6px] text-[#94A3B8] hover:text-[#3BC9DB] hover:bg-[rgba(59,201,219,0.1)] transition-colors">
+                              <AlignStartVertical size={16} />
+                            </button>
+                            <button onClick={() => handleAlign('centerHorizontal')} title="Align Center (Horizontal)" className="p-1.5 flex items-center justify-center rounded-[6px] text-[#94A3B8] hover:text-[#3BC9DB] hover:bg-[rgba(59,201,219,0.1)] transition-colors">
+                              <AlignCenterHorizontal size={16} />
+                            </button>
+                            <button onClick={() => handleAlign('right')} title="Align Right" className="p-1.5 flex items-center justify-center rounded-[6px] text-[#94A3B8] hover:text-[#3BC9DB] hover:bg-[rgba(59,201,219,0.1)] transition-colors">
+                              <AlignEndVertical size={16} />
+                            </button>
+                            <button onClick={() => handleAlign('top')} title="Align Top" className="p-1.5 flex items-center justify-center rounded-[6px] text-[#94A3B8] hover:text-[#3BC9DB] hover:bg-[rgba(59,201,219,0.1)] transition-colors">
+                              <AlignStartHorizontal size={16} />
+                            </button>
+                            <button onClick={() => handleAlign('centerVertical')} title="Align Center (Vertical)" className="p-1.5 flex items-center justify-center rounded-[6px] text-[#94A3B8] hover:text-[#3BC9DB] hover:bg-[rgba(59,201,219,0.1)] transition-colors">
+                              <AlignCenterVertical size={16} />
+                            </button>
+                            <button onClick={() => handleAlign('bottom')} title="Align Bottom" className="p-1.5 flex items-center justify-center rounded-[6px] text-[#94A3B8] hover:text-[#3BC9DB] hover:bg-[rgba(59,201,219,0.1)] transition-colors">
+                              <AlignEndHorizontal size={16} />
+                            </button>
+                          </div>
+                        </div>
+
+                        {/* DISTRIBUTION SECTION */}
+                        <div className="flex flex-col gap-3">
+                          <span className="text-[11px] font-semibold text-[#94A3B8] uppercase tracking-wider" style={{ fontFamily: SF }}>Distribution</span>
+                          <div className="flex gap-2">
+                            <button onClick={() => handleAlign('distributeHorizontal')} title="Distribute Horizontally" className="flex-1 py-2 flex items-center justify-center gap-2 bg-[rgba(255,255,255,0.02)] border border-[#1a2535] rounded-[8px] text-[#94A3B8] hover:text-[#3BC9DB] hover:border-[#3BC9DB] transition-all">
+                              <AlignHorizontalSpaceBetween size={16} />
+                              <span className="text-[11px] font-medium">Horizontal</span>
+                            </button>
+                            <button onClick={() => handleAlign('distributeVertical')} title="Distribute Vertically" className="flex-1 py-2 flex items-center justify-center gap-2 bg-[rgba(255,255,255,0.02)] border border-[#1a2535] rounded-[8px] text-[#94A3B8] hover:text-[#3BC9DB] hover:border-[#3BC9DB] transition-all">
+                              <AlignVerticalSpaceBetween size={16} />
+                              <span className="text-[11px] font-medium">Vertical</span>
+                            </button>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  )}
+
+                  {/* === SINGLE NODE INSPECTOR === */}
                   {selectedNode && (
                     <>
                       {/* Global Type Indicator */}
