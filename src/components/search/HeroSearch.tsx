@@ -388,20 +388,20 @@ export default function HeroSearch() {
                   onClick={() => handlePaperClick(paper)}
                   className="group flex flex-col cursor-pointer rounded-2xl overflow-hidden border transition-all duration-300 hover:-translate-y-0.5 h-full"
                   style={{
-                    background: "#0d1520",
-                    borderColor: "#1a2535",
+                    background: "#0a0a0a",
+                    borderColor: "#1f1f1f",
                   }}
                   onMouseEnter={e => {
                     (e.currentTarget as HTMLDivElement).style.borderColor = "rgba(59,201,219,0.3)";
                     (e.currentTarget as HTMLDivElement).style.boxShadow = "0 8px 32px rgba(0,0,0,0.4)";
                   }}
                   onMouseLeave={e => {
-                    (e.currentTarget as HTMLDivElement).style.borderColor = "#1a2535";
+                    (e.currentTarget as HTMLDivElement).style.borderColor = "#1f1f1f";
                     (e.currentTarget as HTMLDivElement).style.boxShadow = "none";
                   }}
                 >
                   {/* Card top — domain color bar + rank + badges */}
-                  <div className="relative px-5 pt-5 pb-4 border-b" style={{ borderColor: "#1a2535" }}>
+                  <div className="relative px-5 pt-5 pb-4 border-b" style={{ borderColor: "#1f1f1f" }}>
                     {/* Colored accent line at very top */}
                     <div className="absolute top-0 left-0 right-0 h-[2px] rounded-t-2xl"
                       style={{ background: `linear-gradient(90deg, #3bc9db, transparent)`, opacity: 0.6 }} />
@@ -422,7 +422,7 @@ export default function HeroSearch() {
                         )}
                         {paper.type && (
                           <span className="text-[9px] font-medium px-2 py-0.5 rounded-full capitalize tracking-wide"
-                            style={{ background: "#0a0f1a", color: "#64748b", border: "1px solid #1a2535" }}>
+                            style={{ background: "#111111", color: "#64748b", border: "1px solid #1f1f1f" }}>
                             {paper.type.replace("-", " ")}
                           </span>
                         )}
@@ -474,10 +474,10 @@ export default function HeroSearch() {
 
                     {/* Topic tags */}
                     {paper.topics && paper.topics.length > 0 && (
-                      <div className="flex gap-1.5 flex-wrap pt-3 mt-auto border-t" style={{ borderColor: "#1a2535" }}>
+                      <div className="flex gap-1.5 flex-wrap pt-3 mt-auto border-t" style={{ borderColor: "#1f1f1f" }}>
                         {paper.topics.slice(0, 2).map((t, i) => (
                           <span key={i} className="text-[9px] font-medium px-2 py-1 rounded-md uppercase tracking-widest"
-                            style={{ background: "#0a0f1a", color: "#475569", border: "1px solid #1a2535" }}>
+                            style={{ background: "#111111", color: "#475569", border: "1px solid #1f1f1f" }}>
                             {t.displayName}
                           </span>
                         ))}

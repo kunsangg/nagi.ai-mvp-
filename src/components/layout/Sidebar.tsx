@@ -1,11 +1,13 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { Plus, Compass, Network, Folder, Library, MessageSquare, Settings, UserCircle2, FileText, PanelLeftClose, PanelLeft, X, Users, Database, LayoutGrid } from "lucide-react";
+import { Plus, Compass, Network, Folder, Library, MessageSquare, Settings, UserCircle2, FileText, PanelLeftClose, PanelLeft, X, Users, Database, LayoutGrid, BookOpen, Layers, SearchX, Scale, Building2, PenTool, ChevronDown } from "lucide-react";
 
 export default function Sidebar() {
   const [isCollapsed, setIsCollapsed] = useState(false);
   const [recentItems, setRecentItems] = useState<string[]>([]);
+  const [workspace, setWorkspace] = useState("Personal Workspace");
+  const [showWorkspaces, setShowWorkspaces] = useState(false);
 
   useEffect(() => {
     const loadRecent = () => {
@@ -64,6 +66,51 @@ export default function Sidebar() {
         </div>
       )}
 
+      {/* Workspace Switcher */}
+      <div className="mb-6 px-1 relative">
+        <button 
+          onClick={() => !isCollapsed && setShowWorkspaces(!showWorkspaces)}
+          className={`w-full flex items-center ${isCollapsed ? "justify-center" : "justify-between"} p-2 rounded-lg hover:bg-[#2b2d2d] transition-colors border border-transparent hover:border-[#3a3c3c]`}
+          title={isCollapsed ? workspace : undefined}
+        >
+          <div className="flex items-center gap-3 min-w-0">
+            <div className="w-6 h-6 rounded-md bg-gradient-to-br from-[#2b2d2d] to-[#1a1c1d] flex items-center justify-center flex-shrink-0 border border-[#3a3c3c]">
+              {workspace === "Personal Workspace" ? (
+                <UserCircle2 size={14} className="text-[#a0a0a0]" />
+              ) : (
+                <Building2 size={14} className="text-[#3bc9db]" />
+              )}
+            </div>
+            {!isCollapsed && (
+              <div className="flex flex-col items-start min-w-0">
+                <span className="text-xs text-[#a0a0a0] font-medium leading-none mb-1">Workspace</span>
+                <span className="text-sm text-[#e8e8e6] font-semibold truncate leading-none">{workspace}</span>
+              </div>
+            )}
+          </div>
+          {!isCollapsed && <ChevronDown size={14} className="text-[#a0a0a0] flex-shrink-0" />}
+        </button>
+
+        {showWorkspaces && !isCollapsed && (
+          <div className="absolute top-full left-0 right-0 mt-2 bg-[#1a1c1d] border border-[#2b2d2d] rounded-lg shadow-xl z-50 p-2 overflow-hidden">
+            <button 
+              onClick={() => { setWorkspace("Personal Workspace"); setShowWorkspaces(false); }}
+              className="w-full flex items-center gap-3 p-2 rounded-md hover:bg-[#2b2d2d] transition-colors text-left"
+            >
+              <UserCircle2 size={16} className="text-[#a0a0a0]" />
+              <span className="text-sm text-[#e8e8e6] font-medium">Personal Workspace</span>
+            </button>
+            <button 
+              onClick={() => { setWorkspace("Stanford Neuro Lab"); setShowWorkspaces(false); }}
+              className="w-full flex items-center gap-3 p-2 rounded-md hover:bg-[#2b2d2d] transition-colors text-left mt-1"
+            >
+              <Building2 size={16} className="text-[#3bc9db]" />
+              <span className="text-sm text-[#e8e8e6] font-medium">Stanford Neuro Lab</span>
+            </button>
+          </div>
+        )}
+      </div>
+
       {/* New Research Button */}
       <div className="mb-6 flex justify-center">
         <button 
@@ -79,8 +126,13 @@ export default function Sidebar() {
       {/* Main Nav */}
       <nav className="flex-1 space-y-1 overflow-y-auto overflow-x-hidden no-scrollbar pr-1">
         <NavItem icon={<Compass size={18} />} label="Discover" active isCollapsed={isCollapsed} />
+        <NavItem icon={<PenTool size={18} />} label="Nagi Writer" href="/writer" isCollapsed={isCollapsed} />
         <NavItem icon={<Folder size={18} />} label="Projects" isCollapsed={isCollapsed} />
-        <NavItem icon={<Network size={18} />} label="Maps" isCollapsed={isCollapsed} />
+        <NavItem icon={<Network size={18} />} label="Maps" href="/map" isCollapsed={isCollapsed} />
+        <NavItem icon={<BookOpen size={18} />} label="Literature Review" href="/review" isCollapsed={isCollapsed} />
+        <NavItem icon={<Layers size={18} />} label="Compare Papers" href="/compare" isCollapsed={isCollapsed} />
+        <NavItem icon={<SearchX size={18} />} label="Research Gap Finder" href="/gaps" isCollapsed={isCollapsed} />
+        <NavItem icon={<Scale size={18} />} label="Evidence Finder" href="/evidence" isCollapsed={isCollapsed} />
         <NavItem icon={<Library size={18} />} label="Collections" isCollapsed={isCollapsed} />
         <NavItem icon={<Database size={18} />} label="Datasets" isCollapsed={isCollapsed} />
         <NavItem icon={<Users size={18} />} label="Authors" isCollapsed={isCollapsed} />
@@ -122,10 +174,10 @@ export default function Sidebar() {
   );
 }
 
-function NavItem({ icon, label, active = false, className = "", isCollapsed, onRemove }: { icon?: React.ReactNode; label: string; active?: boolean; className?: string; isCollapsed: boolean; onRemove?: () => void }) {
+function NavItem({ icon, label, active = false, className = "", isCollapsed, onRemove, href }: { icon?: React.ReactNode; label: string; active?: boolean; className?: string; isCollapsed: boolean; onRemove?: () => void; href?: string }) {
   return (
     <a
-      href="#"
+      href={href ?? "#"}
       title={isCollapsed ? label : undefined}
       className={`group relative flex items-center ${isCollapsed ? "justify-center px-0 h-11 w-11 mx-auto" : "gap-3 px-3 py-2.5"} rounded-xl text-sm font-medium transition-all duration-200 ${
         active 

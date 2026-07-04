@@ -4,7 +4,9 @@ import { useEffect, useState } from "react";
 import { useParams, useRouter } from "next/navigation";
 import {
   ArrowLeft, ExternalLink, FileText, Map,
-  BookOpen, Quote, Layers, Unlock, Lock
+  BookOpen, Quote, Layers, Unlock, Lock,
+  SearchX, Scale, GraduationCap, GitCompareArrows,
+  AlertTriangle, FlaskConical, Clock, ShieldCheck, MessageSquare,
 } from "lucide-react";
 import { DitherGradient } from "@/components/ui";
 
@@ -154,7 +156,7 @@ export default function PaperPage() {
 
   if (isLoading) return (
     <div className="flex-1 w-full h-full flex items-center justify-center"
-      style={{ background: "#050810", fontFamily: SF }}>
+      style={{ background: "#000000", fontFamily: SF }}>
       <div style={{ color: "#3bc9db" }} className="text-[14px] animate-pulse">
         Loading paper…
       </div>
@@ -163,17 +165,17 @@ export default function PaperPage() {
 
   if (!paper) return (
     <div className="flex-1 w-full h-full flex items-center justify-center"
-      style={{ background: "#050810", fontFamily: SF }}>
+      style={{ background: "#000000", fontFamily: SF }}>
       <div style={{ color: "#64748b" }} className="text-[14px]">Paper not found.</div>
     </div>
   );
 
   return (
-    <div className="flex-1 w-full h-full overflow-y-auto" style={{ background: "#050810", fontFamily: SF }}>
+    <div className="flex-1 w-full h-full overflow-y-auto" style={{ background: "#000000", fontFamily: SF }}>
 
       {/* ── Sticky nav ── */}
       <header className="sticky top-0 z-40 flex items-center justify-between px-8 py-3"
-        style={{ background: "rgba(5,8,16,0.85)", borderBottom: "1px solid #1a2535", backdropFilter: "blur(20px)" }}>
+        style={{ background: "rgba(5,8,16,0.85)", borderBottom: "1px solid #1f1f1f", backdropFilter: "blur(20px)" }}>
         <button onClick={() => router.back()}
           className="flex items-center gap-2 text-[13px] font-medium transition-opacity hover:opacity-70"
           style={{ color: "#64748b" }}>
@@ -190,7 +192,7 @@ export default function PaperPage() {
           {paper.doi && (
             <a href={`https://doi.org/${paper.doi}`} target="_blank" rel="noopener noreferrer"
               className="flex items-center gap-2 px-4 py-1.5 rounded-full text-[12px] font-medium transition-all hover:opacity-80"
-              style={{ background: "#0d1520", border: "1px solid #1a2535", color: "#64748b" }}>
+              style={{ background: "#0a0a0a", border: "1px solid #1f1f1f", color: "#64748b" }}>
               <ExternalLink size={13} /> View Source
             </a>
           )}
@@ -216,9 +218,11 @@ export default function PaperPage() {
           </h1>
           
           {/* Subtitle / Authors */}
-          <p className="mt-6 text-[16px] md:text-[18px] text-white/80 max-w-[700px] font-light leading-relaxed" style={{ fontFamily: "'Inter', 'Roboto', sans-serif" }}>
-            {paper.authors ? (Array.isArray(paper.authors) ? paper.authors.join(", ") : paper.authors) : (paper.abstract ? paper.abstract.substring(0, 150) + "..." : "Explore this research paper's findings, methodology, and citations.")}
-          </p>
+          <div className="mt-6 max-w-[700px] max-h-[120px] overflow-y-auto no-scrollbar relative">
+            <p className="text-[16px] md:text-[18px] text-white/80 font-light leading-relaxed" style={{ fontFamily: "'Inter', 'Roboto', sans-serif" }}>
+              {paper.authors ? (Array.isArray(paper.authors) ? paper.authors.join(", ") : paper.authors) : (paper.abstract ? paper.abstract.substring(0, 150) + "..." : "Explore this research paper's findings, methodology, and citations.")}
+            </p>
+          </div>
           
           {/* Action Buttons */}
           <div className="flex flex-wrap justify-center items-center gap-4 mt-12">
@@ -251,22 +255,21 @@ export default function PaperPage() {
       <main id="abstract-section" className="max-w-[860px] mx-auto px-8 py-12 flex flex-col gap-14">
 
         {/* Stats row */}
-        <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+        <div className="grid grid-cols-2 sm:grid-cols-4 gap-8 py-8 border-y border-[#1f1f1f]">
           {[
             { label: "Citations",   value: paper.citationCount?.toLocaleString() || "0" },
             { label: "References",  value: paper.referencesCount?.toLocaleString() || "—" },
             { label: "Published",   value: paper.publicationYear?.toString() || "—" },
             { label: "Language",    value: paper.language?.toUpperCase() || "—" },
           ].map(s => (
-            <div key={s.label} className="rounded-xl px-4 py-4"
-              style={{ background: "#0d1520", border: "1px solid #1a2535" }}>
-              <div className="text-[22px] font-bold tracking-tight mb-1"
-                style={{ color: "#e2e8f0", letterSpacing: "-0.02em" }}>
-                {s.value}
-              </div>
-              <div className="text-[10px] font-semibold uppercase tracking-widest"
-                style={{ color: "#334155", fontFamily: MONO }}>
+            <div key={s.label} className="flex flex-col gap-2">
+              <div className="text-[10px] font-semibold uppercase tracking-widest text-[#64748b]"
+                style={{ fontFamily: MONO }}>
                 {s.label}
+              </div>
+              <div className="text-[28px] font-medium tracking-tight text-[#e2e8f0]"
+                style={{ letterSpacing: "-0.02em" }}>
+                {s.value}
               </div>
             </div>
           ))}
@@ -274,18 +277,33 @@ export default function PaperPage() {
 
         {/* Nagi Tools */}
         <section>
-          <SectionHeader emoji="海" title="Nagi Tools" color="#3bc9db" />
-          <div className="grid grid-cols-2 gap-3 mt-5">
+          <SectionHeader title="Nagi Tools" />
+          <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 mt-6">
             {[
-              { label: "Generate Research Map", icon: <Map size={14} />,      action: () => { window.location.href = `/map/${paper.id}`; }, color: "#3bc9db",  bg: "rgba(59,201,219,0.06)",  border: "rgba(59,201,219,0.2)"  },
-              { label: "Literature Review",      icon: <BookOpen size={14} />, action: () => {},                                             color: "#f472b6",  bg: "rgba(244,114,182,0.06)", border: "rgba(244,114,182,0.2)" },
-              { label: "Find Citations",         icon: <Quote size={14} />,    action: () => {},                                             color: "#34d399",  bg: "rgba(52,211,153,0.06)",  border: "rgba(52,211,153,0.2)"  },
-              { label: "Compare Papers",         icon: <Layers size={14} />,   action: () => {},                                             color: "#fb923c",  bg: "rgba(251,146,60,0.06)",  border: "rgba(251,146,60,0.2)"  },
+              { label: "Research Map",          icon: <Map size={15} />,              action: () => { window.location.href = `/map/${paper.id}`; } },
+              { label: "Literature Review",     icon: <BookOpen size={15} />,          action: () => { window.location.href = `/review/${paper.id}`; } },
+              { label: "Compare Papers",        icon: <Layers size={15} />,            action: () => { window.location.href = `/compare/${paper.id}`; } },
+              { label: "Find Citations",        icon: <Quote size={15} />,             action: () => { window.location.href = `/citations/${paper.id}`; } },
+              { label: "Research Gap Finder",   icon: <SearchX size={15} />,           action: () => { window.location.href = `/gaps/${paper.id}`; } },
+              { label: "Evidence Finder",       icon: <Scale size={15} />,             action: () => { window.location.href = `/evidence/${paper.id}`; } },
+              { label: "Paper Explainer",       icon: <GraduationCap size={15} />,     action: () => {},                                                    soon: true },
+              { label: "Research Timeline",     icon: <Clock size={15} />,             action: () => {},                                                    soon: true },
             ].map(btn => (
-              <button key={btn.label} onClick={btn.action}
-                className="flex items-center justify-center gap-2.5 py-3.5 px-5 rounded-xl text-[12px] font-semibold uppercase tracking-widest transition-all hover:opacity-80"
-                style={{ background: btn.bg, border: `1px solid ${btn.border}`, color: btn.color, fontFamily: MONO }}>
-                {btn.icon} {btn.label}
+              <button key={btn.label} onClick={btn.soon ? undefined : btn.action}
+                className={`relative flex flex-col items-start gap-3 p-4 rounded-xl border border-[#1f1f1f] bg-[#111111] transition-all duration-200
+                  ${btn.soon ? "opacity-40 cursor-default" : "hover:bg-[#121a28] hover:border-[#2b3a4a] cursor-pointer group"}
+                `}>
+                <div className={`text-[#64748b] ${!btn.soon && "group-hover:text-[#3bc9db]"} transition-colors`}>
+                  {btn.icon}
+                </div>
+                <div className={`text-[12px] font-medium tracking-wide ${!btn.soon ? "text-[#94a3b8] group-hover:text-[#e2e8f0]" : "text-[#64748b]"}`}>
+                  {btn.label}
+                </div>
+                {btn.soon && (
+                  <span className="absolute top-3 right-3 px-1.5 py-0.5 rounded text-[8px] font-bold tracking-widest text-[#475569] bg-[#171717] border border-[#1e293b]">
+                    SOON
+                  </span>
+                )}
               </button>
             ))}
           </div>
@@ -294,7 +312,7 @@ export default function PaperPage() {
         {/* Abstract */}
         {paper.abstract && (
           <section>
-            <SectionHeader emoji="◎" title="Abstract" color="#8b5cf6" />
+            <SectionHeader title="Abstract" />
             <p className="mt-5 text-[15px] leading-[1.8]" style={{ color: "#94a3b8" }}>
               {paper.abstract}
             </p>
@@ -303,20 +321,20 @@ export default function PaperPage() {
 
         {/* AI Summary */}
         <section>
-          <SectionHeader emoji="◈" title={isSummarizing ? "AI Summary  …" : "AI Summary"} color="#3bc9db" />
+          <SectionHeader title={isSummarizing ? "AI Summary  …" : "AI Summary"} />
           <div className="mt-5">
             {isSummarizing ? (
               <div className="flex flex-col gap-3">
                 {[...Array(3)].map((_, i) => (
                   <div key={i} className="h-3 rounded-lg animate-pulse"
-                    style={{ background: "#0d1520", width: i === 1 ? "75%" : i === 2 ? "55%" : "100%" }} />
+                    style={{ background: "#0a0a0a", width: i === 1 ? "75%" : i === 2 ? "55%" : "100%" }} />
                 ))}
               </div>
             ) : summary ? (
               <p className="text-[15px] leading-[1.8]" style={{ color: "#94a3b8" }}>{summary}</p>
             ) : (
               <p className="text-[14px]" style={{ color: "#334155" }}>
-                AI Summarization is currently disabled. Please add a <code className="px-1 py-0.5 rounded text-[#3bc9db]" style={{ background: "#0d1520", fontFamily: MONO }}>GROQ_API_KEY</code> to your environment variables to enable this feature.
+                AI Summarization is currently disabled. Please add a <code className="px-1 py-0.5 rounded text-[#3bc9db]" style={{ background: "#0a0a0a", fontFamily: MONO }}>GROQ_API_KEY</code> to your environment variables to enable this feature.
               </p>
             )}
           </div>
@@ -344,7 +362,7 @@ export default function PaperPage() {
 
         {/* Authors & Metadata */}
         <section>
-          <SectionHeader emoji="◉" title="Authors & Metadata" color="#10b981" />
+          <SectionHeader title="Authors & Metadata" />
 
           {/* Authors as chips */}
           {paper.authors?.length > 0 && (
@@ -352,7 +370,7 @@ export default function PaperPage() {
               {paper.authors.map((a: string, i: number) => (
                 <span key={i}
                   className="text-[13px] font-medium px-3 py-1.5 rounded-lg"
-                  style={{ background: "#0d1520", border: "1px solid #1a2535", color: "#94a3b8" }}>
+                  style={{ background: "#0a0a0a", border: "1px solid #1f1f1f", color: "#94a3b8" }}>
                   {a}
                 </span>
               ))}
@@ -368,7 +386,7 @@ export default function PaperPage() {
               { label: "Language",   value: paper.language?.toUpperCase() || "—" },
             ].map(s => (
               <div key={s.label} className="rounded-xl px-4 py-4"
-                style={{ background: "#0d1520", border: "1px solid #1a2535" }}>
+                style={{ background: "#0a0a0a", border: "1px solid #1f1f1f" }}>
                 <div className="text-[20px] font-bold mb-1 tracking-tight"
                   style={{ color: "#e2e8f0", letterSpacing: "-0.02em" }}>
                   {s.value}
@@ -382,7 +400,7 @@ export default function PaperPage() {
           </div>
 
           {/* Metadata table */}
-          <div className="rounded-xl overflow-hidden" style={{ border: "1px solid #1a2535" }}>
+          <div className="rounded-xl overflow-hidden" style={{ border: "1px solid #1f1f1f" }}>
             {[
               { label: "SOURCE",   value: paper.journal  },
               { label: "FIELD",    value: paper.field    },
@@ -393,8 +411,8 @@ export default function PaperPage() {
               <div key={row.label}
                 className="flex items-center justify-between px-5 py-3.5"
                 style={{
-                  borderBottom: i < arr.length - 1 ? "1px solid #1a2535" : "none",
-                  background: i % 2 === 0 ? "#0d1520" : "#050810",
+                  borderBottom: i < arr.length - 1 ? "1px solid #1f1f1f" : "none",
+                  background: i % 2 === 0 ? "#0a0a0a" : "#000000",
                 }}>
                 <span className="text-[10px] font-semibold tracking-widest shrink-0"
                   style={{ color: "#334155", fontFamily: MONO }}>{row.label}</span>
@@ -423,7 +441,7 @@ export default function PaperPage() {
                 {paper.topics.map((t: any, i: number) => (
                   <span key={i}
                     className="flex items-center gap-2 text-[12px] font-medium px-3 py-1.5 rounded-lg"
-                    style={{ background: "#0d1520", border: "1px solid #1a2535", color: "#64748b" }}>
+                    style={{ background: "#0a0a0a", border: "1px solid #1f1f1f", color: "#64748b" }}>
                     {t.displayName}
                     <span className="text-[10px] font-bold" style={{ color: "#3bc9db", fontFamily: MONO }}>
                       {Math.round(t.score * 100)}%
@@ -440,11 +458,11 @@ export default function PaperPage() {
   );
 }
 
-function SectionHeader({ emoji, title, color }: { emoji: string; title: string; color: string }) {
+function SectionHeader({ title }: { title: string }) {
   return (
-    <div className="flex items-center gap-3">
-      <span className="text-[16px]" style={{ color }}>{emoji}</span>
-      <h2 className="text-[18px] font-semibold tracking-tight" style={{ color: "#e2e8f0", letterSpacing: "-0.01em" }}>
+    <div className="flex items-center gap-4 mb-2">
+      <div className="w-1 h-4 rounded-sm bg-[#3bc9db]"></div>
+      <h2 className="text-[14px] font-semibold tracking-[0.1em] uppercase text-[#e2e8f0]" style={{ fontFamily: MONO }}>
         {title}
       </h2>
     </div>

@@ -2,10 +2,10 @@
 
 @theme {
   /* Nagi dark ocean palette */
-  --color-nagi-bg:        #050810;
-  --color-nagi-surface:   #0a0f1a;
-  --color-nagi-card:      #0d1520;
-  --color-nagi-border:    #1a2535;
+  --color-nagi-bg:        #000000;
+  --color-nagi-surface:   #111111;
+  --color-nagi-card:      #0a0a0a;
+  --color-nagi-border:    #1f1f1f;
   --color-nagi-border2:   #243044;
   --color-nagi-text:      #e2e8f0;
   --color-nagi-muted:     #64748b;
@@ -38,7 +38,7 @@ body {
 /* Scrollbar */
 ::-webkit-scrollbar       { width: 5px; height: 5px; }
 ::-webkit-scrollbar-track { background: transparent; }
-::-webkit-scrollbar-thumb { background: #1a2535; border-radius: 9999px; }
+::-webkit-scrollbar-thumb { background: #1f1f1f; border-radius: 9999px; }
 ::-webkit-scrollbar-thumb:hover { background: #243044; }
 
 /* --- Nagi Premium Design System Utilities --- */

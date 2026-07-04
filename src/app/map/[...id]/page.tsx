@@ -929,7 +929,7 @@ export default function MapPage() {
 
       nodeSel.append("circle")
         .attr("class", "port-handle")
-        .attr("cx", pos.x).attr("cy", pos.y).attr("r", 5).attr("fill", "#050810")
+        .attr("cx", pos.x).attr("cy", pos.y).attr("r", 5).attr("fill", "#000000")
         .attr("stroke", "#3bc9db").attr("stroke-width", 2).attr("pointer-events", "none");
     });
 
@@ -1204,7 +1204,7 @@ export default function MapPage() {
           {activeTool === "note" && (
             <div className="absolute top-24 left-1/2 -translate-x-1/2 z-20 px-4 py-1.5 rounded-full text-[11px] font-medium pointer-events-none"
               style={{
-                background: "#0a0f1a",
+                background: "#111111",
                 border: `1px solid #3bc9db`,
                 color:  "#3bc9db",
               }}>
@@ -1216,7 +1216,7 @@ export default function MapPage() {
             <div className="absolute inset-0 flex flex-col items-center justify-center gap-4 z-10">
               <Loader2 size={18} className="animate-spin" style={{ color: "#3bc9db" }} />
               <p className="text-[13px] font-medium animate-pulse" style={{ color: "#3bc9db" }}>Building research map…</p>
-              <p className="text-[10px] uppercase tracking-widest" style={{ color: "#1a2535", fontFamily: MONO }}>
+              <p className="text-[10px] uppercase tracking-widest" style={{ color: "#1f1f1f", fontFamily: MONO }}>
                 citations · references · related works
               </p>
             </div>
@@ -1249,7 +1249,7 @@ export default function MapPage() {
                 title="Edit Project Name"
               />
               <span className="px-2 py-0.5 rounded-full text-[10px] font-medium"
-                style={{ background: "#1a2535", border: "1px solid #243044", color: "#94a3b8" }}>
+                style={{ background: "#1f1f1f", border: "1px solid #243044", color: "#94a3b8" }}>
                 Draft
               </span>
             </div>
@@ -1354,10 +1354,10 @@ export default function MapPage() {
 
       </div>
       {/* ── Fixed Right Sidebar (Unified) ── */}
-      <aside className="w-[320px] flex-shrink-0 h-full flex flex-col z-40 transition-all duration-300" style={{ background: "#0a0f1a", borderLeft: "1px solid #1a2535" }}>
+      <aside className="w-[320px] flex-shrink-0 h-full flex flex-col z-40 transition-all duration-300" style={{ background: "#111111", borderLeft: "1px solid #1f1f1f" }}>
         
         {/* Tab Header */}
-        <div className="flex items-center px-4 pt-4 gap-4" style={{ borderBottom: "1px solid #1a2535" }}>
+        <div className="flex items-center px-4 pt-4 gap-4" style={{ borderBottom: "1px solid #1f1f1f" }}>
           <button 
             onClick={() => setActiveSidebarTab("design")}
             className={`pb-2.5 text-[11px] font-bold uppercase tracking-wider transition-colors ${activeSidebarTab === "design" ? "text-[#E2E8F0] border-b-2 border-[#3bc9db]" : "text-[#808080] hover:text-[#B0B0B0] border-b-2 border-transparent"}`}
@@ -1394,7 +1394,7 @@ export default function MapPage() {
 
               {!selectedNode && !selectedEdge ? (
                 <div className="flex-1 flex flex-col items-center justify-center text-[#64748B] text-[12px] gap-4" style={{ fontFamily: SF }}>
-                  <div className="w-16 h-16 rounded-2xl flex items-center justify-center border border-dashed border-[#1a2535] bg-[rgba(255,255,255,0.02)]">
+                  <div className="w-16 h-16 rounded-2xl flex items-center justify-center border border-dashed border-[#1f1f1f] bg-[rgba(255,255,255,0.02)]">
                     <MousePointer size={20} className="opacity-50" />
                   </div>
                   <span className="font-medium">Select an object to inspect</span>
@@ -1405,7 +1405,7 @@ export default function MapPage() {
                                     {/* === MULTIPLE SELECTION INSPECTOR === */}
                   {selectedNodeIds.length > 1 && (
                     <div className="flex-1 overflow-y-auto custom-scrollbar">
-                      <div className="px-5 py-4 border-b border-[#1a2535]">
+                      <div className="px-5 py-4 border-b border-[#1f1f1f]">
                         <h2 className="text-[13px] font-semibold text-[#E2E8F0] tracking-wide" style={{ fontFamily: SF }}>Multiple Selected ({selectedNodeIds.length})</h2>
                       </div>
                       
@@ -1413,7 +1413,7 @@ export default function MapPage() {
                         {/* ALIGNMENT SECTION */}
                         <div className="flex flex-col gap-3">
                           <span className="text-[11px] font-semibold text-[#94A3B8] uppercase tracking-wider" style={{ fontFamily: SF }}>Alignment</span>
-                          <div className="grid grid-cols-6 gap-1 bg-[rgba(255,255,255,0.02)] p-1 rounded-[8px] border border-[#1a2535]">
+                          <div className="grid grid-cols-6 gap-1 bg-[rgba(255,255,255,0.02)] p-1 rounded-[8px] border border-[#1f1f1f]">
                             <button onClick={() => handleAlign('left')} title="Align Left" className="p-1.5 flex items-center justify-center rounded-[6px] text-[#94A3B8] hover:text-[#3BC9DB] hover:bg-[rgba(59,201,219,0.1)] transition-colors">
                               <AlignStartVertical size={16} />
                             </button>
@@ -1439,11 +1439,11 @@ export default function MapPage() {
                         <div className="flex flex-col gap-3">
                           <span className="text-[11px] font-semibold text-[#94A3B8] uppercase tracking-wider" style={{ fontFamily: SF }}>Distribution</span>
                           <div className="flex gap-2">
-                            <button onClick={() => handleAlign('distributeHorizontal')} title="Distribute Horizontally" className="flex-1 py-2 flex items-center justify-center gap-2 bg-[rgba(255,255,255,0.02)] border border-[#1a2535] rounded-[8px] text-[#94A3B8] hover:text-[#3BC9DB] hover:border-[#3BC9DB] transition-all">
+                            <button onClick={() => handleAlign('distributeHorizontal')} title="Distribute Horizontally" className="flex-1 py-2 flex items-center justify-center gap-2 bg-[rgba(255,255,255,0.02)] border border-[#1f1f1f] rounded-[8px] text-[#94A3B8] hover:text-[#3BC9DB] hover:border-[#3BC9DB] transition-all">
                               <AlignHorizontalSpaceBetween size={16} />
                               <span className="text-[11px] font-medium">Horizontal</span>
                             </button>
-                            <button onClick={() => handleAlign('distributeVertical')} title="Distribute Vertically" className="flex-1 py-2 flex items-center justify-center gap-2 bg-[rgba(255,255,255,0.02)] border border-[#1a2535] rounded-[8px] text-[#94A3B8] hover:text-[#3BC9DB] hover:border-[#3BC9DB] transition-all">
+                            <button onClick={() => handleAlign('distributeVertical')} title="Distribute Vertically" className="flex-1 py-2 flex items-center justify-center gap-2 bg-[rgba(255,255,255,0.02)] border border-[#1f1f1f] rounded-[8px] text-[#94A3B8] hover:text-[#3BC9DB] hover:border-[#3BC9DB] transition-all">
                               <AlignVerticalSpaceBetween size={16} />
                               <span className="text-[11px] font-medium">Vertical</span>
                             </button>
@@ -1457,7 +1457,7 @@ export default function MapPage() {
                   {selectedNode && (
                     <>
                       {/* Global Type Indicator */}
-                      <div className="flex items-center justify-between px-5 py-4 shrink-0 bg-[#070b14]" style={{ borderBottom: "1px solid #1a2535" }}>
+                      <div className="flex items-center justify-between px-5 py-4 shrink-0 bg-[#070b14]" style={{ borderBottom: "1px solid #1f1f1f" }}>
                         <div className="flex items-center gap-2.5">
                           <div className="w-2.5 h-2.5 rounded-sm shadow-[0_0_8px_rgba(255,255,255,0.2)]" style={{ background: selectedNode.customColor || TYPE_COLOR[selectedNode.type] }} />
                           <span className="text-[11px] font-bold tracking-[0.15em] uppercase text-[#E2E8F0]" style={{ fontFamily: SF }}>
@@ -1467,7 +1467,7 @@ export default function MapPage() {
                       </div>
 
                       {/* --- GENERAL SECTION --- */}
-                      <div className="flex flex-col border-b border-[#1a2535]">
+                      <div className="flex flex-col border-b border-[#1f1f1f]">
                         <button onClick={() => toggleSection('general')} className="flex items-center justify-between px-5 py-3 hover:bg-[rgba(255,255,255,0.02)] transition-colors w-full text-left">
                           <span className="text-[11px] font-bold uppercase tracking-wider text-[#94A3B8]" style={{ fontFamily: SF }}>General</span>
                           <ChevronDown size={14} className={`text-[#64748B] transition-transform duration-200 ${openSections.general ? 'rotate-180' : ''}`} />
@@ -1477,14 +1477,14 @@ export default function MapPage() {
                             <input
                               value={selectedNode.title}
                               onChange={(e) => updateSelectedNode({ title: e.target.value })}
-                              className="text-[14px] font-semibold leading-snug bg-transparent border border-transparent hover:border-[#1a2535] focus:border-[#3BC9DB] focus:bg-[rgba(255,255,255,0.02)] rounded-[6px] outline-none px-2 py-1 -mx-2 transition-all w-[calc(100%+16px)]"
+                              className="text-[14px] font-semibold leading-snug bg-transparent border border-transparent hover:border-[#1f1f1f] focus:border-[#3BC9DB] focus:bg-[rgba(255,255,255,0.02)] rounded-[6px] outline-none px-2 py-1 -mx-2 transition-all w-[calc(100%+16px)]"
                               style={{ color: "#F8FAFC", fontFamily: SF }}
                               placeholder="Title..."
                             />
                             <textarea
                               value={selectedNode.description || ""}
                               onChange={(e) => updateSelectedNode({ description: e.target.value })}
-                              className="text-[12px] leading-relaxed bg-transparent border border-transparent hover:border-[#1a2535] focus:border-[#3BC9DB] focus:bg-[rgba(255,255,255,0.02)] rounded-[6px] outline-none resize-none px-2 py-1 -mx-2 transition-all w-[calc(100%+16px)]"
+                              className="text-[12px] leading-relaxed bg-transparent border border-transparent hover:border-[#1f1f1f] focus:border-[#3BC9DB] focus:bg-[rgba(255,255,255,0.02)] rounded-[6px] outline-none resize-none px-2 py-1 -mx-2 transition-all w-[calc(100%+16px)]"
                               style={{ color: "#94A3B8", minHeight: "60px", fontFamily: SF }}
                               placeholder="Add a description..."
                             />
@@ -1493,7 +1493,7 @@ export default function MapPage() {
                       </div>
 
                       {/* --- APPEARANCE SECTION --- */}
-                      <div className="flex flex-col border-b border-[#1a2535]">
+                      <div className="flex flex-col border-b border-[#1f1f1f]">
                         <button onClick={() => toggleSection('appearance')} className="flex items-center justify-between px-5 py-3 hover:bg-[rgba(255,255,255,0.02)] transition-colors w-full text-left">
                           <span className="text-[11px] font-bold uppercase tracking-wider text-[#94A3B8]" style={{ fontFamily: SF }}>Appearance</span>
                           <ChevronDown size={14} className={`text-[#64748B] transition-transform duration-200 ${openSections.appearance ? 'rotate-180' : ''}`} />
@@ -1532,7 +1532,7 @@ export default function MapPage() {
                       </div>
 
                       {/* --- SIZE & LAYOUT SECTION --- */}
-                      <div className="flex flex-col border-b border-[#1a2535]">
+                      <div className="flex flex-col border-b border-[#1f1f1f]">
                         <button onClick={() => toggleSection('layout')} className="flex items-center justify-between px-5 py-3 hover:bg-[rgba(255,255,255,0.02)] transition-colors w-full text-left">
                           <span className="text-[11px] font-bold uppercase tracking-wider text-[#94A3B8]" style={{ fontFamily: SF }}>Layout</span>
                           <ChevronDown size={14} className={`text-[#64748B] transition-transform duration-200 ${openSections.layout ? 'rotate-180' : ''}`} />
@@ -1549,7 +1549,7 @@ export default function MapPage() {
                                     const val = parseInt(e.target.value);
                                     updateSelectedNode({ width: isNaN(val) ? undefined : val });
                                   }}
-                                  className="w-full bg-[rgba(255,255,255,0.03)] border border-[#1a2535] focus:border-[#3BC9DB] outline-none rounded-[6px] px-2 py-1.5 text-[11px] text-[#E2E8F0] font-mono transition-colors" 
+                                  className="w-full bg-[rgba(255,255,255,0.03)] border border-[#1f1f1f] focus:border-[#3BC9DB] outline-none rounded-[6px] px-2 py-1.5 text-[11px] text-[#E2E8F0] font-mono transition-colors" 
                                 />
                               </div>
                               <div className="w-4 flex justify-center text-[#475569]"><Link2 size={12}/></div>
@@ -1562,14 +1562,14 @@ export default function MapPage() {
                                     const val = parseInt(e.target.value);
                                     updateSelectedNode({ height: isNaN(val) ? undefined : val });
                                   }}
-                                  className="w-full bg-[rgba(255,255,255,0.03)] border border-[#1a2535] focus:border-[#3BC9DB] outline-none rounded-[6px] px-2 py-1.5 text-[11px] text-[#E2E8F0] font-mono transition-colors" 
+                                  className="w-full bg-[rgba(255,255,255,0.03)] border border-[#1f1f1f] focus:border-[#3BC9DB] outline-none rounded-[6px] px-2 py-1.5 text-[11px] text-[#E2E8F0] font-mono transition-colors" 
                                 />
                               </div>
                             </div>
                             
                             <div className="flex flex-col gap-2 mt-2">
                                <span className="text-[10px] font-medium text-[#64748B]" style={{ fontFamily: SF }}>Corner Radius</span>
-                               <div className="flex items-center bg-[rgba(255,255,255,0.03)] border border-[#1a2535] p-0.5 rounded-[8px]">
+                               <div className="flex items-center bg-[rgba(255,255,255,0.03)] border border-[#1f1f1f] p-0.5 rounded-[8px]">
                                   {[0, 8, 16, 24].map((r) => {
                                     const isActive = selectedNode.borderRadius === r || (!selectedNode.borderRadius && r === 16);
                                     return (
@@ -1590,7 +1590,7 @@ export default function MapPage() {
 
                       {/* --- METADATA SECTION (Papers Only) --- */}
                       {selectedNode.type === "paper" && (
-                        <div className="flex flex-col border-b border-[#1a2535]">
+                        <div className="flex flex-col border-b border-[#1f1f1f]">
                           <button onClick={() => toggleSection('metadata')} className="flex items-center justify-between px-5 py-3 hover:bg-[rgba(255,255,255,0.02)] transition-colors w-full text-left">
                             <span className="text-[11px] font-bold uppercase tracking-wider text-[#94A3B8]" style={{ fontFamily: SF }}>Metadata</span>
                             <ChevronDown size={14} className={`text-[#64748B] transition-transform duration-200 ${openSections.metadata ? 'rotate-180' : ''}`} />
@@ -1610,7 +1610,7 @@ export default function MapPage() {
                                     type="text"
                                     value={row.value || ""}
                                     onChange={(e) => updateSelectedNode({ [row.key]: row.isNumber ? (parseInt(e.target.value) || 0) : e.target.value })}
-                                    className="text-[11px] font-medium text-right bg-transparent border-b border-transparent group-hover:border-[#1a2535] focus:border-[#3BC9DB] outline-none placeholder-[#334155] w-40 transition-colors py-0.5"
+                                    className="text-[11px] font-medium text-right bg-transparent border-b border-transparent group-hover:border-[#1f1f1f] focus:border-[#3BC9DB] outline-none placeholder-[#334155] w-40 transition-colors py-0.5"
                                     style={{ color: "#E2E8F0", fontFamily: SF }}
                                     placeholder="-"
                                   />
@@ -1624,7 +1624,7 @@ export default function MapPage() {
                                     value={(selectedNode.tags || []).join(", ")}
                                     onChange={(e) => updateSelectedNode({ tags: e.target.value.split(",").map(t => t.trim()).filter(Boolean) })}
                                     placeholder="Add tags separated by commas..."
-                                    className="text-[11px] bg-[rgba(255,255,255,0.02)] border border-[#1a2535] rounded-[6px] px-3 py-2 outline-none focus:border-[#3BC9DB] w-full transition-colors"
+                                    className="text-[11px] bg-[rgba(255,255,255,0.02)] border border-[#1f1f1f] rounded-[6px] px-3 py-2 outline-none focus:border-[#3BC9DB] w-full transition-colors"
                                     style={{ color: "#E2E8F0", fontFamily: SF }}
                                   />
                               </div>
@@ -1634,7 +1634,7 @@ export default function MapPage() {
                       )}
 
                       {/* --- NOTES SECTION --- */}
-                      <div className="flex flex-col border-b border-[#1a2535]">
+                      <div className="flex flex-col border-b border-[#1f1f1f]">
                         <button onClick={() => toggleSection('notes')} className="flex items-center justify-between px-5 py-3 hover:bg-[rgba(255,255,255,0.02)] transition-colors w-full text-left">
                           <span className="text-[11px] font-bold uppercase tracking-wider text-[#94A3B8]" style={{ fontFamily: SF }}>Notes</span>
                           <ChevronDown size={14} className={`text-[#64748B] transition-transform duration-200 ${openSections.notes ? 'rotate-180' : ''}`} />
@@ -1644,7 +1644,7 @@ export default function MapPage() {
                              <textarea
                                value={selectedNode.note || ""}
                                onChange={(e) => updateSelectedNode({ note: e.target.value })}
-                               className="text-[12px] leading-relaxed rounded-[8px] bg-[rgba(255,255,255,0.02)] border border-[#1a2535] px-3 py-2.5 outline-none resize-y placeholder-[#475569] w-full focus:border-[#3BC9DB] transition-colors"
+                               className="text-[12px] leading-relaxed rounded-[8px] bg-[rgba(255,255,255,0.02)] border border-[#1f1f1f] px-3 py-2.5 outline-none resize-y placeholder-[#475569] w-full focus:border-[#3BC9DB] transition-colors"
                                style={{ color: "#E2E8F0", minHeight: "100px", fontFamily: SF }}
                                placeholder="Supports Markdown..."
                              />
@@ -1653,7 +1653,7 @@ export default function MapPage() {
                       </div>
 
                       {/* --- CONNECTIONS SECTION --- */}
-                      <div className="flex flex-col border-b border-[#1a2535]">
+                      <div className="flex flex-col border-b border-[#1f1f1f]">
                         <button onClick={() => toggleSection('connections')} className="flex items-center justify-between px-5 py-3 hover:bg-[rgba(255,255,255,0.02)] transition-colors w-full text-left">
                           <span className="text-[11px] font-bold uppercase tracking-wider text-[#94A3B8]" style={{ fontFamily: SF }}>Connections</span>
                           <ChevronDown size={14} className={`text-[#64748B] transition-transform duration-200 ${openSections.connections ? 'rotate-180' : ''}`} />
@@ -1678,7 +1678,7 @@ export default function MapPage() {
                                 const otherId = isSource ? tgtId : srcId;
                                 const otherNode = nodes.find(n => n.id === otherId);
                                 return (
-                                  <div key={i} className="flex justify-between items-center bg-[rgba(255,255,255,0.02)] px-3 py-2 rounded-[6px] border border-[#1a2535] hover:border-[#334155] transition-colors cursor-pointer group">
+                                  <div key={i} className="flex justify-between items-center bg-[rgba(255,255,255,0.02)] px-3 py-2 rounded-[6px] border border-[#1f1f1f] hover:border-[#334155] transition-colors cursor-pointer group">
                                     <span className="text-[11px] text-[#E2E8F0] font-medium truncate w-[130px]" style={{ fontFamily: SF }}>{otherNode?.title || String(otherId)}</span>
                                     <span className="text-[9px] font-bold uppercase py-0.5 px-1.5 rounded-[4px]" style={{fontFamily: MONO, color: EDGE_COLOR[e.type], background: `${EDGE_COLOR[e.type]}22`}}>{e.label || e.type}</span>
                                   </div>
@@ -1737,7 +1737,7 @@ export default function MapPage() {
                   {/* === EDGE INSPECTOR === */}
                   {selectedEdge && !selectedNode && (
                     <>
-                      <div className="flex items-center gap-2 px-5 py-4 shrink-0 bg-[#070b14]" style={{ borderBottom: "1px solid #1a2535" }}>
+                      <div className="flex items-center gap-2 px-5 py-4 shrink-0 bg-[#070b14]" style={{ borderBottom: "1px solid #1f1f1f" }}>
                         <Link2 size={14} color="#64748B" />
                         <span className="text-[11px] font-bold tracking-[0.15em] uppercase"
                           style={{ color: EDGE_COLOR[selectedEdge.type] || "#E2E8F0", fontFamily: SF }}>
@@ -1745,7 +1745,7 @@ export default function MapPage() {
                         </span>
                       </div>
 
-                      <div className="flex flex-col gap-3 px-5 py-5" style={{ borderBottom: "1px solid #1a2535" }}>
+                      <div className="flex flex-col gap-3 px-5 py-5" style={{ borderBottom: "1px solid #1f1f1f" }}>
                         <span className="text-[11px] font-bold uppercase tracking-wider text-[#94A3B8]" style={{ fontFamily: SF }}>Properties</span>
                         
                         <div className="flex flex-col gap-1.5 mt-2">
@@ -1757,10 +1757,10 @@ export default function MapPage() {
                               setEdges(edges.map(ed => ed.id === selectedEdge.id ? { ...ed, type: newType, label: EDGE_LABEL[newType] } : ed));
                               setSelectedEdge({ ...selectedEdge, type: newType, label: EDGE_LABEL[newType] });
                             }}
-                            className="w-full text-[12px] font-medium bg-[rgba(255,255,255,0.03)] border border-[#1a2535] rounded-[6px] px-3 py-2 outline-none cursor-pointer focus:border-[#3BC9DB] transition-colors"
+                            className="w-full text-[12px] font-medium bg-[rgba(255,255,255,0.03)] border border-[#1f1f1f] rounded-[6px] px-3 py-2 outline-none cursor-pointer focus:border-[#3BC9DB] transition-colors"
                             style={{ color: "#E2E8F0", fontFamily: SF }}>
                             {Object.keys(EDGE_COLOR).map((t) => (
-                              <option key={t} value={t} style={{background: "#0a0f1a"}}>{EDGE_LABEL[t as EdgeType]}</option>
+                              <option key={t} value={t} style={{background: "#111111"}}>{EDGE_LABEL[t as EdgeType]}</option>
                             ))}
                           </select>
                         </div>
@@ -1774,7 +1774,7 @@ export default function MapPage() {
                               setEdges(edges.map(ed => ed.id === selectedEdge.id ? { ...ed, label: e.target.value } : ed));
                               setSelectedEdge({ ...selectedEdge, label: e.target.value });
                             }}
-                            className="w-full text-[12px] font-medium bg-[rgba(255,255,255,0.03)] border border-[#1a2535] rounded-[6px] px-3 py-2 outline-none focus:border-[#3BC9DB] transition-colors"
+                            className="w-full text-[12px] font-medium bg-[rgba(255,255,255,0.03)] border border-[#1f1f1f] rounded-[6px] px-3 py-2 outline-none focus:border-[#3BC9DB] transition-colors"
                             style={{ color: "#E2E8F0", fontFamily: SF }}
                           />
                         </div>
@@ -1814,7 +1814,7 @@ export default function MapPage() {
                   <div key={i} className="flex gap-3">
                     <div className="shrink-0 mt-0.5">
                       {msg.role === "user" ? (
-                        <div className="w-5 h-5 rounded-[4px] bg-[#1a2535] flex items-center justify-center border border-[#334155]">
+                        <div className="w-5 h-5 rounded-[4px] bg-[#1f1f1f] flex items-center justify-center border border-[#334155]">
                           <User size={10} className="text-[#E2E8F0]" />
                         </div>
                       ) : (
@@ -1843,15 +1843,15 @@ export default function MapPage() {
               </div>
 
               {/* Input Area */}
-              <div className="p-3 pt-2" style={{ borderTop: "1px solid #1a2535" }}>
-                <div className="bg-[#050810] border border-[#1a2535] rounded-[8px] overflow-hidden flex flex-col transition-colors focus-within:border-[#3bc9db]">
+              <div className="p-3 pt-2" style={{ borderTop: "1px solid #1f1f1f" }}>
+                <div className="bg-[#000000] border border-[#1f1f1f] rounded-[8px] overflow-hidden flex flex-col transition-colors focus-within:border-[#3bc9db]">
                   
                   {/* Context Pill */}
-                  <div className="px-2 py-1.5 flex items-center" style={{ borderBottom: "1px solid #1a2535" }}>
+                  <div className="px-2 py-1.5 flex items-center" style={{ borderBottom: "1px solid #1f1f1f" }}>
                     <button 
                       type="button"
                       onClick={() => setIsContextAdded(!isContextAdded)}
-                      className={`flex items-center gap-1.5 px-1.5 py-0.5 rounded ${isContextAdded ? 'bg-[rgba(59,201,219,0.15)] text-[#3bc9db] border border-[rgba(59,201,219,0.3)]' : 'bg-[#1a2535] hover:bg-[#334155] text-[#A0A0A0] hover:text-[#E2E8F0]'} transition-colors text-[10px] font-medium`} 
+                      className={`flex items-center gap-1.5 px-1.5 py-0.5 rounded ${isContextAdded ? 'bg-[rgba(59,201,219,0.15)] text-[#3bc9db] border border-[rgba(59,201,219,0.3)]' : 'bg-[#1f1f1f] hover:bg-[#334155] text-[#A0A0A0] hover:text-[#E2E8F0]'} transition-colors text-[10px] font-medium`} 
                       style={{ fontFamily: SF }}
                     >
                       <Paperclip size={10} /> {isContextAdded ? "Context Added" : "Add Context"}
@@ -1876,9 +1876,9 @@ export default function MapPage() {
                     />
                     
                     {/* Bottom Row Controls */}
-                    <div className="flex items-center justify-between px-2 py-1.5 border-t border-[#1a2535] relative">
+                    <div className="flex items-center justify-between px-2 py-1.5 border-t border-[#1f1f1f] relative">
                       <div className="flex items-center gap-0.5 relative">
-                        <button type="button" className="p-1.5 rounded hover:bg-[#1a2535] text-[#808080] hover:text-[#D1D5DB] transition-colors">
+                        <button type="button" className="p-1.5 rounded hover:bg-[#1f1f1f] text-[#808080] hover:text-[#D1D5DB] transition-colors">
                           <Mic size={12} />
                         </button>
                         
@@ -1886,14 +1886,14 @@ export default function MapPage() {
                           <button 
                             type="button" 
                             onClick={() => setShowModelDropdown(!showModelDropdown)}
-                            className="flex items-center gap-1 px-1.5 py-1 rounded hover:bg-[#1a2535] text-[#808080] hover:text-[#D1D5DB] transition-colors text-[10px] font-medium" 
+                            className="flex items-center gap-1 px-1.5 py-1 rounded hover:bg-[#1f1f1f] text-[#808080] hover:text-[#D1D5DB] transition-colors text-[10px] font-medium" 
                             style={{ fontFamily: SF }}
                           >
                             {selectedModel} <ChevronDown size={10} />
                           </button>
                           
                           {showModelDropdown && (
-                            <div className="absolute bottom-full left-0 mb-1 w-32 bg-[#0a0f1a] border border-[#1a2535] rounded-md shadow-lg overflow-hidden z-50">
+                            <div className="absolute bottom-full left-0 mb-1 w-32 bg-[#111111] border border-[#1f1f1f] rounded-md shadow-lg overflow-hidden z-50">
                               {['Claude 3.7', 'GPT-4o', 'Gemini 1.5 Pro', 'Llama 3 70B'].map(model => (
                                 <button
                                   key={model}
@@ -1902,7 +1902,7 @@ export default function MapPage() {
                                     setSelectedModel(model);
                                     setShowModelDropdown(false);
                                   }}
-                                  className={`w-full text-left px-3 py-1.5 text-[10px] ${selectedModel === model ? 'bg-[rgba(59,201,219,0.1)] text-[#3bc9db]' : 'text-[#A0A0A0] hover:bg-[#1a2535] hover:text-[#E2E8F0]'} transition-colors`}
+                                  className={`w-full text-left px-3 py-1.5 text-[10px] ${selectedModel === model ? 'bg-[rgba(59,201,219,0.1)] text-[#3bc9db]' : 'text-[#A0A0A0] hover:bg-[#1f1f1f] hover:text-[#E2E8F0]'} transition-colors`}
                                 >
                                   {model}
                                 </button>
@@ -1911,7 +1911,7 @@ export default function MapPage() {
                           )}
                         </div>
                       </div>
-                      <button type="submit" disabled={isProcessingAI || !aiCommand.trim()} className="p-1.5 rounded hover:bg-[#1a2535] text-[#808080] hover:text-white transition-colors disabled:opacity-50 disabled:hover:bg-transparent disabled:hover:text-[#666]">
+                      <button type="submit" disabled={isProcessingAI || !aiCommand.trim()} className="p-1.5 rounded hover:bg-[#1f1f1f] text-[#808080] hover:text-white transition-colors disabled:opacity-50 disabled:hover:bg-transparent disabled:hover:text-[#666]">
                         <Send size={12} />
                       </button>
                     </div>
@@ -1929,16 +1929,16 @@ export default function MapPage() {
           style={{ background: "rgba(5,8,16,0.9)" }}
           onClick={() => { setShowAdd(false); setAddQuery(""); setAddResults([]); }}>
           <div className="w-[560px] rounded-2xl overflow-hidden shadow-2xl"
-            style={{ background: "#0a0f1a", border: "1px solid #1a2535" }}
+            style={{ background: "#111111", border: "1px solid #1f1f1f" }}
             onClick={e => e.stopPropagation()}>
             <div className="flex items-center justify-between px-5 py-3.5"
-              style={{ borderBottom: "1px solid #1a2535" }}>
+              style={{ borderBottom: "1px solid #1f1f1f" }}>
               <span className="text-[13px] font-semibold" style={{ color: "#e2e8f0" }}>Add Paper to Map</span>
               <button onClick={() => { setShowAdd(false); setAddQuery(""); setAddResults([]); }} style={{ color: "#334155" }}>
                 <X size={14} />
               </button>
             </div>
-            <div className="flex items-center gap-3 px-5 py-3" style={{ borderBottom: "1px solid #1a2535" }}>
+            <div className="flex items-center gap-3 px-5 py-3" style={{ borderBottom: "1px solid #1f1f1f" }}>
               <Search size={13} style={{ color: "#334155" }} />
               <input autoFocus type="text" value={addQuery}
                 onChange={e => setAddQuery(e.target.value)}
@@ -1951,7 +1951,7 @@ export default function MapPage() {
               {addResults.map((p, i) => (
                 <button key={i} onClick={() => addPaper(p)}
                   className="w-full flex flex-col gap-1.5 px-5 py-3.5 text-left transition-opacity hover:opacity-75"
-                  style={{ borderBottom: "1px solid #1a2535", background: i % 2 === 0 ? "#0a0f1a" : "#050810" }}>
+                  style={{ borderBottom: "1px solid #1f1f1f", background: i % 2 === 0 ? "#111111" : "#000000" }}>
                   <span className="text-[12px] font-medium leading-snug line-clamp-2" style={{ color: "#e2e8f0" }}>
                     {p.title}
                   </span>
@@ -1967,7 +1967,7 @@ export default function MapPage() {
               )}
               {addQuery.length < 2 && (
                 <p className="px-5 py-6 text-[11px] uppercase tracking-widest"
-                  style={{ color: "#1a2535", fontFamily: MONO }}>Type to search</p>
+                  style={{ color: "#1f1f1f", fontFamily: MONO }}>Type to search</p>
               )}
             </div>
           </div>
@@ -1980,10 +1980,10 @@ export default function MapPage() {
           style={{ background: "rgba(5,8,16,0.85)" }}
           onClick={() => setShowEdgeLabel(false)}>
           <div className="w-[380px] rounded-2xl overflow-hidden shadow-2xl"
-            style={{ background: "#0a0f1a", border: "1px solid #1a2535" }}
+            style={{ background: "#111111", border: "1px solid #1f1f1f" }}
             onClick={e => e.stopPropagation()}>
             <div className="flex items-center justify-between px-5 py-3.5"
-              style={{ borderBottom: "1px solid #1a2535" }}>
+              style={{ borderBottom: "1px solid #1f1f1f" }}>
               <span className="text-[13px] font-semibold" style={{ color: "#e2e8f0" }}>Edge Label / Snippet</span>
               <button onClick={() => setShowEdgeLabel(false)} style={{ color: "#334155" }}><X size={14} /></button>
             </div>
@@ -2009,7 +2009,7 @@ export default function MapPage() {
                 onChange={e => setEdgeLabelInput(e.target.value)}
                 placeholder="Or type a custom label…"
                 className="w-full bg-transparent text-[13px] text-white focus:outline-none py-2"
-                style={{ borderBottom: "1px solid #1a2535", fontFamily: SF }} />
+                style={{ borderBottom: "1px solid #1f1f1f", fontFamily: SF }} />
               <div className="flex gap-2 mt-4">
                 <button
                   onClick={() => {
@@ -2028,7 +2028,7 @@ export default function MapPage() {
                 </button>
                 <button onClick={() => setShowEdgeLabel(false)}
                   className="py-2 px-4 rounded-xl text-[12px] font-medium transition-opacity hover:opacity-80"
-                  style={{ background: "#0d1520", border: "1px solid #1a2535", color: "#64748b" }}>
+                  style={{ background: "#0a0a0a", border: "1px solid #1f1f1f", color: "#64748b" }}>
                   Cancel
                 </button>
               </div>
@@ -2043,10 +2043,10 @@ export default function MapPage() {
           style={{ background: "rgba(5,8,16,0.85)" }}
           onClick={() => setShowNoteModal(false)}>
           <div className="w-[440px] rounded-2xl overflow-hidden shadow-2xl"
-            style={{ background: "#0a0f1a", border: "1px solid #1a2535" }}
+            style={{ background: "#111111", border: "1px solid #1f1f1f" }}
             onClick={e => e.stopPropagation()}>
             <div className="flex items-center justify-between px-5 py-3.5"
-              style={{ borderBottom: "1px solid #1a2535" }}>
+              style={{ borderBottom: "1px solid #1f1f1f" }}>
               <span className="text-[13px] font-semibold" style={{ color: "#e2e8f0" }}>Add Note</span>
               <button onClick={() => setShowNoteModal(false)} style={{ color: "#334155" }}><X size={14} /></button>
             </div>
@@ -2055,7 +2055,7 @@ export default function MapPage() {
                 placeholder="Write a note about this paper…"
                 rows={4}
                 className="w-full bg-transparent text-[13px] text-white focus:outline-none resize-none p-3 rounded-xl"
-                style={{ border: "1px solid #1a2535", fontFamily: SF, color: "#94a3b8" }} />
+                style={{ border: "1px solid #1f1f1f", fontFamily: SF, color: "#94a3b8" }} />
               <div className="flex gap-2 mt-3">
                 <button
                   onClick={() => {
@@ -2071,7 +2071,7 @@ export default function MapPage() {
                 </button>
                 <button onClick={() => setShowNoteModal(false)}
                   className="py-2 px-4 rounded-xl text-[12px] font-medium transition-opacity hover:opacity-80"
-                  style={{ background: "#0d1520", border: "1px solid #1a2535", color: "#64748b" }}>
+                  style={{ background: "#0a0a0a", border: "1px solid #1f1f1f", color: "#64748b" }}>
                   Cancel
                 </button>
               </div>
@@ -2086,10 +2086,10 @@ export default function MapPage() {
           style={{ background: "rgba(5,8,16,0.85)" }}
           onClick={() => setShowUrlModal(false)}>
           <div className="w-[440px] rounded-2xl overflow-hidden shadow-2xl"
-            style={{ background: "#0a0f1a", border: "1px solid #1a2535" }}
+            style={{ background: "#111111", border: "1px solid #1f1f1f" }}
             onClick={e => e.stopPropagation()}>
             <div className="flex items-center justify-between px-5 py-3.5"
-              style={{ borderBottom: "1px solid #1a2535" }}>
+              style={{ borderBottom: "1px solid #1f1f1f" }}>
               <span className="text-[13px] font-semibold" style={{ color: "#e2e8f0" }}>Link Source</span>
               <button onClick={() => setShowUrlModal(false)} style={{ color: "#334155" }}><X size={14} /></button>
             </div>
@@ -2097,7 +2097,7 @@ export default function MapPage() {
               <input type="url" value={urlInput} onChange={e => setUrlInput(e.target.value)}
                 placeholder="https://doi.org/… or any URL"
                 className="w-full bg-transparent text-[13px] text-white focus:outline-none py-2"
-                style={{ borderBottom: "1px solid #1a2535", fontFamily: SF }} />
+                style={{ borderBottom: "1px solid #1f1f1f", fontFamily: SF }} />
               <div className="flex gap-2 mt-4">
                 <button
                   onClick={() => {
@@ -2113,7 +2113,7 @@ export default function MapPage() {
                 </button>
                 <button onClick={() => setShowUrlModal(false)}
                   className="py-2 px-4 rounded-xl text-[12px] font-medium transition-opacity hover:opacity-80"
-                  style={{ background: "#0d1520", border: "1px solid #1a2535", color: "#64748b" }}>
+                  style={{ background: "#0a0a0a", border: "1px solid #1f1f1f", color: "#64748b" }}>
                   Cancel
                 </button>
               </div>
