@@ -178,7 +178,19 @@ function getId(n: string | MapNode): string {
   return typeof n === "string" ? n : n.id;
 }
 
+// ─── Auto-priority: assign colours based on citation count ───────────────────
+function autoPriority(n: any): { priority: Priority; customColor: string } {
+  const c = typeof n.citations === "number" ? n.citations : 0;
+  if (n.type === "center") return { priority: "normal",   customColor: "#3bc9db" }; // teal  = focal
+  if (c >= 500)            return { priority: "critical", customColor: "#ef4444" }; // red   = very high impact
+  if (c >= 100)            return { priority: "high",     customColor: "#f59e0b" }; // amber = high impact
+  if (c >= 20)             return { priority: "normal",   customColor: "#6366f1" }; // indigo = moderate
+  if (n.type === "citing") return { priority: "normal",   customColor: "#10b981" }; // green = cites this
+  return                          { priority: "normal",   customColor: "#475569" }; // slate = low/unknown
+}
+
 function assignPositions(nodes: any[], centerId: string, W: number, H: number): MapNode[] {
+
   const cx = W / 2;
   const cy = H / 2;
   const result: MapNode[] = [];
@@ -188,21 +200,28 @@ function assignPositions(nodes: any[], centerId: string, W: number, H: number): 
     else byType.custom.push(n);
   });
 
-  byType.center.forEach(n => result.push({ ...n, shape: "card", priority: "normal", x: cx, y: cy }));
+  byType.center.forEach(n => {
+    const ap = autoPriority(n);
+    result.push({ ...n, shape: "card", ...ap, x: cx, y: cy });
+  });
 
   const place = (arr: any[], angleFrom: number, angleTo: number, r: number) => {
     arr.forEach((n, i, a) => {
       const angle = a.length === 1
         ? (angleFrom + angleTo) / 2
         : angleFrom + (angleTo - angleFrom) * (i / (a.length - 1));
-      result.push({ ...n, shape: "card", priority: "normal", x: cx + Math.cos(angle) * r, y: cy + Math.sin(angle) * r });
+      const ap = autoPriority(n);
+      result.push({ ...n, shape: "card", ...ap, x: cx + Math.cos(angle) * r, y: cy + Math.sin(angle) * r });
     });
   };
 
   place(byType.reference, Math.PI * 0.55, Math.PI * 1.45, 420);
   place(byType.citing,    -Math.PI * 0.45, Math.PI * 0.45, 420);
   place(byType.related,   -Math.PI * 0.45, -Math.PI * 1.45, 320);
-  byType.custom?.forEach((n, i) => result.push({ ...n, shape: "card", priority: "normal", x: cx - 200 + i * 300, y: cy + 450 }));
+  byType.custom?.forEach((n, i) => {
+    const ap = autoPriority(n);
+    result.push({ ...n, shape: "card", ...ap, x: cx - 200 + i * 300, y: cy + 450 });
+  });
 
   return result;
 }
@@ -763,7 +782,7 @@ export default function MapPage() {
       .attr("fill", "transparent")
       .attr("filter", "url(#shadow)");
 
-    // Main Card body
+    // Main Card body – stroke & fill use auto-priority colour
     standardNodes.append("rect")
       .attr("class", "card-body")
       .attr("x", (d: MapNode) => -getNodeW(d) / 2)
@@ -771,51 +790,56 @@ export default function MapPage() {
       .attr("width", (d: MapNode) => getNodeW(d))
       .attr("height", (d: MapNode) => getNodeH(d))
       .attr("rx", (d: MapNode) => getNodeRx(d))
-      .attr("fill", (d: MapNode) => {
-        if (d.customColor) return d.customColor + "1A";
-        return "rgba(10,15,26,0.65)";
-      })
+      .attr("fill", (d: MapNode) => (d.customColor || "#475569") + "18")
       .attr("stroke", (d: MapNode) => {
         if (stateRef.current.selectedNodeIds.includes(d.id)) return "#3BC9DB";
-        if (d.customColor) return d.customColor;
-        return "rgba(255,255,255,0.08)";
+        return (d.customColor || "#475569") + "70";
       })
-      .attr("stroke-width", (d: MapNode) => stateRef.current.selectedNodeIds.includes(d.id) ? 2 : 1)
+      .attr("stroke-width", (d: MapNode) => stateRef.current.selectedNodeIds.includes(d.id) ? 2.5 : 1.5)
       .style("backdrop-filter", "blur(24px)")
       .on("mouseover", function(_ev, d: MapNode) {
         if (stateRef.current.selectedNodeIds.includes(d.id)) return;
-        d3.select(this).transition().duration(250).attr("stroke", "rgba(255,255,255,0.2)");
+        d3.select(this).transition().duration(200).attr("stroke", d.customColor || "#475569");
       })
       .on("mouseout", function(_ev, d: MapNode) {
         if (stateRef.current.selectedNodeIds.includes(d.id)) return;
-        const defaultStroke = d.customColor || "rgba(255,255,255,0.08)";
-        d3.select(this).transition().duration(250).attr("stroke", defaultStroke);
+        d3.select(this).transition().duration(200).attr("stroke", (d.customColor || "#475569") + "70");
       });
 
-    // HTML ForeignObject for flawless text layout
+    // Coloured left-accent strip
+    standardNodes.append("rect")
+      .attr("class", "card-accent")
+      .attr("x", (d: MapNode) => -getNodeW(d) / 2)
+      .attr("y", (d: MapNode) => -getNodeH(d) / 2 + getNodeRx(d))
+      .attr("width", 3)
+      .attr("height", (d: MapNode) => getNodeH(d) - getNodeRx(d) * 2)
+      .attr("rx", 1.5)
+      .attr("fill", (d: MapNode) => d.customColor || "#475569")
+      .attr("opacity", 0.9);
+
+    // HTML ForeignObject
     standardNodes.append("foreignObject")
       .attr("x", (d: MapNode) => -getNodeW(d) / 2)
       .attr("y", (d: MapNode) => -getNodeH(d) / 2)
       .attr("width", (d: MapNode) => getNodeW(d))
       .attr("height", (d: MapNode) => getNodeH(d))
       .html((d: MapNode) => `
-        <div xmlns="http://www.w3.org/1999/xhtml" style="width:100%; height:100%; padding:18px 20px; box-sizing:border-box; display:flex; flex-direction:column; gap:10px; font-family:-apple-system,BlinkMacSystemFont,'Inter',sans-serif;">
+        <div xmlns="http://www.w3.org/1999/xhtml" style="width:100%; height:100%; padding:13px 16px 13px 22px; box-sizing:border-box; display:flex; flex-direction:column; gap:7px; font-family:-apple-system,BlinkMacSystemFont,'Inter',sans-serif;">
           <!-- Badge row -->
           <div style="display:flex; align-items:center; justify-content:space-between;">
-            <span style="font-size:10px; font-weight:600; letter-spacing:0.07em; color:${d.customColor || '#475569'}; text-transform:uppercase; opacity:0.9;">${d.type}</span>
-            ${d.priority === 'high' ? `<div style="width:6px; height:6px; border-radius:50%; background:#F59E0B;"></div>` : d.priority === 'critical' ? `<div style="width:6px; height:6px; border-radius:50%; background:#EF4444;"></div>` : ''}
+            <span style="font-size:9px; font-weight:700; letter-spacing:0.09em; color:${d.customColor || "#475569"}; text-transform:uppercase;">${d.type === "citing" ? "CITES THIS" : d.type === "reference" ? "REFERENCED" : d.type === "center" ? "FOCUS PAPER" : d.type === "related" ? "RELATED" : d.type.toUpperCase()}</span>
+            ${d.citations ? `<span style="font-size:9px; color:#475569; font-weight:500;">${d.citations >= 1000 ? (d.citations/1000).toFixed(1)+"k" : d.citations} cit.</span>` : ""}
           </div>
           <!-- Divider -->
-          <div style="height:1px; background:rgba(255,255,255,0.06); flex-shrink:0;"></div>
+          <div style="height:1px; background:rgba(255,255,255,0.05); flex-shrink:0;"></div>
           <!-- Title -->
-          <div style="flex:1; display:flex; align-items:flex-start; overflow:hidden;">
-            <p style="margin:0; font-size:13px; font-weight:500; color:#E2E8F0; line-height:1.55; display:-webkit-box; -webkit-line-clamp:${getNodeH(d) <= 120 ? 3 : 4}; -webkit-box-orient:vertical; overflow:hidden;">
-              ${d.title}
-            </p>
+          <div style="flex:1; overflow:hidden;">
+            <p style="margin:0; font-size:12.5px; font-weight:500; color:#E2E8F0; line-height:1.5; display:-webkit-box; -webkit-line-clamp:${getNodeH(d) <= 120 ? 3 : 4}; -webkit-box-orient:vertical; overflow:hidden;">${d.title}</p>
           </div>
-          ${d.author || d.year ? `<p style="margin:0; font-size:11px; color:#64748B; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">${[d.author ? d.author.split(',')[0] : '', d.year ? String(d.year) : ''].filter(Boolean).join(' · ')}</p>` : ''}
+          ${d.author || d.year ? `<p style="margin:0; font-size:10px; color:#64748B; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">${[d.author ? d.author.split(",")[0].trim() : "", d.year ? String(d.year) : ""].filter(Boolean).join(" · ")}</p>` : ""}
         </div>
       `);
+
 
     // --- RENDER SHAPES ---
     // Shadow
