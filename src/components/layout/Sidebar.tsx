@@ -49,7 +49,7 @@ export default function Sidebar() {
           className={`text-[#64748b] hover:text-[#e2e8f0] transition-colors p-1.5 rounded-lg hover:bg-[#1f1f1f] ${isCollapsed ? "hidden" : "block"}`}
           title="Collapse Sidebar"
         >
-          <PanelLeftClose size={18} />
+          <PanelLeftClose size={15} />
         </button>
       </div>
 
@@ -117,27 +117,27 @@ export default function Sidebar() {
           className={`${isCollapsed ? "w-9 h-9 px-0 justify-center" : "w-full h-[36px] px-4 justify-start"} bg-[#111111] hover:bg-[#1f1f1f] text-[#e2e8f0] rounded-md flex items-center transition-all duration-200 text-sm font-semibold border border-[#1f1f1f] shadow-sm overflow-hidden`}
         >
           <div className={`flex items-center ${isCollapsed ? "gap-0 justify-center" : "gap-3 whitespace-nowrap min-w-0"}`}>
-            <Plus size={18} className="text-[#e2e8f0] flex-shrink-0" />
+            <Plus size={15} className="text-[#e2e8f0] flex-shrink-0" />
             {!isCollapsed && <span className="truncate">New Research</span>}
           </div>
         </button>
       </div>
 
       {/* Main Nav */}
-      <nav className="flex-1 space-y-0.5 overflow-y-auto overflow-x-hidden no-scrollbar pr-1">
-        <NavItem icon={<Compass size={18} />} label="Discover" active isCollapsed={isCollapsed} />
-        <NavItem icon={<PenTool size={18} />} label="Nagi Writer" href="/writer" isCollapsed={isCollapsed} />
-        <NavItem icon={<Folder size={18} />} label="Projects" isCollapsed={isCollapsed} />
-        <NavItem icon={<Network size={18} />} label="Maps" href="/map" isCollapsed={isCollapsed} />
-        <NavItem icon={<BookOpen size={18} />} label="Literature Review" href="/review" isCollapsed={isCollapsed} />
-        <NavItem icon={<Layers size={18} />} label="Compare Papers" href="/compare" isCollapsed={isCollapsed} />
-        <NavItem icon={<SearchX size={18} />} label="Research Gap Finder" href="/gaps" isCollapsed={isCollapsed} />
-        <NavItem icon={<Scale size={18} />} label="Evidence Finder" href="/evidence" isCollapsed={isCollapsed} />
-        <NavItem icon={<Library size={18} />} label="Collections" isCollapsed={isCollapsed} />
-        <NavItem icon={<Database size={18} />} label="Datasets" isCollapsed={isCollapsed} />
-        <NavItem icon={<Users size={18} />} label="Authors" isCollapsed={isCollapsed} />
-        <NavItem icon={<FileText size={18} />} label="Saved Papers" isCollapsed={isCollapsed} />
-        <NavItem icon={<LayoutGrid size={18} />} label="Workspaces" isCollapsed={isCollapsed} />
+      <nav className="flex-1 space-y-0.5 overflow-y-auto overflow-x-hidden no-scrollbar [&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none]">
+        <NavItem icon={<Compass size={15} />} label="Discover" active isCollapsed={isCollapsed} />
+        <NavItem icon={<PenTool size={15} />} label="Nagi Writer" href="/writer" isCollapsed={isCollapsed} />
+        <NavItem icon={<Folder size={15} />} label="Projects" isCollapsed={isCollapsed} />
+        <NavItem icon={<Network size={15} />} label="Maps" href="/map" isCollapsed={isCollapsed} />
+        <NavItem icon={<BookOpen size={15} />} label="Literature Review" href="/review" isCollapsed={isCollapsed} />
+        <NavItem icon={<Layers size={15} />} label="Compare Papers" href="/compare" isCollapsed={isCollapsed} />
+        <NavItem icon={<SearchX size={15} />} label="Research Gap Finder" href="/gaps" isCollapsed={isCollapsed} />
+        <NavItem icon={<Scale size={15} />} label="Evidence Finder" href="/evidence" isCollapsed={isCollapsed} />
+        <NavItem icon={<Library size={15} />} label="Collections" isCollapsed={isCollapsed} />
+        <NavItem icon={<Database size={15} />} label="Datasets" isCollapsed={isCollapsed} />
+        <NavItem icon={<Users size={15} />} label="Authors" isCollapsed={isCollapsed} />
+        <NavItem icon={<FileText size={15} />} label="Saved Papers" isCollapsed={isCollapsed} />
+        <NavItem icon={<LayoutGrid size={15} />} label="Workspaces" isCollapsed={isCollapsed} />
         
         {!isCollapsed && recentItems.length > 0 && (
           <div className="mt-8 mb-3">
@@ -160,7 +160,7 @@ export default function Sidebar() {
 
       {/* Footer Nav */}
       <div className="space-y-0.5 flex flex-col">
-        <NavItem icon={<Settings size={18} />} label="Settings" isCollapsed={isCollapsed} />
+        <NavItem icon={<Settings size={15} />} label="Settings" isCollapsed={isCollapsed} />
         <button className={`w-full flex items-center ${isCollapsed ? "justify-center p-2" : "justify-between px-3 py-1.5"} hover:bg-[#202222] rounded-md transition-colors group mt-1`}>
           <div className={`flex items-center ${isCollapsed ? "gap-0 justify-center" : "gap-3"} text-[13px] font-medium text-[#64748b] group-hover:text-[#e2e8f0] transition-colors`}>
             <div className="w-7 h-7 rounded-full bg-[#111111] border border-[#1f1f1f] flex items-center justify-center text-[#64748b] group-hover:text-[#e2e8f0] transition-colors flex-shrink-0 shadow-sm">
