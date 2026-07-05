@@ -200,27 +200,49 @@ function assignPositions(nodes: any[], centerId: string, W: number, H: number): 
     else byType.custom.push(n);
   });
 
+  // Center node
   byType.center.forEach(n => {
     const ap = autoPriority(n);
     result.push({ ...n, shape: "card", ...ap, x: cx, y: cy });
   });
 
-  const place = (arr: any[], angleFrom: number, angleTo: number, r: number) => {
-    arr.forEach((n, i, a) => {
-      const angle = a.length === 1
-        ? (angleFrom + angleTo) / 2
-        : angleFrom + (angleTo - angleFrom) * (i / (a.length - 1));
+  // Node dimensions for gap calculation
+  const NODE_W = 360;
+  const NODE_H = 170;
+  const MIN_GAP = 40; // minimum gap between node edges
+
+  // Place a ring of nodes with dynamic angular spacing to prevent overlap
+  const placeRing = (arr: any[], baseAngle: number, r: number) => {
+    if (arr.length === 0) return;
+    // Angular space needed per node: arc length = NODE_W + MIN_GAP at radius r
+    const angularStep = Math.max(
+      (NODE_W + MIN_GAP) / r,     // minimum arc gap
+      Math.PI * 1.8 / arr.length  // or evenly divide 324° if few nodes
+    );
+    const totalSpan = angularStep * (arr.length - 1);
+    const startAngle = baseAngle - totalSpan / 2;
+
+    arr.forEach((n, i) => {
+      const angle = arr.length === 1 ? baseAngle : startAngle + i * angularStep;
       const ap = autoPriority(n);
       result.push({ ...n, shape: "card", ...ap, x: cx + Math.cos(angle) * r, y: cy + Math.sin(angle) * r });
     });
   };
 
-  place(byType.reference, Math.PI * 0.55, Math.PI * 1.45, 420);
-  place(byType.citing,    -Math.PI * 0.45, Math.PI * 0.45, 420);
-  place(byType.related,   -Math.PI * 0.45, -Math.PI * 1.45, 320);
-  byType.custom?.forEach((n, i) => {
+  // References fan out to the LEFT  at radius 700
+  placeRing(byType.reference, Math.PI,          700);
+  // Citing papers fan out to the RIGHT at radius 700
+  placeRing(byType.citing,    0,                700);
+  // Related papers spread BELOW at radius 550
+  placeRing(byType.related,   Math.PI * 0.5,    550);
+  // Custom nodes spread below further
+  byType.custom?.forEach((n, i, a) => {
     const ap = autoPriority(n);
-    result.push({ ...n, shape: "card", ...ap, x: cx - 200 + i * 300, y: cy + 450 });
+    const spread = (NODE_W + MIN_GAP) * a.length;
+    result.push({ ...n, shape: "card", ...ap,
+      x: cx - spread / 2 + i * (NODE_W + MIN_GAP) + NODE_W / 2,
+      y: cy + 820
+    });
   });
 
   return result;
@@ -386,10 +408,25 @@ export default function MapPage() {
       .then(r => r.json())
       .then(data => {
         if (data.error) { setError(data.error); setIsLoading(false); return; }
-        setNodes(assignPositions(data.nodes, data.center, dims.w, dims.h));
+        const positioned = assignPositions(data.nodes, data.center, dims.w, dims.h);
+        setNodes(positioned);
         setEdges(data.edges);
         setCenterId(data.center);
         setIsLoading(false);
+        // Auto-fit to show all nodes after a short render delay
+        setTimeout(() => {
+          if (!svgRef.current || !zoomRef.current) return;
+          const xs = positioned.map(n => n.x);
+          const ys = positioned.map(n => n.y);
+          const minX = Math.min(...xs) - 240, maxX = Math.max(...xs) + 240;
+          const minY = Math.min(...ys) - 140, maxY = Math.max(...ys) + 140;
+          const W = dims.w || 1200, H = dims.h || 800;
+          const scale = Math.min(0.72, Math.min(W / (maxX - minX), H / (maxY - minY)));
+          const tx = W / 2 - scale * (minX + maxX) / 2;
+          const ty = H / 2 - scale * (minY + maxY) / 2;
+          d3.select(svgRef.current!).transition().duration(600)
+            .call(zoomRef.current!.transform, d3.zoomIdentity.translate(tx, ty).scale(scale));
+        }, 300);
       })
       .catch(() => { setError("Failed to load map"); setIsLoading(false); });
   // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -984,7 +1021,19 @@ export default function MapPage() {
     const s = d3.select(svgRef.current);
     if (dir === "in")  s.transition().duration(220).call(zoomRef.current.scaleBy, 1.3);
     if (dir === "out") s.transition().duration(220).call(zoomRef.current.scaleBy, 0.77);
-    if (dir === "fit") s.transition().duration(350).call(zoomRef.current.transform, d3.zoomIdentity);
+    if (dir === "fit") {
+      // Fit all nodes in view with padding
+      if (nodes.length === 0) { s.transition().duration(350).call(zoomRef.current.transform, d3.zoomIdentity); return; }
+      const xs = nodes.map(n => n.x);
+      const ys = nodes.map(n => n.y);
+      const minX = Math.min(...xs) - 220, maxX = Math.max(...xs) + 220;
+      const minY = Math.min(...ys) - 120, maxY = Math.max(...ys) + 120;
+      const W = dims.w, H = dims.h;
+      const scale = Math.min(0.85, Math.min(W / (maxX - minX), H / (maxY - minY)));
+      const tx = W / 2 - scale * (minX + maxX) / 2;
+      const ty = H / 2 - scale * (minY + maxY) / 2;
+      s.transition().duration(500).call(zoomRef.current.transform, d3.zoomIdentity.translate(tx, ty).scale(scale));
+    }
   }
 
   function autoLayout() {
