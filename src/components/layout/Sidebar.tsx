@@ -33,14 +33,14 @@ export default function Sidebar() {
       <div className={`flex items-center mb-8 ${isCollapsed ? "justify-center px-0" : "justify-between px-2"}`}>
         {!isCollapsed && (
           <div className="select-none flex items-center gap-3">
-            <div className="   text-[#3bc9db] text-3xl font-black leading-none">
+            <div className="   text-[#3bc9db] text-[22px] font-black leading-none">
               海
             </div>
-            <span className="text-[#e2e8f0] font-bold text-xl tracking-widest">NAGI</span>
+            <span className="text-[#e2e8f0] font-bold text-[15px] tracking-widest">NAGI</span>
           </div>
         )}
         {isCollapsed && (
-          <div className="   text-[#3bc9db] text-3xl font-black leading-none">
+          <div className="   text-[#3bc9db] text-[22px] font-black leading-none">
             海
           </div>
         )}
@@ -83,7 +83,7 @@ export default function Sidebar() {
             </div>
             {!isCollapsed && (
               <div className="flex flex-col items-start min-w-0">
-                <span className="text-xs text-[#64748b] font-medium leading-none mb-1">Workspace</span>
+                <span className="text-[11px] text-[#64748b] font-medium leading-none mb-1">Workspace</span>
                 <span className="text-sm text-[#e2e8f0] font-semibold truncate leading-none">{workspace}</span>
               </div>
             )}
@@ -114,7 +114,7 @@ export default function Sidebar() {
       {/* New Research Button */}
       <div className="mb-6 flex justify-center">
         <button 
-          className={`${isCollapsed ? "w-11 h-11 px-0 justify-center" : "w-full h-[44px] px-4 justify-start"} bg-[#111111] hover:bg-[#1f1f1f] text-[#e2e8f0] rounded-xl flex items-center transition-all duration-200 text-sm font-semibold border border-[#1f1f1f] shadow-sm overflow-hidden`}
+          className={`${isCollapsed ? "w-9 h-9 px-0 justify-center" : "w-full h-[36px] px-4 justify-start"} bg-[#111111] hover:bg-[#1f1f1f] text-[#e2e8f0] rounded-md flex items-center transition-all duration-200 text-sm font-semibold border border-[#1f1f1f] shadow-sm overflow-hidden`}
         >
           <div className={`flex items-center ${isCollapsed ? "gap-0 justify-center" : "gap-3 whitespace-nowrap min-w-0"}`}>
             <Plus size={18} className="text-[#e2e8f0] flex-shrink-0" />
@@ -124,7 +124,7 @@ export default function Sidebar() {
       </div>
 
       {/* Main Nav */}
-      <nav className="flex-1 space-y-1 overflow-y-auto overflow-x-hidden no-scrollbar pr-1">
+      <nav className="flex-1 space-y-0.5 overflow-y-auto overflow-x-hidden no-scrollbar pr-1">
         <NavItem icon={<Compass size={18} />} label="Discover" active isCollapsed={isCollapsed} />
         <NavItem icon={<PenTool size={18} />} label="Nagi Writer" href="/writer" isCollapsed={isCollapsed} />
         <NavItem icon={<Folder size={18} />} label="Projects" isCollapsed={isCollapsed} />
@@ -141,7 +141,7 @@ export default function Sidebar() {
         
         {!isCollapsed && recentItems.length > 0 && (
           <div className="mt-8 mb-3">
-            <div className="text-xs font-semibold text-[#808080] px-3 py-1.5 uppercase tracking-widest">Recent</div>
+            <div className="text-[11px] font-semibold text-[#808080] px-3 py-1.5 uppercase tracking-widest">Recent</div>
             {recentItems.map(item => (
               <NavItem 
                 key={item}
@@ -159,10 +159,10 @@ export default function Sidebar() {
       <div className="my-3 border-t border-[#1f1f1f]"></div>
 
       {/* Footer Nav */}
-      <div className="space-y-1 flex flex-col">
+      <div className="space-y-0.5 flex flex-col">
         <NavItem icon={<Settings size={18} />} label="Settings" isCollapsed={isCollapsed} />
-        <button className={`w-full flex items-center ${isCollapsed ? "justify-center p-2" : "justify-between px-3 py-2.5"} hover:bg-[#202222] rounded-xl transition-colors group mt-1`}>
-          <div className={`flex items-center ${isCollapsed ? "gap-0 justify-center" : "gap-3"} text-sm font-medium text-[#64748b] group-hover:text-[#e2e8f0] transition-colors`}>
+        <button className={`w-full flex items-center ${isCollapsed ? "justify-center p-2" : "justify-between px-3 py-1.5"} hover:bg-[#202222] rounded-md transition-colors group mt-1`}>
+          <div className={`flex items-center ${isCollapsed ? "gap-0 justify-center" : "gap-3"} text-[13px] font-medium text-[#64748b] group-hover:text-[#e2e8f0] transition-colors`}>
             <div className="w-7 h-7 rounded-full bg-[#111111] border border-[#1f1f1f] flex items-center justify-center text-[#64748b] group-hover:text-[#e2e8f0] transition-colors flex-shrink-0 shadow-sm">
               <UserCircle2 size={16} />
             </div>
@@ -179,7 +179,7 @@ function NavItem({ icon, label, active = false, className = "", isCollapsed, onR
     <a
       href={href ?? "#"}
       title={isCollapsed ? label : undefined}
-      className={`group relative flex items-center ${isCollapsed ? "justify-center px-0 h-11 w-11 mx-auto" : "gap-3 px-3 py-2.5"} rounded-xl text-sm font-medium transition-all duration-200 ${
+      className={`group relative flex items-center ${isCollapsed ? "justify-center px-0 h-11 w-11 mx-auto" : "gap-2.5 px-3 py-1.5"} rounded-md text-[13px] font-medium transition-all duration-200 ${
         active 
           ? "bg-[#202222] text-[#e2e8f0] shadow-sm" 
           : "text-[#64748b] hover:bg-[#111111] hover:text-[#e2e8f0]"
