@@ -27,7 +27,7 @@ export default function Sidebar() {
 
   return (
     <aside 
-      className={`${isCollapsed ? "w-[68px]" : "w-[240px]"} flex-shrink-0 h-full bg-[#0a0a0a] flex flex-col pt-5 pb-4 px-3 border-r border-[#1f1f1f] transition-all duration-300 ease-in-out`}
+      className={`${isCollapsed ? "w-[68px]" : "w-[260px]"} flex-shrink-0 h-full bg-[#0a0a0a] flex flex-col pt-5 pb-4 px-3 border-r border-[#1f1f1f] transition-all duration-300 ease-in-out`}
     >
       {/* Logo Area */}
       <div className={`flex items-center mb-8 ${isCollapsed ? "justify-center px-0" : "justify-between px-2"}`}>
@@ -118,7 +118,7 @@ export default function Sidebar() {
         >
           <div className={`flex items-center ${isCollapsed ? "gap-0 justify-center" : "gap-3 whitespace-nowrap min-w-0"}`}>
             <Plus size={15} className="text-[#e2e8f0] flex-shrink-0" />
-            {!isCollapsed && <span className="truncate">New Research</span>}
+            <span className={`truncate transition-all duration-300 overflow-hidden ${isCollapsed ? "w-0 opacity-0" : "w-auto opacity-100"}`}>New Research</span>
           </div>
         </button>
       </div>
@@ -162,11 +162,11 @@ export default function Sidebar() {
       <div className="space-y-0.5 flex flex-col">
         <NavItem icon={<Settings size={15} />} label="Settings" isCollapsed={isCollapsed} />
         <button className={`w-full flex items-center ${isCollapsed ? "justify-center p-2" : "justify-between px-3 py-1.5"} hover:bg-[#202222] rounded-md transition-colors group mt-1`}>
-          <div className={`flex items-center ${isCollapsed ? "gap-0 justify-center" : "gap-3"} text-[13px] font-medium text-[#64748b] group-hover:text-[#e2e8f0] transition-colors`}>
+          <div className={`flex items-center ${isCollapsed ? "gap-0 justify-center" : "gap-3"} text-[14px] font-[450] text-[#64748b] group-hover:text-[#e2e8f0] transition-colors`}>
             <div className="w-7 h-7 rounded-full bg-[#111111] border border-[#1f1f1f] flex items-center justify-center text-[#64748b] group-hover:text-[#e2e8f0] transition-colors flex-shrink-0 shadow-sm">
               <UserCircle2 size={16} />
             </div>
-            {!isCollapsed && <span className="truncate">Kunsang</span>}
+            <span className={`truncate transition-all duration-300 overflow-hidden ${isCollapsed ? "w-0 opacity-0" : "w-auto opacity-100"}`}>Kunsang</span>
           </div>
         </button>
       </div>
@@ -179,14 +179,14 @@ function NavItem({ icon, label, active = false, className = "", isCollapsed, onR
     <a
       href={href ?? "#"}
       title={isCollapsed ? label : undefined}
-      className={`group relative flex items-center ${isCollapsed ? "justify-center px-0 h-11 w-11 mx-auto" : "gap-2.5 px-3 py-1.5"} rounded-md text-[13px] font-medium transition-all duration-200 ${
+      className={`group relative flex items-center ${isCollapsed ? "justify-center px-0 h-9 w-9 mx-auto" : "gap-3 px-3 py-2"} rounded-md text-[14px] font-[450] transition-all duration-300 ${
         active 
           ? "bg-[#202222] text-[#e2e8f0] shadow-sm" 
           : "text-[#64748b] hover:bg-[#111111] hover:text-[#e2e8f0]"
       } ${className}`}
     >
       {icon && <span className={`${active ? "opacity-100" : "opacity-70"} flex-shrink-0 transition-opacity`}>{icon}</span>}
-      {!isCollapsed && <span className={`truncate ${!icon ? "pl-7" : ""} ${onRemove ? "pr-6" : ""}`}>{label}</span>}
+      <span className={`truncate whitespace-nowrap transition-all duration-300 overflow-hidden ${isCollapsed ? "w-0 opacity-0" : "w-auto opacity-100"} ${!icon ? "pl-7" : ""} ${onRemove ? "pr-6" : ""}`}>{label}</span>
       
       {!isCollapsed && onRemove && (
         <button
