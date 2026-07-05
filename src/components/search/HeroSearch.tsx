@@ -193,7 +193,7 @@ export default function HeroSearch() {
           <h1 className="text-[56px] font-black tracking-tight text-white leading-none mb-3 font-sans">
             NAGI <span className="text-[#3bc9db]">海</span>
           </h1>
-          <p className="text-[#a0a0a0] text-sm tracking-widest uppercase font-medium">
+          <p className="text-[#64748b] text-sm tracking-widest uppercase font-medium">
             Navigate the ocean of research
           </p>
         </div>
@@ -204,12 +204,12 @@ export default function HeroSearch() {
         <div className="relative w-full max-w-[760px] mx-auto px-4 lg:px-0">
           <div className={`w-full flex items-center gap-3 transition-all duration-300 ${
             hasSearched
-              ? "bg-[#111213]/80 backdrop-blur-2xl border border-[#2b2d2d] rounded-2xl px-5 py-3.5 shadow-[0_8px_30px_rgba(0,0,0,0.6)]"
+              ? "bg-[#111213]/80 backdrop-blur-2xl border border-[#1f1f1f] rounded-2xl px-5 py-3.5 shadow-[0_8px_30px_rgba(0,0,0,0.6)]"
               : isFocused
               ? "bg-[#161818]/95 border border-[#3bc9db]/80 shadow-[0_0_60px_rgba(59,201,219,0.5)] rounded-2xl px-5 py-3.5"
-              : "bg-[#191a1a]/70 border border-[#2b2d2d]/60 backdrop-blur-md rounded-2xl px-5 py-3.5 hover:border-[#3b3d3d]"
+              : "bg-[#191a1a]/70 border border-[#1f1f1f] backdrop-blur-md rounded-2xl px-5 py-3.5 hover:border-[#3b3d3d]"
           }`}>
-            <Search size={16} className="text-[#a0a0a0] shrink-0" />
+            <Search size={16} className="text-[#64748b] shrink-0" />
             <div className="relative flex-1">
               <input
                 ref={inputRef}
@@ -224,7 +224,7 @@ export default function HeroSearch() {
                 placeholder={isLoading ? LOADING_MESSAGES[loadingStep] : ""}
               />
               {!query && !isLoading && (
-                <div className={`absolute top-1/2 -translate-y-1/2 left-0 pointer-events-none text-[#a0a0a0] transition-opacity duration-300 font-sans ${hasSearched ? "text-[14px]" : "text-[15px]"} ${isFading ? "opacity-0" : "opacity-100"}`}>
+                <div className={`absolute top-1/2 -translate-y-1/2 left-0 pointer-events-none text-[#64748b] transition-opacity duration-300 font-sans ${hasSearched ? "text-[14px]" : "text-[15px]"} ${isFading ? "opacity-0" : "opacity-100"}`}>
                   {PLACEHOLDERS[textIndex]}
                 </div>
               )}
@@ -232,7 +232,7 @@ export default function HeroSearch() {
             <div className="flex items-center gap-2 shrink-0">
               <button
                 onClick={() => setShowFilters(!showFilters)}
-                className={`p-1.5 rounded-lg transition-all ${showFilters ? "text-[#3bc9db] bg-[#3bc9db]/10" : "text-[#a0a0a0] hover:text-white"}`}
+                className={`p-1.5 rounded-lg transition-all ${showFilters ? "text-[#3bc9db] bg-[#3bc9db]/10" : "text-[#64748b] hover:text-white"}`}
               >
                 <Filter size={14} />
               </button>
@@ -242,7 +242,7 @@ export default function HeroSearch() {
                 className={`w-7 h-7 rounded-lg flex items-center justify-center transition-all ${
                   query.trim() && !isLoading
                     ? "bg-[#3bc9db] text-[#121314] hover:bg-[#4dd9eb]"
-                    : "bg-[#2b2d2d] text-[#a0a0a0]"
+                    : "bg-[#2b2d2d] text-[#64748b]"
                 }`}
               >
                 {isLoading
@@ -255,9 +255,9 @@ export default function HeroSearch() {
 
           {/* Filters */}
           {showFilters && (
-            <div className="absolute top-[calc(100%+12px)] left-0 w-full z-50 bg-[#161818]/95 backdrop-blur-xl border border-[#2b2d2d] rounded-2xl p-5 flex flex-wrap gap-6 shadow-2xl animate-in fade-in slide-in-from-top-2 duration-200">
+            <div className="absolute top-[calc(100%+12px)] left-0 w-full z-50 bg-[#161818]/95 backdrop-blur-xl border border-[#1f1f1f] rounded-2xl p-5 flex flex-wrap gap-6 shadow-2xl animate-in fade-in slide-in-from-top-2 duration-200">
               <div>
-                <div className="text-[10px] text-[#a0a0a0] uppercase tracking-widest font-bold mb-3">Type</div>
+                <div className="text-[10px] text-[#64748b] uppercase tracking-widest font-bold mb-3">Type</div>
                 <div className="flex gap-2 flex-wrap">
                   {PAPER_TYPES.map((t) => (
                     <button key={t.value}
@@ -265,7 +265,7 @@ export default function HeroSearch() {
                       className={`px-3 py-1.5 text-[11px] font-medium rounded-lg border transition-all ${
                         filters.type === (t.value || undefined)
                           ? "bg-[#3bc9db]/15 text-[#3bc9db] border-[#3bc9db]/30"
-                          : "bg-[#1a1b1b] text-[#a0a0a0] border-[#2b2d2d] hover:text-white hover:border-[#3b3d3d]"
+                          : "bg-[#1a1b1b] text-[#64748b] border-[#1f1f1f] hover:text-white hover:border-[#3b3d3d]"
                       }`}>
                       {t.label}
                     </button>
@@ -273,29 +273,29 @@ export default function HeroSearch() {
                 </div>
               </div>
               <div>
-                <div className="text-[10px] text-[#a0a0a0] uppercase tracking-widest font-bold mb-3">Open Access</div>
+                <div className="text-[10px] text-[#64748b] uppercase tracking-widest font-bold mb-3">Open Access</div>
                 <button
                   onClick={() => setFilters((f) => ({ ...f, openAccessOnly: !f.openAccessOnly }))}
                   className={`px-3 py-1.5 text-[11px] font-medium rounded-lg border transition-all flex items-center gap-2 ${
                     filters.openAccessOnly
                       ? "bg-[#3bc9db]/15 text-[#3bc9db] border-[#3bc9db]/30"
-                      : "bg-[#1a1b1b] text-[#a0a0a0] border-[#2b2d2d] hover:text-white hover:border-[#3b3d3d]"
+                      : "bg-[#1a1b1b] text-[#64748b] border-[#1f1f1f] hover:text-white hover:border-[#3b3d3d]"
                   }`}>
                   <Unlock size={11} /> Open Access Only
                 </button>
               </div>
               <div>
-                <div className="text-[10px] text-[#a0a0a0] uppercase tracking-widest font-bold mb-3">Year Range</div>
+                <div className="text-[10px] text-[#64748b] uppercase tracking-widest font-bold mb-3">Year Range</div>
                 <div className="flex items-center gap-2">
                   <input type="number" placeholder="From" min={1900} max={2025}
                     value={filters.yearFrom || ""}
                     onChange={(e) => setFilters((f) => ({ ...f, yearFrom: e.target.value ? parseInt(e.target.value) : undefined }))}
-                    className="w-20 px-3 py-1.5 text-[12px] bg-[#1a1b1b] border border-[#2b2d2d] rounded-lg text-white focus:outline-none focus:border-[#3bc9db]/40 transition-colors" />
-                  <span className="text-[#a0a0a0] text-xs">—</span>
+                    className="w-20 px-3 py-1.5 text-[12px] bg-[#1a1b1b] border border-[#1f1f1f] rounded-lg text-white focus:outline-none focus:border-[#3bc9db]/40 transition-colors" />
+                  <span className="text-[#64748b] text-xs">—</span>
                   <input type="number" placeholder="To" min={1900} max={2025}
                     value={filters.yearTo || ""}
                     onChange={(e) => setFilters((f) => ({ ...f, yearTo: e.target.value ? parseInt(e.target.value) : undefined }))}
-                    className="w-20 px-3 py-1.5 text-[12px] bg-[#1a1b1b] border border-[#2b2d2d] rounded-lg text-white focus:outline-none focus:border-[#3bc9db]/40 transition-colors" />
+                    className="w-20 px-3 py-1.5 text-[12px] bg-[#1a1b1b] border border-[#1f1f1f] rounded-lg text-white focus:outline-none focus:border-[#3bc9db]/40 transition-colors" />
                 </div>
               </div>
             </div>
@@ -304,15 +304,15 @@ export default function HeroSearch() {
           {/* Suggestions */}
           {isFocused && query.length >= 2 && !isLoading && (
             <div className="absolute top-[calc(100%+12px)] left-0 w-full z-50">
-              <div className="bg-[#161818]/95 backdrop-blur-xl border border-[#2b2d2d] rounded-2xl shadow-2xl p-2 animate-in fade-in slide-in-from-top-2 duration-150">
+              <div className="bg-[#161818]/95 backdrop-blur-xl border border-[#1f1f1f] rounded-2xl shadow-2xl p-2 animate-in fade-in slide-in-from-top-2 duration-150">
                 {isSuggestionsLoading ? (
-                  <div className="flex items-center gap-3 px-4 py-4 text-[#a0a0a0] text-[13px]">
+                  <div className="flex items-center gap-3 px-4 py-4 text-[#64748b] text-[13px]">
                     <Loader2 size={14} className="animate-spin text-[#3bc9db]" />
                     <span>Finding papers...</span>
                   </div>
                 ) : suggestions.length > 0 ? (
                   <>
-                    <div className="px-4 pt-3 pb-2 text-[10px] font-bold text-[#a0a0a0] uppercase tracking-widest">
+                    <div className="px-4 pt-3 pb-2 text-[10px] font-bold text-[#64748b] uppercase tracking-widest">
                       Suggestions
                     </div>
                     {suggestions.map((title, idx) => (
@@ -322,7 +322,7 @@ export default function HeroSearch() {
                         className={`w-full flex items-center gap-3 px-4 py-2.5 rounded-xl text-[14px] transition-all ${
                           selectedIndex === idx
                             ? "bg-[#202222] text-white"
-                            : "text-[#a0a0a0] hover:bg-[#1a1c1c] hover:text-white"
+                            : "text-[#64748b] hover:bg-[#1a1c1c] hover:text-white"
                         }`}>
                         <FileText size={14} className={(selectedIndex === idx ? "text-white" : "text-[#808080]") + " shrink-0"} />
                         <span className="truncate text-left font-medium">{title}</span>
@@ -331,7 +331,7 @@ export default function HeroSearch() {
                     ))}
                   </>
                 ) : (
-                  <div className="px-4 py-4 text-[#a0a0a0] text-[13px]">No suggestions found</div>
+                  <div className="px-4 py-4 text-[#64748b] text-[13px]">No suggestions found</div>
                 )}
               </div>
             </div>
@@ -344,12 +344,12 @@ export default function HeroSearch() {
         <div className="w-full px-4 md:px-6 mt-6 pb-24">
           {/* Premium Header */}
           {!isLoading && totalResults > 0 && (
-            <div className="max-w-[1200px] mx-auto mb-8 flex flex-col md:flex-row md:items-end justify-between gap-4 border-b border-[#2b2d2d] pb-5">
+            <div className="max-w-[1200px] mx-auto mb-8 flex flex-col md:flex-row md:items-end justify-between gap-4 border-b border-[#1f1f1f] pb-5">
               <div className="flex flex-col gap-1.5">
                 <span className="text-[24px] text-white font-bold tracking-tight font-sans">
                   {totalResults.toLocaleString()} Research Papers
                 </span>
-                <span className="text-[13px] text-[#a0a0a0] font-sans">
+                <span className="text-[13px] text-[#64748b] font-sans">
                   Search: <span className="text-white font-medium">{query}</span>
                 </span>
               </div>
@@ -363,7 +363,7 @@ export default function HeroSearch() {
             /* Skeleton grid */
             <div className="max-w-[1200px] mx-auto grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
               {[...Array(6)].map((_, i) => (
-                <div key={i} className="flex flex-col bg-[#111213] border border-[#2b2d2d] rounded-xl overflow-hidden h-full">
+                <div key={i} className="flex flex-col bg-[#111213] border border-[#1f1f1f] rounded-xl overflow-hidden h-full">
                   <div className="w-full aspect-video bg-[#1a1b1b] animate-pulse" />
                   <div className="p-4 pt-4 flex flex-col gap-3">
                     <div className="h-4 bg-[#1a1b1b] rounded w-3/4 animate-pulse" />
@@ -371,7 +371,7 @@ export default function HeroSearch() {
                     <div className="h-3 bg-[#1a1b1b] rounded w-1/2 animate-pulse mt-1" />
                     <div className="h-6 bg-[#1a1b1b] rounded w-24 animate-pulse mt-2" />
                     <div className="flex-1" />
-                    <div className="flex gap-2 pt-3 border-t border-[#2b2d2d]/50">
+                    <div className="flex gap-2 pt-3 border-t border-[#1f1f1f]">
                       <div className="h-5 bg-[#1a1b1b] rounded w-16 animate-pulse" />
                       <div className="h-5 bg-[#1a1b1b] rounded w-20 animate-pulse" />
                     </div>

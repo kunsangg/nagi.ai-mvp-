@@ -23,13 +23,13 @@ export default function NagiWriterPage() {
   };
 
   return (
-    <div style={{ width: "100%", height: "100%", display: "flex", flexDirection: "column", background: "#000000", fontFamily: SF, overflow: "hidden" }}>
+    <div style={{ width: "100%", height: "100%", display: "flex", flexDirection: "column", background: "#0a0a0a", overflow: "hidden" }}>
       
       {/* Header */}
       <header style={{
         display: "flex", alignItems: "center", justifyContent: "space-between",
         padding: "0 24px", height: 56, flexShrink: 0,
-        background: "rgba(10,15,26,0.95)", borderBottom: "1px solid #1f1f1f",
+        background: "rgba(17,17,17,0.95)", borderBottom: "1px solid #1f1f1f",
       }}>
         <div style={{ display: "flex", alignItems: "center", gap: 16 }}>
           <button onClick={() => router.back()} style={{
@@ -44,7 +44,7 @@ export default function NagiWriterPage() {
         </div>
 
         <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
-          <div style={{ fontSize: 12, color: "#64748b", fontFamily: MONO }}>
+          <div style={{ fontSize: 12, color: "#64748b" }}>
             {saved ? "Saved" : isSaving ? "Saving..." : "Edited just now"}
           </div>
           <button onClick={handleSave} style={{
@@ -95,13 +95,13 @@ export default function NagiWriterPage() {
             style={{
               flex: 1, background: "transparent", border: "none", outline: "none",
               resize: "none", color: "#e2e8f0", fontSize: 16, lineHeight: 1.8,
-              padding: "100px 10% 40px", fontFamily: SF,
+              padding: "100px 10% 40px",
             }}
           />
         </div>
 
         {/* Right Sidebar - AI Assistant */}
-        <aside style={{ width: 340, background: "#000000", borderLeft: "1px solid #1f1f1f", display: "flex", flexDirection: "column" }}>
+        <aside style={{ width: 340, background: "#0a0a0a", borderLeft: "1px solid #1f1f1f", display: "flex", flexDirection: "column" }}>
           
           <div style={{ padding: "20px 24px", borderBottom: "1px solid #1f1f1f", display: "flex", alignItems: "center", gap: 10 }}>
             <Sparkles size={16} color="#a78bfa" />

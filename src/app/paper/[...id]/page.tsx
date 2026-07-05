@@ -156,7 +156,7 @@ export default function PaperPage() {
 
   if (isLoading) return (
     <div className="flex-1 w-full h-full flex items-center justify-center"
-      style={{ background: "#000000", fontFamily: SF }}>
+      style={{ background: "#0a0a0a" }}>
       <div style={{ color: "#3bc9db" }} className="text-[14px] animate-pulse">
         Loading paper…
       </div>
@@ -165,13 +165,13 @@ export default function PaperPage() {
 
   if (!paper) return (
     <div className="flex-1 w-full h-full flex items-center justify-center"
-      style={{ background: "#000000", fontFamily: SF }}>
+      style={{ background: "#0a0a0a" }}>
       <div style={{ color: "#64748b" }} className="text-[14px]">Paper not found.</div>
     </div>
   );
 
   return (
-    <div className="flex-1 w-full h-full overflow-y-auto" style={{ background: "#000000", fontFamily: SF }}>
+    <div className="flex-1 w-full h-full overflow-y-auto" style={{ background: "#0a0a0a" }}>
 
       {/* ── Sticky nav ── */}
       <header className="sticky top-0 z-40 flex items-center justify-between px-8 py-3"
@@ -264,7 +264,7 @@ export default function PaperPage() {
           ].map(s => (
             <div key={s.label} className="flex flex-col gap-2">
               <div className="text-[10px] font-semibold uppercase tracking-widest text-[#64748b]"
-                style={{ fontFamily: MONO }}>
+                style={{ }}>
                 {s.label}
               </div>
               <div className="text-[28px] font-medium tracking-tight text-[#e2e8f0]"
@@ -334,7 +334,7 @@ export default function PaperPage() {
               <p className="text-[15px] leading-[1.8]" style={{ color: "#94a3b8" }}>{summary}</p>
             ) : (
               <p className="text-[14px]" style={{ color: "#334155" }}>
-                AI Summarization is currently disabled. Please add a <code className="px-1 py-0.5 rounded text-[#3bc9db]" style={{ background: "#0a0a0a", fontFamily: MONO }}>GROQ_API_KEY</code> to your environment variables to enable this feature.
+                AI Summarization is currently disabled. Please add a <code className="px-1 py-0.5 rounded text-[#3bc9db]" style={{ background: "#0a0a0a" }}>GROQ_API_KEY</code> to your environment variables to enable this feature.
               </p>
             )}
           </div>
@@ -342,14 +342,14 @@ export default function PaperPage() {
           {keyFindings.length > 0 && (
             <div className="mt-8">
               <h3 className="text-[13px] font-semibold uppercase tracking-widest mb-5"
-                style={{ color: "#334155", fontFamily: MONO }}>
+                style={{ color: "#334155" }}>
                 Key Findings
               </h3>
               <ul className="flex flex-col gap-4">
                 {keyFindings.map((f, i) => (
                   <li key={i} className="flex gap-4">
                     <span className="text-[13px] font-bold shrink-0 tabular-nums"
-                      style={{ color: "#3bc9db", fontFamily: MONO }}>
+                      style={{ color: "#3bc9db" }}>
                       {String(i + 1).padStart(2, "0")}.
                     </span>
                     <span className="text-[15px] leading-[1.7]" style={{ color: "#94a3b8" }}>{f}</span>
@@ -392,7 +392,7 @@ export default function PaperPage() {
                   {s.value}
                 </div>
                 <div className="text-[10px] font-semibold uppercase tracking-widest"
-                  style={{ color: "#334155", fontFamily: MONO }}>
+                  style={{ color: "#334155" }}>
                   {s.label}
                 </div>
               </div>
@@ -415,7 +415,7 @@ export default function PaperPage() {
                   background: i % 2 === 0 ? "#0a0a0a" : "#000000",
                 }}>
                 <span className="text-[10px] font-semibold tracking-widest shrink-0"
-                  style={{ color: "#334155", fontFamily: MONO }}>{row.label}</span>
+                  style={{ color: "#334155" }}>{row.label}</span>
                 {row.link ? (
                   <a href={row.link} target="_blank" rel="noopener noreferrer"
                     className="text-[13px] font-medium flex items-center gap-1.5 hover:underline truncate max-w-[460px]"
@@ -434,7 +434,7 @@ export default function PaperPage() {
           {paper.topics?.length > 0 && (
             <div className="mt-8">
               <h3 className="text-[10px] font-semibold uppercase tracking-widest mb-4"
-                style={{ color: "#334155", fontFamily: MONO }}>
+                style={{ color: "#334155" }}>
                 Topics
               </h3>
               <div className="flex flex-wrap gap-2">
@@ -443,7 +443,7 @@ export default function PaperPage() {
                     className="flex items-center gap-2 text-[12px] font-medium px-3 py-1.5 rounded-lg"
                     style={{ background: "#0a0a0a", border: "1px solid #1f1f1f", color: "#64748b" }}>
                     {t.displayName}
-                    <span className="text-[10px] font-bold" style={{ color: "#3bc9db", fontFamily: MONO }}>
+                    <span className="text-[10px] font-bold" style={{ color: "#3bc9db" }}>
                       {Math.round(t.score * 100)}%
                     </span>
                   </span>
@@ -462,7 +462,7 @@ function SectionHeader({ title }: { title: string }) {
   return (
     <div className="flex items-center gap-4 mb-2">
       <div className="w-1 h-4 rounded-sm bg-[#3bc9db]"></div>
-      <h2 className="text-[14px] font-semibold tracking-[0.1em] uppercase text-[#e2e8f0]" style={{ fontFamily: MONO }}>
+      <h2 className="text-[14px] font-semibold tracking-[0.1em] uppercase text-[#e2e8f0]" style={{ }}>
         {title}
       </h2>
     </div>

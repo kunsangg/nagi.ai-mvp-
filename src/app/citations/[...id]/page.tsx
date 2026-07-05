@@ -160,7 +160,7 @@ export default function CitationsPage() {
 
   if (isLoading) {
     return (
-      <div style={{ width: "100%", height: "100%", display: "flex", alignItems: "center", justifyContent: "center", background: "#000000", fontFamily: SF }}>
+      <div style={{ width: "100%", height: "100%", display: "flex", alignItems: "center", justifyContent: "center", background: "#0a0a0a" }}>
         <div style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: 12 }}>
           <Loader2 size={18} color="#3bc9db" style={{ animation: "spin 1s linear infinite" }} />
           <span style={{ fontSize: 13, color: "#3bc9db", fontWeight: 500 }}>Loading paper…</span>
@@ -171,14 +171,14 @@ export default function CitationsPage() {
 
   if (!source) {
     return (
-      <div style={{ width: "100%", height: "100%", display: "flex", alignItems: "center", justifyContent: "center", background: "#000000", fontFamily: SF }}>
+      <div style={{ width: "100%", height: "100%", display: "flex", alignItems: "center", justifyContent: "center", background: "#0a0a0a" }}>
         <span style={{ fontSize: 14, color: "#64748b" }}>Paper not found.</span>
       </div>
     );
   }
 
   return (
-    <div style={{ width: "100%", height: "100%", display: "flex", flexDirection: "column", background: "#000000", fontFamily: SF, overflow: "hidden" }}>
+    <div style={{ width: "100%", height: "100%", display: "flex", flexDirection: "column", background: "#0a0a0a", overflow: "hidden" }}>
       <style>{`
         @keyframes spin { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
         ::-webkit-scrollbar { width: 4px; } 
@@ -190,7 +190,7 @@ export default function CitationsPage() {
       <header style={{
         display: "flex", alignItems: "center", justifyContent: "space-between",
         padding: "0 20px", height: 48, flexShrink: 0,
-        background: "rgba(10,15,26,0.95)", borderBottom: "1px solid #1f1f1f",
+        background: "rgba(17,17,17,0.95)", borderBottom: "1px solid #1f1f1f",
         backdropFilter: "blur(20px)", zIndex: 50,
       }}>
         <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
@@ -206,7 +206,7 @@ export default function CitationsPage() {
             <span style={{ fontSize: 14, fontWeight: 600, color: "#e2e8f0" }}>Find Citations</span>
           </div>
         </div>
-        <div style={{ fontSize: 11, color: "#334155", fontFamily: MONO }}>
+        <div style={{ fontSize: 11, color: "#334155" }}>
           {totalCount.toLocaleString()} {activeTab === "cited_by" ? "citing" : "referenced"} papers
         </div>
       </header>
@@ -219,7 +219,7 @@ export default function CitationsPage() {
           background: "linear-gradient(180deg, rgba(10,15,26,0.9) 0%, #000000 100%)",
         }}>
           <div style={{ maxWidth: 860, margin: "0 auto" }}>
-            <div style={{ fontSize: 10, color: "#334155", fontFamily: MONO, textTransform: "uppercase", letterSpacing: "0.12em", marginBottom: 10 }}>
+            <div style={{ fontSize: 10, color: "#334155", textTransform: "uppercase", letterSpacing: "0.12em", marginBottom: 10 }}>
               Source Paper
             </div>
             <h1 style={{ fontSize: 22, fontWeight: 700, color: "#e2e8f0", lineHeight: 1.3, letterSpacing: "-0.015em", marginBottom: 10 }}>
@@ -244,8 +244,8 @@ export default function CitationsPage() {
                   background: "#0a0a0a", border: "1px solid #1f1f1f",
                 }}>
                   <span style={{ color: s.color, display: "flex" }}>{s.icon}</span>
-                  <span style={{ fontSize: 13, fontWeight: 700, color: "#e2e8f0", fontFamily: MONO }}>{s.value}</span>
-                  <span style={{ fontSize: 10, color: "#475569", fontFamily: MONO, textTransform: "uppercase", letterSpacing: "0.06em" }}>{s.label}</span>
+                  <span style={{ fontSize: 13, fontWeight: 700, color: "#e2e8f0" }}>{s.value}</span>
+                  <span style={{ fontSize: 10, color: "#475569", textTransform: "uppercase", letterSpacing: "0.06em" }}>{s.label}</span>
                 </div>
               ))}
             </div>
@@ -270,13 +270,13 @@ export default function CitationsPage() {
                   background: "none", border: "none", cursor: "pointer",
                   borderBottom: `2px solid ${activeTab === tab.id ? tab.color : "transparent"}`,
                   color: activeTab === tab.id ? tab.color : "#475569",
-                  transition: "all 0.12s", fontFamily: SF,
+                  transition: "all 0.12s",
                 }}>
                 {tab.icon}
                 {tab.label}
                 {tab.count !== undefined && (
                   <span style={{
-                    fontSize: 10, fontFamily: MONO, fontWeight: 700,
+                    fontSize: 10, fontWeight: 700,
                     padding: "1px 6px", borderRadius: 4,
                     background: activeTab === tab.id ? `${tab.color}15` : "#0a0a0a",
                     color: activeTab === tab.id ? tab.color : "#334155",
@@ -302,7 +302,7 @@ export default function CitationsPage() {
                 placeholder="Filter results…"
                 style={{
                   background: "none", border: "none", outline: "none",
-                  fontSize: 11, color: "#e2e8f0", fontFamily: SF, width: 120,
+                  fontSize: 11, color: "#e2e8f0", width: 120,
                 }}
               />
               {searchFilter && (
@@ -318,7 +318,7 @@ export default function CitationsPage() {
               onChange={e => setSortBy(e.target.value as SortType)}
               style={{
                 background: "#0a0a0a", border: "1px solid #1f1f1f", borderRadius: 7,
-                padding: "5px 10px", fontSize: 11, color: "#94a3b8", fontFamily: MONO,
+                padding: "5px 10px", fontSize: 11, color: "#94a3b8",
                 outline: "none", cursor: "pointer", appearance: "none",
                 paddingRight: 24,
                 backgroundImage: `url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%23475569' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='6 9 12 15 18 9'%3E%3C/polyline%3E%3C/svg%3E")`,
@@ -378,7 +378,7 @@ export default function CitationsPage() {
                             width: 28, height: 28, borderRadius: 7, flexShrink: 0,
                             background: "#0a0a0a", border: "1px solid #1f1f1f",
                             display: "flex", alignItems: "center", justifyContent: "center",
-                            fontSize: 10, fontWeight: 700, color: "#475569", fontFamily: MONO,
+                            fontSize: 10, fontWeight: 700, color: "#475569",
                           }}>
                             {(page - 1) * perPage + i + 1}
                           </div>
@@ -415,12 +415,12 @@ export default function CitationsPage() {
                               background: "rgba(59,201,219,0.07)", border: "1px solid rgba(59,201,219,0.15)",
                             }}>
                               <TrendingUp size={10} color="#3bc9db" />
-                              <span style={{ fontSize: 11, fontWeight: 700, color: "#3bc9db", fontFamily: MONO }}>
+                              <span style={{ fontSize: 11, fontWeight: 700, color: "#3bc9db" }}>
                                 {paper.citationCount?.toLocaleString()}
                               </span>
                             </div>
                             {paper.isOpenAccess && (
-                              <span style={{ fontSize: 9, color: "#10b981", fontFamily: MONO, fontWeight: 700, textTransform: "uppercase", letterSpacing: "0.06em" }}>
+                              <span style={{ fontSize: 9, color: "#10b981", fontWeight: 700, textTransform: "uppercase", letterSpacing: "0.06em" }}>
                                 Open Access
                               </span>
                             )}
@@ -446,7 +446,7 @@ export default function CitationsPage() {
                                   <span key={j} style={{
                                     fontSize: 9, padding: "2px 7px", borderRadius: 4,
                                     background: "#0a0a0a", border: "1px solid #1f1f1f",
-                                    color: "#475569", fontFamily: MONO,
+                                    color: "#475569",
                                   }}>
                                     {t.displayName}
                                   </span>
@@ -527,7 +527,7 @@ export default function CitationsPage() {
                     }}>
                     <ChevronLeft size={13} /> Prev
                   </button>
-                  <span style={{ fontSize: 12, color: "#475569", fontFamily: MONO }}>
+                  <span style={{ fontSize: 12, color: "#475569" }}>
                     {page} / {totalPages}
                   </span>
                   <button
@@ -554,7 +554,7 @@ export default function CitationsPage() {
               padding: 20, overflowY: "auto",
               background: "rgba(10,15,26,0.6)",
             }}>
-              <div style={{ fontSize: 10, color: "#334155", fontFamily: MONO, textTransform: "uppercase", letterSpacing: "0.1em", marginBottom: 16 }}>
+              <div style={{ fontSize: 10, color: "#334155", textTransform: "uppercase", letterSpacing: "0.1em", marginBottom: 16 }}>
                 Year Distribution
               </div>
               <div style={{ display: "flex", flexDirection: "column", gap: 4 }}>
@@ -563,7 +563,7 @@ export default function CitationsPage() {
                   const pct = (count / maxCount) * 100;
                   return (
                     <div key={y} style={{ display: "flex", alignItems: "center", gap: 8 }}>
-                      <span style={{ fontSize: 10, color: "#475569", fontFamily: MONO, width: 32, textAlign: "right", flexShrink: 0 }}>
+                      <span style={{ fontSize: 10, color: "#475569", width: 32, textAlign: "right", flexShrink: 0 }}>
                         {y}
                       </span>
                       <div style={{ flex: 1, height: 14, borderRadius: 3, background: "#0a0a0a", overflow: "hidden" }}>
@@ -575,7 +575,7 @@ export default function CitationsPage() {
                           transition: "width 0.3s ease",
                         }} />
                       </div>
-                      <span style={{ fontSize: 10, color: "#475569", fontFamily: MONO, width: 20, flexShrink: 0 }}>
+                      <span style={{ fontSize: 10, color: "#475569", width: 20, flexShrink: 0 }}>
                         {count}
                       </span>
                     </div>
@@ -585,7 +585,7 @@ export default function CitationsPage() {
 
               {/* Quick stats */}
               <div style={{ marginTop: 24, display: "flex", flexDirection: "column", gap: 8 }}>
-                <div style={{ fontSize: 10, color: "#334155", fontFamily: MONO, textTransform: "uppercase", letterSpacing: "0.1em", marginBottom: 4 }}>
+                <div style={{ fontSize: 10, color: "#334155", textTransform: "uppercase", letterSpacing: "0.1em", marginBottom: 4 }}>
                   Quick Stats
                 </div>
                 {[
@@ -599,8 +599,8 @@ export default function CitationsPage() {
                     padding: "6px 10px", borderRadius: 6,
                     background: "#0a0a0a", border: "1px solid #1f1f1f",
                   }}>
-                    <span style={{ fontSize: 10, color: "#475569", fontFamily: MONO, textTransform: "uppercase", letterSpacing: "0.06em" }}>{s.label}</span>
-                    <span style={{ fontSize: 12, fontWeight: 700, color: "#e2e8f0", fontFamily: MONO }}>{s.value}</span>
+                    <span style={{ fontSize: 10, color: "#475569", textTransform: "uppercase", letterSpacing: "0.06em" }}>{s.label}</span>
+                    <span style={{ fontSize: 12, fontWeight: 700, color: "#e2e8f0" }}>{s.value}</span>
                   </div>
                 ))}
               </div>

@@ -1107,7 +1107,7 @@ export default function MapPage() {
 
   return (
     <div className="w-full h-full flex overflow-hidden"
-      style={{ background: "#050505", fontFamily: SF }}>
+      style={{ background: "#050505" }}>
       <style>{`
         @keyframes flow {
           from { stroke-dashoffset: 24; }
@@ -1216,7 +1216,7 @@ export default function MapPage() {
             <div className="absolute inset-0 flex flex-col items-center justify-center gap-4 z-10">
               <Loader2 size={18} className="animate-spin" style={{ color: "#3bc9db" }} />
               <p className="text-[13px] font-medium animate-pulse" style={{ color: "#3bc9db" }}>Building research map…</p>
-              <p className="text-[10px] uppercase tracking-widest" style={{ color: "#1f1f1f", fontFamily: MONO }}>
+              <p className="text-[10px] uppercase tracking-widest" style={{ color: "#1f1f1f" }}>
                 citations · references · related works
               </p>
             </div>
@@ -1324,7 +1324,7 @@ export default function MapPage() {
                     {item.icon}
                     {/* Premium Tooltip */}
                     <div className="absolute -top-[48px] left-1/2 -translate-x-1/2 px-2.5 py-1.5 rounded-[8px] text-[11px] font-semibold opacity-0 group-hover:opacity-100 transition-all duration-200 pointer-events-none whitespace-nowrap shadow-2xl backdrop-blur-xl z-50 translate-y-1 group-hover:translate-y-0"
-                      style={{ background: "rgba(5, 5, 5, 0.95)", border: "1px solid rgba(255,255,255,0.1)", color: "#f8fafc", fontFamily: SF, letterSpacing: "0.02em" }}>
+                      style={{ background: "rgba(5, 5, 5, 0.95)", border: "1px solid rgba(255,255,255,0.1)", color: "#f8fafc", letterSpacing: "0.02em" }}>
                       {item.tip}
                     </div>
                   </button>
@@ -1361,14 +1361,14 @@ export default function MapPage() {
           <button 
             onClick={() => setActiveSidebarTab("design")}
             className={`pb-2.5 text-[11px] font-bold uppercase tracking-wider transition-colors ${activeSidebarTab === "design" ? "text-[#E2E8F0] border-b-2 border-[#3bc9db]" : "text-[#808080] hover:text-[#B0B0B0] border-b-2 border-transparent"}`}
-            style={{ fontFamily: SF }}
+            style={{ }}
           >
             Design
           </button>
           <button 
             onClick={() => setActiveSidebarTab("copilot")}
             className={`pb-2.5 text-[11px] font-bold uppercase tracking-wider transition-colors ${activeSidebarTab === "copilot" ? "text-[#E2E8F0] border-b-2 border-[#3bc9db]" : "text-[#808080] hover:text-[#B0B0B0] border-b-2 border-transparent"}`}
-            style={{ fontFamily: SF }}
+            style={{ }}
           >
             Copilot
           </button>
@@ -1393,7 +1393,7 @@ export default function MapPage() {
               `}</style>
 
               {!selectedNode && !selectedEdge ? (
-                <div className="flex-1 flex flex-col items-center justify-center text-[#64748B] text-[12px] gap-4" style={{ fontFamily: SF }}>
+                <div className="flex-1 flex flex-col items-center justify-center text-[#64748B] text-[12px] gap-4" style={{ }}>
                   <div className="w-16 h-16 rounded-2xl flex items-center justify-center border border-dashed border-[#1f1f1f] bg-[rgba(255,255,255,0.02)]">
                     <MousePointer size={20} className="opacity-50" />
                   </div>
@@ -1406,13 +1406,13 @@ export default function MapPage() {
                   {selectedNodeIds.length > 1 && (
                     <div className="flex-1 overflow-y-auto custom-scrollbar">
                       <div className="px-5 py-4 border-b border-[#1f1f1f]">
-                        <h2 className="text-[13px] font-semibold text-[#E2E8F0] tracking-wide" style={{ fontFamily: SF }}>Multiple Selected ({selectedNodeIds.length})</h2>
+                        <h2 className="text-[13px] font-semibold text-[#E2E8F0] tracking-wide" style={{ }}>Multiple Selected ({selectedNodeIds.length})</h2>
                       </div>
                       
                       <div className="p-4 space-y-6">
                         {/* ALIGNMENT SECTION */}
                         <div className="flex flex-col gap-3">
-                          <span className="text-[11px] font-semibold text-[#94A3B8] uppercase tracking-wider" style={{ fontFamily: SF }}>Alignment</span>
+                          <span className="text-[11px] font-semibold text-[#94A3B8] uppercase tracking-wider" style={{ }}>Alignment</span>
                           <div className="grid grid-cols-6 gap-1 bg-[rgba(255,255,255,0.02)] p-1 rounded-[8px] border border-[#1f1f1f]">
                             <button onClick={() => handleAlign('left')} title="Align Left" className="p-1.5 flex items-center justify-center rounded-[6px] text-[#94A3B8] hover:text-[#3BC9DB] hover:bg-[rgba(59,201,219,0.1)] transition-colors">
                               <AlignStartVertical size={16} />
@@ -1437,7 +1437,7 @@ export default function MapPage() {
 
                         {/* DISTRIBUTION SECTION */}
                         <div className="flex flex-col gap-3">
-                          <span className="text-[11px] font-semibold text-[#94A3B8] uppercase tracking-wider" style={{ fontFamily: SF }}>Distribution</span>
+                          <span className="text-[11px] font-semibold text-[#94A3B8] uppercase tracking-wider" style={{ }}>Distribution</span>
                           <div className="flex gap-2">
                             <button onClick={() => handleAlign('distributeHorizontal')} title="Distribute Horizontally" className="flex-1 py-2 flex items-center justify-center gap-2 bg-[rgba(255,255,255,0.02)] border border-[#1f1f1f] rounded-[8px] text-[#94A3B8] hover:text-[#3BC9DB] hover:border-[#3BC9DB] transition-all">
                               <AlignHorizontalSpaceBetween size={16} />
@@ -1460,7 +1460,7 @@ export default function MapPage() {
                       <div className="flex items-center justify-between px-5 py-4 shrink-0 bg-[#070b14]" style={{ borderBottom: "1px solid #1f1f1f" }}>
                         <div className="flex items-center gap-2.5">
                           <div className="w-2.5 h-2.5 rounded-sm shadow-[0_0_8px_rgba(255,255,255,0.2)]" style={{ background: selectedNode.customColor || TYPE_COLOR[selectedNode.type] }} />
-                          <span className="text-[11px] font-bold tracking-[0.15em] uppercase text-[#E2E8F0]" style={{ fontFamily: SF }}>
+                          <span className="text-[11px] font-bold tracking-[0.15em] uppercase text-[#E2E8F0]" style={{ }}>
                             {TYPE_LABEL[selectedNode.type] || selectedNode.type}
                           </span>
                         </div>
@@ -1469,7 +1469,7 @@ export default function MapPage() {
                       {/* --- GENERAL SECTION --- */}
                       <div className="flex flex-col border-b border-[#1f1f1f]">
                         <button onClick={() => toggleSection('general')} className="flex items-center justify-between px-5 py-3 hover:bg-[rgba(255,255,255,0.02)] transition-colors w-full text-left">
-                          <span className="text-[11px] font-bold uppercase tracking-wider text-[#94A3B8]" style={{ fontFamily: SF }}>General</span>
+                          <span className="text-[11px] font-bold uppercase tracking-wider text-[#94A3B8]" style={{ }}>General</span>
                           <ChevronDown size={14} className={`text-[#64748B] transition-transform duration-200 ${openSections.general ? 'rotate-180' : ''}`} />
                         </button>
                         {openSections.general && (
@@ -1478,14 +1478,14 @@ export default function MapPage() {
                               value={selectedNode.title}
                               onChange={(e) => updateSelectedNode({ title: e.target.value })}
                               className="text-[14px] font-semibold leading-snug bg-transparent border border-transparent hover:border-[#1f1f1f] focus:border-[#3BC9DB] focus:bg-[rgba(255,255,255,0.02)] rounded-[6px] outline-none px-2 py-1 -mx-2 transition-all w-[calc(100%+16px)]"
-                              style={{ color: "#F8FAFC", fontFamily: SF }}
+                              style={{ color: "#F8FAFC" }}
                               placeholder="Title..."
                             />
                             <textarea
                               value={selectedNode.description || ""}
                               onChange={(e) => updateSelectedNode({ description: e.target.value })}
                               className="text-[12px] leading-relaxed bg-transparent border border-transparent hover:border-[#1f1f1f] focus:border-[#3BC9DB] focus:bg-[rgba(255,255,255,0.02)] rounded-[6px] outline-none resize-none px-2 py-1 -mx-2 transition-all w-[calc(100%+16px)]"
-                              style={{ color: "#94A3B8", minHeight: "60px", fontFamily: SF }}
+                              style={{ color: "#94A3B8", minHeight: "60px" }}
                               placeholder="Add a description..."
                             />
                           </div>
@@ -1495,7 +1495,7 @@ export default function MapPage() {
                       {/* --- APPEARANCE SECTION --- */}
                       <div className="flex flex-col border-b border-[#1f1f1f]">
                         <button onClick={() => toggleSection('appearance')} className="flex items-center justify-between px-5 py-3 hover:bg-[rgba(255,255,255,0.02)] transition-colors w-full text-left">
-                          <span className="text-[11px] font-bold uppercase tracking-wider text-[#94A3B8]" style={{ fontFamily: SF }}>Appearance</span>
+                          <span className="text-[11px] font-bold uppercase tracking-wider text-[#94A3B8]" style={{ }}>Appearance</span>
                           <ChevronDown size={14} className={`text-[#64748B] transition-transform duration-200 ${openSections.appearance ? 'rotate-180' : ''}`} />
                         </button>
                         {openSections.appearance && (
@@ -1503,7 +1503,7 @@ export default function MapPage() {
                             
                             {/* Color Picker Swatches */}
                             <div className="flex flex-col gap-2">
-                              <span className="text-[10px] font-medium text-[#64748B]" style={{ fontFamily: SF }}>Accent Color</span>
+                              <span className="text-[10px] font-medium text-[#64748B]" style={{ }}>Accent Color</span>
                               <div className="flex gap-1.5 flex-wrap">
                                 {["", "#ef4444", "#f59e0b", "#10b981", "#3bc9db", "#6366f1", "#a855f7", "#ec4899", "#ffffff", "#444444"].map((c) => (
                                   <button key={c || "default"} onClick={() => updateSelectedNode({ customColor: c || undefined })}
@@ -1521,7 +1521,7 @@ export default function MapPage() {
                             {/* Opacity Slider (Mock) */}
                             <div className="flex flex-col gap-2">
                                <div className="flex justify-between items-center">
-                                  <span className="text-[10px] font-medium text-[#64748B]" style={{ fontFamily: SF }}>Opacity</span>
+                                  <span className="text-[10px] font-medium text-[#64748B]" style={{ }}>Opacity</span>
                                   <span className="text-[10px] font-mono text-[#E2E8F0]">100%</span>
                                </div>
                                <input type="range" min="0" max="100" defaultValue="100" className="nagi-slider" />
@@ -1534,14 +1534,14 @@ export default function MapPage() {
                       {/* --- SIZE & LAYOUT SECTION --- */}
                       <div className="flex flex-col border-b border-[#1f1f1f]">
                         <button onClick={() => toggleSection('layout')} className="flex items-center justify-between px-5 py-3 hover:bg-[rgba(255,255,255,0.02)] transition-colors w-full text-left">
-                          <span className="text-[11px] font-bold uppercase tracking-wider text-[#94A3B8]" style={{ fontFamily: SF }}>Layout</span>
+                          <span className="text-[11px] font-bold uppercase tracking-wider text-[#94A3B8]" style={{ }}>Layout</span>
                           <ChevronDown size={14} className={`text-[#64748B] transition-transform duration-200 ${openSections.layout ? 'rotate-180' : ''}`} />
                         </button>
                         {openSections.layout && (
                           <div className="flex flex-col gap-4 px-5 pb-5 pt-1">
                             <div className="flex items-center gap-3">
                               <div className="flex-1 flex flex-col gap-1.5">
-                                <span className="text-[10px] font-medium text-[#64748B]" style={{ fontFamily: SF }}>W</span>
+                                <span className="text-[10px] font-medium text-[#64748B]" style={{ }}>W</span>
                                 <input 
                                   type="text" 
                                   value={selectedNode.width || "Auto"} 
@@ -1554,7 +1554,7 @@ export default function MapPage() {
                               </div>
                               <div className="w-4 flex justify-center text-[#475569]"><Link2 size={12}/></div>
                               <div className="flex-1 flex flex-col gap-1.5">
-                                <span className="text-[10px] font-medium text-[#64748B]" style={{ fontFamily: SF }}>H</span>
+                                <span className="text-[10px] font-medium text-[#64748B]" style={{ }}>H</span>
                                 <input 
                                   type="text" 
                                   value={selectedNode.height || "Auto"} 
@@ -1568,7 +1568,7 @@ export default function MapPage() {
                             </div>
                             
                             <div className="flex flex-col gap-2 mt-2">
-                               <span className="text-[10px] font-medium text-[#64748B]" style={{ fontFamily: SF }}>Corner Radius</span>
+                               <span className="text-[10px] font-medium text-[#64748B]" style={{ }}>Corner Radius</span>
                                <div className="flex items-center bg-[rgba(255,255,255,0.03)] border border-[#1f1f1f] p-0.5 rounded-[8px]">
                                   {[0, 8, 16, 24].map((r) => {
                                     const isActive = selectedNode.borderRadius === r || (!selectedNode.borderRadius && r === 16);
@@ -1592,7 +1592,7 @@ export default function MapPage() {
                       {selectedNode.type === "paper" && (
                         <div className="flex flex-col border-b border-[#1f1f1f]">
                           <button onClick={() => toggleSection('metadata')} className="flex items-center justify-between px-5 py-3 hover:bg-[rgba(255,255,255,0.02)] transition-colors w-full text-left">
-                            <span className="text-[11px] font-bold uppercase tracking-wider text-[#94A3B8]" style={{ fontFamily: SF }}>Metadata</span>
+                            <span className="text-[11px] font-bold uppercase tracking-wider text-[#94A3B8]" style={{ }}>Metadata</span>
                             <ChevronDown size={14} className={`text-[#64748B] transition-transform duration-200 ${openSections.metadata ? 'rotate-180' : ''}`} />
                           </button>
                           {openSections.metadata && (
@@ -1605,27 +1605,27 @@ export default function MapPage() {
                                 { key: "journal", label: "Journal", value: selectedNode.journal },
                               ].map(row => (
                                 <div key={row.label} className="flex items-center justify-between gap-2 group">
-                                  <span className="text-[11px] font-medium text-[#64748B]" style={{ fontFamily: SF }}>{row.label}</span>
+                                  <span className="text-[11px] font-medium text-[#64748B]" style={{ }}>{row.label}</span>
                                   <input 
                                     type="text"
                                     value={row.value || ""}
                                     onChange={(e) => updateSelectedNode({ [row.key]: row.isNumber ? (parseInt(e.target.value) || 0) : e.target.value })}
                                     className="text-[11px] font-medium text-right bg-transparent border-b border-transparent group-hover:border-[#1f1f1f] focus:border-[#3BC9DB] outline-none placeholder-[#334155] w-40 transition-colors py-0.5"
-                                    style={{ color: "#E2E8F0", fontFamily: SF }}
+                                    style={{ color: "#E2E8F0" }}
                                     placeholder="-"
                                   />
                                 </div>
                               ))}
                               
                               <div className="mt-3">
-                                 <span className="text-[10px] font-medium text-[#64748B] mb-1.5 block" style={{ fontFamily: SF }}>Tags</span>
+                                 <span className="text-[10px] font-medium text-[#64748B] mb-1.5 block" style={{ }}>Tags</span>
                                  <input 
                                     type="text"
                                     value={(selectedNode.tags || []).join(", ")}
                                     onChange={(e) => updateSelectedNode({ tags: e.target.value.split(",").map(t => t.trim()).filter(Boolean) })}
                                     placeholder="Add tags separated by commas..."
                                     className="text-[11px] bg-[rgba(255,255,255,0.02)] border border-[#1f1f1f] rounded-[6px] px-3 py-2 outline-none focus:border-[#3BC9DB] w-full transition-colors"
-                                    style={{ color: "#E2E8F0", fontFamily: SF }}
+                                    style={{ color: "#E2E8F0" }}
                                   />
                               </div>
                             </div>
@@ -1636,7 +1636,7 @@ export default function MapPage() {
                       {/* --- NOTES SECTION --- */}
                       <div className="flex flex-col border-b border-[#1f1f1f]">
                         <button onClick={() => toggleSection('notes')} className="flex items-center justify-between px-5 py-3 hover:bg-[rgba(255,255,255,0.02)] transition-colors w-full text-left">
-                          <span className="text-[11px] font-bold uppercase tracking-wider text-[#94A3B8]" style={{ fontFamily: SF }}>Notes</span>
+                          <span className="text-[11px] font-bold uppercase tracking-wider text-[#94A3B8]" style={{ }}>Notes</span>
                           <ChevronDown size={14} className={`text-[#64748B] transition-transform duration-200 ${openSections.notes ? 'rotate-180' : ''}`} />
                         </button>
                         {openSections.notes && (
@@ -1645,7 +1645,7 @@ export default function MapPage() {
                                value={selectedNode.note || ""}
                                onChange={(e) => updateSelectedNode({ note: e.target.value })}
                                className="text-[12px] leading-relaxed rounded-[8px] bg-[rgba(255,255,255,0.02)] border border-[#1f1f1f] px-3 py-2.5 outline-none resize-y placeholder-[#475569] w-full focus:border-[#3BC9DB] transition-colors"
-                               style={{ color: "#E2E8F0", minHeight: "100px", fontFamily: SF }}
+                               style={{ color: "#E2E8F0", minHeight: "100px" }}
                                placeholder="Supports Markdown..."
                              />
                           </div>
@@ -1655,7 +1655,7 @@ export default function MapPage() {
                       {/* --- CONNECTIONS SECTION --- */}
                       <div className="flex flex-col border-b border-[#1f1f1f]">
                         <button onClick={() => toggleSection('connections')} className="flex items-center justify-between px-5 py-3 hover:bg-[rgba(255,255,255,0.02)] transition-colors w-full text-left">
-                          <span className="text-[11px] font-bold uppercase tracking-wider text-[#94A3B8]" style={{ fontFamily: SF }}>Connections</span>
+                          <span className="text-[11px] font-bold uppercase tracking-wider text-[#94A3B8]" style={{ }}>Connections</span>
                           <ChevronDown size={14} className={`text-[#64748B] transition-transform duration-200 ${openSections.connections ? 'rotate-180' : ''}`} />
                         </button>
                         {openSections.connections && (
@@ -1665,7 +1665,7 @@ export default function MapPage() {
                               const tgtId = typeof e.target === "string" ? e.target : e.target.id;
                               return srcId === selectedNode.id || tgtId === selectedNode.id;
                             }).length === 0 ? (
-                               <span className="text-[11px] text-[#475569] py-2" style={{ fontFamily: SF }}>No active connections.</span>
+                               <span className="text-[11px] text-[#475569] py-2" style={{ }}>No active connections.</span>
                             ) : (
                               edges.filter(e => {
                                 const srcId = typeof e.source === "string" ? e.source : e.source.id;
@@ -1679,8 +1679,8 @@ export default function MapPage() {
                                 const otherNode = nodes.find(n => n.id === otherId);
                                 return (
                                   <div key={i} className="flex justify-between items-center bg-[rgba(255,255,255,0.02)] px-3 py-2 rounded-[6px] border border-[#1f1f1f] hover:border-[#334155] transition-colors cursor-pointer group">
-                                    <span className="text-[11px] text-[#E2E8F0] font-medium truncate w-[130px]" style={{ fontFamily: SF }}>{otherNode?.title || String(otherId)}</span>
-                                    <span className="text-[9px] font-bold uppercase py-0.5 px-1.5 rounded-[4px]" style={{fontFamily: MONO, color: EDGE_COLOR[e.type], background: `${EDGE_COLOR[e.type]}22`}}>{e.label || e.type}</span>
+                                    <span className="text-[11px] text-[#E2E8F0] font-medium truncate w-[130px]" style={{ }}>{otherNode?.title || String(otherId)}</span>
+                                    <span className="text-[9px] font-bold uppercase py-0.5 px-1.5 rounded-[4px]" style={{ color: EDGE_COLOR[e.type], background: `${EDGE_COLOR[e.type]}22`}}>{e.label || e.type}</span>
                                   </div>
                                 );
                               })
@@ -1695,12 +1695,12 @@ export default function MapPage() {
                           <div className="flex gap-2">
                             <button onClick={() => { window.location.href = `/paper/${selectedNode.id}`; }}
                               className="flex-1 flex items-center justify-center gap-1.5 py-2 rounded-[8px] text-[11px] font-semibold transition-all hover:bg-[rgba(255,255,255,0.08)] bg-[rgba(255,255,255,0.04)]"
-                              style={{ color: "#E2E8F0", fontFamily: SF }}>
+                              style={{ color: "#E2E8F0" }}>
                               <BookOpen size={14} /> View
                             </button>
                             <button onClick={() => { window.location.href = `/map/${selectedNode.id}`; }}
                               className="flex-1 flex items-center justify-center gap-1.5 py-2 rounded-[8px] text-[11px] font-semibold transition-all hover:bg-[rgba(255,255,255,0.08)] bg-[rgba(255,255,255,0.04)]"
-                              style={{ color: "#E2E8F0", fontFamily: SF }}>
+                              style={{ color: "#E2E8F0" }}>
                               <Map size={14} /> Map
                             </button>
                           </div>
@@ -1708,7 +1708,7 @@ export default function MapPage() {
                         {selectedNode.url && (
                           <a href={selectedNode.url} target="_blank" rel="noopener noreferrer"
                             className="w-full flex items-center justify-center gap-1.5 py-2 rounded-[8px] text-[11px] font-semibold transition-all hover:bg-[rgba(255,255,255,0.08)] bg-[rgba(255,255,255,0.04)]"
-                            style={{ color: "#E2E8F0", fontFamily: SF }}>
+                            style={{ color: "#E2E8F0" }}>
                             <ExternalLink size={14} /> Source Link
                           </a>
                         )}
@@ -1727,7 +1727,7 @@ export default function MapPage() {
                             setSelectedNodeIds([]);
                           }}
                           className="w-full flex items-center justify-center gap-2 py-2 rounded-[8px] text-[12px] font-semibold transition-all hover:bg-[rgba(239,68,68,0.15)] bg-[rgba(239,68,68,0.05)] border border-[rgba(239,68,68,0.2)]"
-                          style={{ color: "#F87171", fontFamily: SF }}>
+                          style={{ color: "#F87171" }}>
                           <Trash2 size={14} /> Delete Node
                         </button>
                       </div>
@@ -1740,16 +1740,16 @@ export default function MapPage() {
                       <div className="flex items-center gap-2 px-5 py-4 shrink-0 bg-[#070b14]" style={{ borderBottom: "1px solid #1f1f1f" }}>
                         <Link2 size={14} color="#64748B" />
                         <span className="text-[11px] font-bold tracking-[0.15em] uppercase"
-                          style={{ color: EDGE_COLOR[selectedEdge.type] || "#E2E8F0", fontFamily: SF }}>
+                          style={{ color: EDGE_COLOR[selectedEdge.type] || "#E2E8F0" }}>
                           Connection
                         </span>
                       </div>
 
                       <div className="flex flex-col gap-3 px-5 py-5" style={{ borderBottom: "1px solid #1f1f1f" }}>
-                        <span className="text-[11px] font-bold uppercase tracking-wider text-[#94A3B8]" style={{ fontFamily: SF }}>Properties</span>
+                        <span className="text-[11px] font-bold uppercase tracking-wider text-[#94A3B8]" style={{ }}>Properties</span>
                         
                         <div className="flex flex-col gap-1.5 mt-2">
-                          <span className="text-[10px] font-medium text-[#64748B]" style={{ fontFamily: SF }}>Relationship Type</span>
+                          <span className="text-[10px] font-medium text-[#64748B]" style={{ }}>Relationship Type</span>
                           <select
                             value={selectedEdge.type}
                             onChange={(e) => {
@@ -1758,7 +1758,7 @@ export default function MapPage() {
                               setSelectedEdge({ ...selectedEdge, type: newType, label: EDGE_LABEL[newType] });
                             }}
                             className="w-full text-[12px] font-medium bg-[rgba(255,255,255,0.03)] border border-[#1f1f1f] rounded-[6px] px-3 py-2 outline-none cursor-pointer focus:border-[#3BC9DB] transition-colors"
-                            style={{ color: "#E2E8F0", fontFamily: SF }}>
+                            style={{ color: "#E2E8F0" }}>
                             {Object.keys(EDGE_COLOR).map((t) => (
                               <option key={t} value={t} style={{background: "#111111"}}>{EDGE_LABEL[t as EdgeType]}</option>
                             ))}
@@ -1766,7 +1766,7 @@ export default function MapPage() {
                         </div>
 
                         <div className="flex flex-col gap-1.5 mt-2">
-                          <span className="text-[10px] font-medium text-[#64748B]" style={{ fontFamily: SF }}>Custom Label (Pill)</span>
+                          <span className="text-[10px] font-medium text-[#64748B]" style={{ }}>Custom Label (Pill)</span>
                           <input
                             type="text"
                             value={selectedEdge.label || EDGE_LABEL[selectedEdge.type]}
@@ -1775,7 +1775,7 @@ export default function MapPage() {
                               setSelectedEdge({ ...selectedEdge, label: e.target.value });
                             }}
                             className="w-full text-[12px] font-medium bg-[rgba(255,255,255,0.03)] border border-[#1f1f1f] rounded-[6px] px-3 py-2 outline-none focus:border-[#3BC9DB] transition-colors"
-                            style={{ color: "#E2E8F0", fontFamily: SF }}
+                            style={{ color: "#E2E8F0" }}
                           />
                         </div>
                       </div>
@@ -1788,7 +1788,7 @@ export default function MapPage() {
                             setSelectedEdge(null);
                           }}
                           className="w-full flex items-center justify-center gap-2 py-2 rounded-[8px] text-[12px] font-semibold transition-all hover:bg-[rgba(239,68,68,0.15)] bg-[rgba(239,68,68,0.05)] border border-[rgba(239,68,68,0.2)]"
-                          style={{ color: "#F87171", fontFamily: SF }}>
+                          style={{ color: "#F87171" }}>
                           <Trash2 size={14} /> Delete Connection
                         </button>
                       </div>
@@ -1805,7 +1805,7 @@ export default function MapPage() {
               {/* Chat History */}
               <div className="flex-1 overflow-y-auto px-4 py-4 flex flex-col gap-6" style={{ WebkitOverflowScrolling: "touch" }}>
                 {chatMessages.length === 0 && !isProcessingAI && (
-                  <div className="text-[#808080] text-[12px] px-1" style={{ fontFamily: SF }}>
+                  <div className="text-[#808080] text-[12px] px-1" style={{ }}>
                     I'll help you create or modify the canvas. Let me know what you need.
                   </div>
                 )}
@@ -1823,7 +1823,7 @@ export default function MapPage() {
                         </div>
                       )}
                     </div>
-                    <div className="flex-1 text-[12px] leading-relaxed text-[#D1D5DB] whitespace-pre-wrap" style={{ fontFamily: SF }}>
+                    <div className="flex-1 text-[12px] leading-relaxed text-[#D1D5DB] whitespace-pre-wrap" style={{ }}>
                       {msg.text}
                     </div>
                   </div>
@@ -1852,7 +1852,7 @@ export default function MapPage() {
                       type="button"
                       onClick={() => setIsContextAdded(!isContextAdded)}
                       className={`flex items-center gap-1.5 px-1.5 py-0.5 rounded ${isContextAdded ? 'bg-[rgba(59,201,219,0.15)] text-[#3bc9db] border border-[rgba(59,201,219,0.3)]' : 'bg-[#1f1f1f] hover:bg-[#334155] text-[#A0A0A0] hover:text-[#E2E8F0]'} transition-colors text-[10px] font-medium`} 
-                      style={{ fontFamily: SF }}
+                      style={{ }}
                     >
                       <Paperclip size={10} /> {isContextAdded ? "Context Added" : "Add Context"}
                     </button>
@@ -1872,7 +1872,7 @@ export default function MapPage() {
                       disabled={isProcessingAI}
                       placeholder="Ask Nagi..."
                       className="w-full bg-transparent resize-none outline-none px-3 py-2.5 text-[12px] text-[#E2E8F0] placeholder-[#666] min-h-[50px]"
-                      style={{ fontFamily: SF }}
+                      style={{ }}
                     />
                     
                     {/* Bottom Row Controls */}
@@ -1887,7 +1887,7 @@ export default function MapPage() {
                             type="button" 
                             onClick={() => setShowModelDropdown(!showModelDropdown)}
                             className="flex items-center gap-1 px-1.5 py-1 rounded hover:bg-[#1f1f1f] text-[#808080] hover:text-[#D1D5DB] transition-colors text-[10px] font-medium" 
-                            style={{ fontFamily: SF }}
+                            style={{ }}
                           >
                             {selectedModel} <ChevronDown size={10} />
                           </button>
@@ -1944,7 +1944,7 @@ export default function MapPage() {
                 onChange={e => setAddQuery(e.target.value)}
                 placeholder="Search by title, author, topic…"
                 className="flex-1 bg-transparent text-[13px] text-white focus:outline-none"
-                style={{ fontFamily: SF }} />
+                style={{ }} />
               {isSearching && <Loader2 size={13} className="animate-spin" style={{ color: "#3bc9db" }} />}
             </div>
             <div className="max-h-72 overflow-y-auto">
@@ -1967,7 +1967,7 @@ export default function MapPage() {
               )}
               {addQuery.length < 2 && (
                 <p className="px-5 py-6 text-[11px] uppercase tracking-widest"
-                  style={{ color: "#1f1f1f", fontFamily: MONO }}>Type to search</p>
+                  style={{ color: "#1f1f1f" }}>Type to search</p>
               )}
             </div>
           </div>
@@ -2009,7 +2009,7 @@ export default function MapPage() {
                 onChange={e => setEdgeLabelInput(e.target.value)}
                 placeholder="Or type a custom label…"
                 className="w-full bg-transparent text-[13px] text-white focus:outline-none py-2"
-                style={{ borderBottom: "1px solid #1f1f1f", fontFamily: SF }} />
+                style={{ borderBottom: "1px solid #1f1f1f" }} />
               <div className="flex gap-2 mt-4">
                 <button
                   onClick={() => {
@@ -2055,7 +2055,7 @@ export default function MapPage() {
                 placeholder="Write a note about this paper…"
                 rows={4}
                 className="w-full bg-transparent text-[13px] text-white focus:outline-none resize-none p-3 rounded-xl"
-                style={{ border: "1px solid #1f1f1f", fontFamily: SF, color: "#94a3b8" }} />
+                style={{ border: "1px solid #1f1f1f", color: "#94a3b8" }} />
               <div className="flex gap-2 mt-3">
                 <button
                   onClick={() => {
@@ -2097,7 +2097,7 @@ export default function MapPage() {
               <input type="url" value={urlInput} onChange={e => setUrlInput(e.target.value)}
                 placeholder="https://doi.org/… or any URL"
                 className="w-full bg-transparent text-[13px] text-white focus:outline-none py-2"
-                style={{ borderBottom: "1px solid #1f1f1f", fontFamily: SF }} />
+                style={{ borderBottom: "1px solid #1f1f1f" }} />
               <div className="flex gap-2 mt-4">
                 <button
                   onClick={() => {

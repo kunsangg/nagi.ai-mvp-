@@ -27,26 +27,26 @@ export default function Sidebar() {
 
   return (
     <aside 
-      className={`${isCollapsed ? "w-[68px]" : "w-[240px]"} flex-shrink-0 h-full bg-[#121314] flex flex-col pt-5 pb-4 px-3 border-r border-[#2b2d2d]/40 transition-all duration-300 ease-in-out`}
+      className={`${isCollapsed ? "w-[68px]" : "w-[240px]"} flex-shrink-0 h-full bg-[#0a0a0a] flex flex-col pt-5 pb-4 px-3 border-r border-[#1f1f1f] transition-all duration-300 ease-in-out`}
     >
       {/* Logo Area */}
       <div className={`flex items-center mb-8 ${isCollapsed ? "justify-center px-0" : "justify-between px-2"}`}>
         {!isCollapsed && (
           <div className="select-none flex items-center gap-3">
-            <div className="text-transparent bg-clip-text bg-gradient-to-b from-[#0a58ca] to-[#3bc9db] text-3xl font-black leading-none">
+            <div className="   text-[#3bc9db] text-3xl font-black leading-none">
               海
             </div>
-            <span className="text-[#e8e8e6] font-bold text-xl tracking-widest">NAGI</span>
+            <span className="text-[#e2e8f0] font-bold text-xl tracking-widest">NAGI</span>
           </div>
         )}
         {isCollapsed && (
-          <div className="text-transparent bg-clip-text bg-gradient-to-b from-[#0a58ca] to-[#3bc9db] text-3xl font-black leading-none">
+          <div className="   text-[#3bc9db] text-3xl font-black leading-none">
             海
           </div>
         )}
         <button 
           onClick={() => setIsCollapsed(!isCollapsed)}
-          className={`text-[#a0a0a0] hover:text-[#e8e8e6] transition-colors p-1.5 rounded-lg hover:bg-[#2b2d2d] ${isCollapsed ? "hidden" : "block"}`}
+          className={`text-[#64748b] hover:text-[#e2e8f0] transition-colors p-1.5 rounded-lg hover:bg-[#1f1f1f] ${isCollapsed ? "hidden" : "block"}`}
           title="Collapse Sidebar"
         >
           <PanelLeftClose size={18} />
@@ -58,7 +58,7 @@ export default function Sidebar() {
         <div className="flex justify-center mb-6">
           <button 
             onClick={() => setIsCollapsed(false)}
-            className="text-[#a0a0a0] hover:text-[#e8e8e6] transition-colors p-2 rounded-lg hover:bg-[#2b2d2d]"
+            className="text-[#64748b] hover:text-[#e2e8f0] transition-colors p-2 rounded-lg hover:bg-[#1f1f1f]"
             title="Expand Sidebar"
           >
             <PanelLeft size={20} />
@@ -70,42 +70,42 @@ export default function Sidebar() {
       <div className="mb-6 px-1 relative">
         <button 
           onClick={() => !isCollapsed && setShowWorkspaces(!showWorkspaces)}
-          className={`w-full flex items-center ${isCollapsed ? "justify-center" : "justify-between"} p-2 rounded-lg hover:bg-[#2b2d2d] transition-colors border border-transparent hover:border-[#3a3c3c]`}
+          className={`w-full flex items-center ${isCollapsed ? "justify-center" : "justify-between"} p-2 rounded-lg hover:bg-[#1f1f1f] transition-colors border border-transparent hover:border-[#333333]`}
           title={isCollapsed ? workspace : undefined}
         >
           <div className="flex items-center gap-3 min-w-0">
-            <div className="w-6 h-6 rounded-md bg-gradient-to-br from-[#2b2d2d] to-[#1a1c1d] flex items-center justify-center flex-shrink-0 border border-[#3a3c3c]">
+            <div className="w-6 h-6 rounded-md r from-[#2b2d2d] to-[#1a1c1d] flex items-center justify-center flex-shrink-0 border border-[#333333]">
               {workspace === "Personal Workspace" ? (
-                <UserCircle2 size={14} className="text-[#a0a0a0]" />
+                <UserCircle2 size={14} className="text-[#64748b]" />
               ) : (
                 <Building2 size={14} className="text-[#3bc9db]" />
               )}
             </div>
             {!isCollapsed && (
               <div className="flex flex-col items-start min-w-0">
-                <span className="text-xs text-[#a0a0a0] font-medium leading-none mb-1">Workspace</span>
-                <span className="text-sm text-[#e8e8e6] font-semibold truncate leading-none">{workspace}</span>
+                <span className="text-xs text-[#64748b] font-medium leading-none mb-1">Workspace</span>
+                <span className="text-sm text-[#e2e8f0] font-semibold truncate leading-none">{workspace}</span>
               </div>
             )}
           </div>
-          {!isCollapsed && <ChevronDown size={14} className="text-[#a0a0a0] flex-shrink-0" />}
+          {!isCollapsed && <ChevronDown size={14} className="text-[#64748b] flex-shrink-0" />}
         </button>
 
         {showWorkspaces && !isCollapsed && (
-          <div className="absolute top-full left-0 right-0 mt-2 bg-[#1a1c1d] border border-[#2b2d2d] rounded-lg shadow-xl z-50 p-2 overflow-hidden">
+          <div className="absolute top-full left-0 right-0 mt-2 bg-[#111111] border border-[#1f1f1f] rounded-lg shadow-xl z-50 p-2 overflow-hidden">
             <button 
               onClick={() => { setWorkspace("Personal Workspace"); setShowWorkspaces(false); }}
-              className="w-full flex items-center gap-3 p-2 rounded-md hover:bg-[#2b2d2d] transition-colors text-left"
+              className="w-full flex items-center gap-3 p-2 rounded-md hover:bg-[#1f1f1f] transition-colors text-left"
             >
-              <UserCircle2 size={16} className="text-[#a0a0a0]" />
-              <span className="text-sm text-[#e8e8e6] font-medium">Personal Workspace</span>
+              <UserCircle2 size={16} className="text-[#64748b]" />
+              <span className="text-sm text-[#e2e8f0] font-medium">Personal Workspace</span>
             </button>
             <button 
               onClick={() => { setWorkspace("Stanford Neuro Lab"); setShowWorkspaces(false); }}
-              className="w-full flex items-center gap-3 p-2 rounded-md hover:bg-[#2b2d2d] transition-colors text-left mt-1"
+              className="w-full flex items-center gap-3 p-2 rounded-md hover:bg-[#1f1f1f] transition-colors text-left mt-1"
             >
               <Building2 size={16} className="text-[#3bc9db]" />
-              <span className="text-sm text-[#e8e8e6] font-medium">Stanford Neuro Lab</span>
+              <span className="text-sm text-[#e2e8f0] font-medium">Stanford Neuro Lab</span>
             </button>
           </div>
         )}
@@ -114,10 +114,10 @@ export default function Sidebar() {
       {/* New Research Button */}
       <div className="mb-6 flex justify-center">
         <button 
-          className={`${isCollapsed ? "w-11 h-11 px-0 justify-center" : "w-full h-[44px] px-4 justify-start"} bg-[#1a1c1d] hover:bg-[#2b2d2d] text-[#e8e8e6] rounded-xl flex items-center transition-all duration-200 text-sm font-semibold border border-[#2b2d2d]/80 shadow-sm overflow-hidden`}
+          className={`${isCollapsed ? "w-11 h-11 px-0 justify-center" : "w-full h-[44px] px-4 justify-start"} bg-[#111111] hover:bg-[#1f1f1f] text-[#e2e8f0] rounded-xl flex items-center transition-all duration-200 text-sm font-semibold border border-[#1f1f1f] shadow-sm overflow-hidden`}
         >
           <div className={`flex items-center ${isCollapsed ? "gap-0 justify-center" : "gap-3 whitespace-nowrap min-w-0"}`}>
-            <Plus size={18} className="text-[#e8e8e6] flex-shrink-0" />
+            <Plus size={18} className="text-[#e2e8f0] flex-shrink-0" />
             {!isCollapsed && <span className="truncate">New Research</span>}
           </div>
         </button>
@@ -156,14 +156,14 @@ export default function Sidebar() {
         )}
       </nav>
 
-      <div className="my-3 border-t border-[#2b2d2d]/40"></div>
+      <div className="my-3 border-t border-[#1f1f1f]"></div>
 
       {/* Footer Nav */}
       <div className="space-y-1 flex flex-col">
         <NavItem icon={<Settings size={18} />} label="Settings" isCollapsed={isCollapsed} />
         <button className={`w-full flex items-center ${isCollapsed ? "justify-center p-2" : "justify-between px-3 py-2.5"} hover:bg-[#202222] rounded-xl transition-colors group mt-1`}>
-          <div className={`flex items-center ${isCollapsed ? "gap-0 justify-center" : "gap-3"} text-sm font-medium text-[#a0a0a0] group-hover:text-[#e8e8e6] transition-colors`}>
-            <div className="w-7 h-7 rounded-full bg-[#1a1c1d] border border-[#2b2d2d] flex items-center justify-center text-[#a0a0a0] group-hover:text-[#e8e8e6] transition-colors flex-shrink-0 shadow-sm">
+          <div className={`flex items-center ${isCollapsed ? "gap-0 justify-center" : "gap-3"} text-sm font-medium text-[#64748b] group-hover:text-[#e2e8f0] transition-colors`}>
+            <div className="w-7 h-7 rounded-full bg-[#111111] border border-[#1f1f1f] flex items-center justify-center text-[#64748b] group-hover:text-[#e2e8f0] transition-colors flex-shrink-0 shadow-sm">
               <UserCircle2 size={16} />
             </div>
             {!isCollapsed && <span className="truncate">Kunsang</span>}
@@ -181,8 +181,8 @@ function NavItem({ icon, label, active = false, className = "", isCollapsed, onR
       title={isCollapsed ? label : undefined}
       className={`group relative flex items-center ${isCollapsed ? "justify-center px-0 h-11 w-11 mx-auto" : "gap-3 px-3 py-2.5"} rounded-xl text-sm font-medium transition-all duration-200 ${
         active 
-          ? "bg-[#202222] text-[#e8e8e6] shadow-sm" 
-          : "text-[#a0a0a0] hover:bg-[#1a1c1d] hover:text-[#e8e8e6]"
+          ? "bg-[#202222] text-[#e2e8f0] shadow-sm" 
+          : "text-[#64748b] hover:bg-[#111111] hover:text-[#e2e8f0]"
       } ${className}`}
     >
       {icon && <span className={`${active ? "opacity-100" : "opacity-70"} flex-shrink-0 transition-opacity`}>{icon}</span>}
@@ -195,7 +195,7 @@ function NavItem({ icon, label, active = false, className = "", isCollapsed, onR
             e.stopPropagation();
             onRemove();
           }}
-          className="absolute right-2 opacity-0 group-hover:opacity-100 text-[#a0a0a0] hover:text-[#e8e8e6] hover:bg-[#2b2d2d] p-1 rounded-md transition-all duration-200"
+          className="absolute right-2 opacity-0 group-hover:opacity-100 text-[#64748b] hover:text-[#e2e8f0] hover:bg-[#1f1f1f] p-1 rounded-md transition-all duration-200"
           title="Remove"
         >
           <X size={14} />

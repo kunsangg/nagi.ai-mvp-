@@ -47,7 +47,7 @@ function PaperCard({ paper, onRemove }: { paper: Paper; onRemove: () => void }) 
         <div style={{ fontSize: 12, fontWeight: 600, color: "#e2e8f0", lineHeight: 1.4, marginBottom: 4 }}>
           {paper.title}
         </div>
-        <div style={{ fontSize: 10, color: "#475569", fontFamily: MONO, display: "flex", gap: 8, flexWrap: "wrap" }}>
+        <div style={{ fontSize: 10, color: "#475569", display: "flex", gap: 8, flexWrap: "wrap" }}>
           {paper.authors?.[0] && (
             <span>{paper.authors[0]}{paper.authors.length > 1 ? " et al." : ""}</span>
           )}
@@ -205,10 +205,10 @@ function ComparisonView({ data, papers, isGenerating }: {
       }}>
         <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
           <Sparkles size={14} color="#fb923c" />
-          <span style={{ fontSize: 12, color: "#fb923c", fontWeight: 600, fontFamily: MONO, textTransform: "uppercase", letterSpacing: "0.08em" }}>
+          <span style={{ fontSize: 12, color: "#fb923c", fontWeight: 600, textTransform: "uppercase", letterSpacing: "0.08em" }}>
             AI Comparison
           </span>
-          <span style={{ fontSize: 11, color: "#334155", fontFamily: MONO }}>
+          <span style={{ fontSize: 11, color: "#334155" }}>
             · {papers.length} papers
           </span>
         </div>
@@ -269,7 +269,7 @@ function ComparisonView({ data, papers, isGenerating }: {
           {/* At a Glance Matrix */}
           <div style={{ marginBottom: 50 }}>
             <div style={{ display: "flex", alignItems: "center", gap: 12, marginBottom: 16 }}>
-              <div style={{ width: 3, height: 20, background: "#3bc9db", borderRadius: 2 }} />
+              <div style={{ width: 3, height: 20, background: "rgba(59, 201, 219, 0.1)", color: "#3bc9db", border: "1px solid rgba(59, 201, 219, 0.2)", borderRadius: 2 }} />
               <h3 style={{ fontSize: 18, fontWeight: 600, color: "#e2e8f0" }}>At a Glance</h3>
             </div>
             <div style={{ overflowX: "auto", borderRadius: 10, border: "1px solid #1f1f1f" }}>
@@ -321,7 +321,7 @@ function ComparisonView({ data, papers, isGenerating }: {
                           background: "#111111", border: "1px solid #1f1f1f", borderRadius: 10,
                           padding: 16, display: "flex", flexDirection: "column"
                         }}>
-                          <div style={{ fontSize: 11, fontWeight: 700, color: "#475569", fontFamily: MONO, marginBottom: 12, borderBottom: "1px solid #1f1f1f", paddingBottom: 8 }}>
+                          <div style={{ fontSize: 11, fontWeight: 700, color: "#475569", marginBottom: 12, borderBottom: "1px solid #1f1f1f", paddingBottom: 8 }}>
                             {p.title.length > 50 ? p.title.slice(0, 47) + "..." : p.title}
                           </div>
                           <ul style={{ fontSize: 13, color: "#94a3b8", lineHeight: 1.6, flex: 1, margin: 0, paddingLeft: 16 }}>
@@ -488,7 +488,7 @@ export default function ComparePage() {
   }
 
   return (
-    <div style={{ width: "100%", height: "100%", display: "flex", flexDirection: "column", background: "#000000", fontFamily: SF, overflow: "hidden" }}>
+    <div style={{ width: "100%", height: "100%", display: "flex", flexDirection: "column", background: "#0a0a0a", overflow: "hidden" }}>
       <style>{`
         @keyframes spin { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
         @keyframes pulse { 0%, 100% { opacity: 0.4; } 50% { opacity: 0.8; } }
@@ -501,14 +501,14 @@ export default function ComparePage() {
       <header style={{
         display: "flex", alignItems: "center", justifyContent: "space-between",
         padding: "0 20px", height: 48, flexShrink: 0,
-        background: "rgba(10,15,26,0.95)", borderBottom: "1px solid #1f1f1f",
+        background: "rgba(17,17,17,0.95)", borderBottom: "1px solid #1f1f1f",
         backdropFilter: "blur(20px)", zIndex: 50,
       }}>
         <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
           <button onClick={() => router.back()} style={{
             display: "flex", alignItems: "center", gap: 6,
             color: "#64748b", background: "none", border: "none", cursor: "pointer",
-            fontSize: 13, fontFamily: SF,
+            fontSize: 13,
           }}>
             <ArrowLeft size={14} /> Back
           </button>
@@ -528,7 +528,7 @@ export default function ComparePage() {
             border: `1px solid ${papers.length >= 2 && !isGenerating ? "rgba(251,146,60,0.3)" : "#1f1f1f"}`,
             color: papers.length >= 2 && !isGenerating ? "#fb923c" : "#334155",
             cursor: papers.length >= 2 && !isGenerating ? "pointer" : "not-allowed",
-            transition: "all 0.15s", fontFamily: MONO, textTransform: "uppercase", letterSpacing: "0.06em",
+            transition: "all 0.15s", textTransform: "uppercase", letterSpacing: "0.06em",
           }}>
           {isGenerating
             ? <><Loader2 size={13} style={{ animation: "spin 1s linear infinite" }} /> Comparing…</>
@@ -547,7 +547,7 @@ export default function ComparePage() {
         }}>
           {/* Search */}
           <div style={{ padding: "14px 14px 10px", borderBottom: "1px solid #1f1f1f" }}>
-            <div style={{ fontSize: 10, color: "#334155", fontFamily: MONO, textTransform: "uppercase", letterSpacing: "0.1em", marginBottom: 10 }}>
+            <div style={{ fontSize: 10, color: "#334155", textTransform: "uppercase", letterSpacing: "0.1em", marginBottom: 10 }}>
               Papers to Compare · {papers.length}/4
             </div>
             <div style={{
@@ -563,7 +563,7 @@ export default function ComparePage() {
                 disabled={papers.length >= 4}
                 style={{
                   flex: 1, background: "none", border: "none", outline: "none",
-                  fontSize: 12, color: "#e2e8f0", fontFamily: SF,
+                  fontSize: 12, color: "#e2e8f0",
                 }}
               />
               {searchQuery && (
@@ -577,7 +577,7 @@ export default function ComparePage() {
             {/* Search results */}
             {searchResults.length > 0 && (
               <div style={{
-                marginTop: 8, background: "#000000", border: "1px solid #1f1f1f",
+                marginTop: 8, background: "#0a0a0a", border: "1px solid #1f1f1f",
                 borderRadius: 8, overflow: "hidden", maxHeight: 280, overflowY: "auto",
               }}>
                 {searchResults.map((p, i) => (
@@ -597,7 +597,7 @@ export default function ComparePage() {
                         : p.title
                       }
                     </div>
-                    <div style={{ fontSize: 10, color: "#475569", fontFamily: MONO }}>
+                    <div style={{ fontSize: 10, color: "#475569" }}>
                       {p.authors?.[0]}{p.authors && p.authors.length > 1 ? " et al." : ""} · {p.publicationYear}
                     </div>
                   </button>
@@ -642,7 +642,7 @@ export default function ComparePage() {
               disabled={papers.length < 2 || isGenerating}
               style={{
                 width: "100%", padding: "10px 0", borderRadius: 10,
-                fontSize: 12, fontWeight: 700, fontFamily: MONO,
+                fontSize: 12, fontWeight: 700,
                 textTransform: "uppercase", letterSpacing: "0.08em",
                 background: papers.length >= 2 && !isGenerating
                   ? "linear-gradient(135deg, rgba(251,146,60,0.15), rgba(244,114,182,0.1))"
