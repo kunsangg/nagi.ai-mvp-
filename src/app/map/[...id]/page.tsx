@@ -70,12 +70,12 @@ interface MapEdge {
   metadata?: EdgeMetadata;
 }
 
-export const getNodeW = (n: MapNode) => n.width !== undefined ? n.width : (n.type === "frame" ? 800 : n.type === "center" ? 320 : n.type === "timeline" ? 380 : n.type === "question" ? 300 : n.type === "note" ? 260 : n.type === "comment" ? 280 : ["paper", "reference", "citing", "related", "custom", "shape"].includes(n.type) ? 320 : 240);
-export const getNodeH = (n: MapNode) => n.height !== undefined ? n.height : (n.type === "frame" ? 600 : n.type === "center" ? 100 : n.type === "timeline" ? 90 : n.type === "question" ? 100 : n.type === "note" ? 180 : n.type === "comment" ? 140 : ["paper", "reference", "citing", "related", "custom", "shape"].includes(n.type) ? 140 : 90);
-export const getNodeRx = (n: MapNode) => n.borderRadius !== undefined ? n.borderRadius : (n.type === "frame" ? 0 : 20);
+export const getNodeW = (n: MapNode) => n.width !== undefined ? n.width : (n.type === "frame" ? 900 : n.type === "center" ? 360 : n.type === "timeline" ? 420 : n.type === "question" ? 340 : n.type === "note" ? 300 : n.type === "comment" ? 320 : ["paper", "reference", "citing", "related", "custom", "shape"].includes(n.type) ? 340 : 270);
+export const getNodeH = (n: MapNode) => n.height !== undefined ? n.height : (n.type === "frame" ? 700 : n.type === "center" ? 120 : n.type === "timeline" ? 100 : n.type === "question" ? 120 : n.type === "note" ? 200 : n.type === "comment" ? 160 : ["paper", "reference", "citing", "related", "custom", "shape"].includes(n.type) ? 160 : 100);
+export const getNodeRx = (n: MapNode) => n.borderRadius !== undefined ? n.borderRadius : (n.type === "frame" ? 0 : 12);
 
-const NODE_W = 220;
-const NODE_H = 88;
+const NODE_W = 240;
+const NODE_H = 100;
 
 const PRIORITY_COLOR: Record<Priority, string> = {
   normal:   "#555555",
@@ -199,10 +199,10 @@ function assignPositions(nodes: any[], centerId: string, W: number, H: number): 
     });
   };
 
-  place(byType.reference, Math.PI * 0.55, Math.PI * 1.45, 340);
-  place(byType.citing,    -Math.PI * 0.45, Math.PI * 0.45, 340);
-  place(byType.related,   -Math.PI * 0.45, -Math.PI * 1.45, 260);
-  byType.custom?.forEach((n, i) => result.push({ ...n, shape: "card", priority: "normal", x: cx - 200 + i * 260, y: cy + 370 }));
+  place(byType.reference, Math.PI * 0.55, Math.PI * 1.45, 420);
+  place(byType.citing,    -Math.PI * 0.45, Math.PI * 0.45, 420);
+  place(byType.related,   -Math.PI * 0.45, -Math.PI * 1.45, 320);
+  byType.custom?.forEach((n, i) => result.push({ ...n, shape: "card", priority: "normal", x: cx - 200 + i * 300, y: cy + 450 }));
 
   return result;
 }
@@ -799,26 +799,21 @@ export default function MapPage() {
       .attr("width", (d: MapNode) => getNodeW(d))
       .attr("height", (d: MapNode) => getNodeH(d))
       .html((d: MapNode) => `
-        <div style="width:100%; height:100%; padding:20px; box-sizing:border-box; display:flex; flex-direction:column; justify-content:space-between;">
-          <!-- Header -->
-          <div style="display:flex; justify-content:space-between; align-items:flex-start;">
-            <div style="display:flex; align-items:center; gap:8px;">
-              <div style="width:24px; height:24px; border-radius:6px; background:${d.customColor ? d.customColor + '33' : 'rgba(255,255,255,0.05)'}; display:flex; align-items:center; justify-content:center; color:${d.customColor || '#94A3B8'}; font-size:12px;">
-                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z"></path><path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z"></path></svg>
-              </div>
-              <span style="font-size:11px; font-weight:600; letter-spacing:0.05em; color:${d.customColor || '#64748B'}; text-transform:uppercase;">
-                ${d.type}
-              </span>
-            </div>
-            ${d.priority === 'high' ? `<div style="width:8px; height:8px; border-radius:4px; background:#F59E0B; box-shadow:0 0 8px #F59E0B;"></div>` : d.priority === 'critical' ? `<div style="width:8px; height:8px; border-radius:4px; background:#EF4444; box-shadow:0 0 8px #EF4444;"></div>` : ''}
+        <div xmlns="http://www.w3.org/1999/xhtml" style="width:100%; height:100%; padding:18px 20px; box-sizing:border-box; display:flex; flex-direction:column; gap:10px; font-family:-apple-system,BlinkMacSystemFont,'Inter',sans-serif;">
+          <!-- Badge row -->
+          <div style="display:flex; align-items:center; justify-content:space-between;">
+            <span style="font-size:10px; font-weight:600; letter-spacing:0.07em; color:${d.customColor || '#475569'}; text-transform:uppercase; opacity:0.9;">${d.type}</span>
+            ${d.priority === 'high' ? `<div style="width:6px; height:6px; border-radius:50%; background:#F59E0B;"></div>` : d.priority === 'critical' ? `<div style="width:6px; height:6px; border-radius:50%; background:#EF4444;"></div>` : ''}
           </div>
-          
-          <!-- Content -->
-          <div style="flex:1; display:flex; align-items:center; margin-top:8px;">
-            <h3 style="margin:0; font-size:${getNodeH(d) < 120 ? '14px' : '16px'}; font-weight:500; color:#F1F5F9; line-height:1.4; display:-webkit-box; -webkit-line-clamp:3; -webkit-box-orient:vertical; overflow:hidden;">
+          <!-- Divider -->
+          <div style="height:1px; background:rgba(255,255,255,0.06); flex-shrink:0;"></div>
+          <!-- Title -->
+          <div style="flex:1; display:flex; align-items:flex-start; overflow:hidden;">
+            <p style="margin:0; font-size:13px; font-weight:500; color:#E2E8F0; line-height:1.55; display:-webkit-box; -webkit-line-clamp:${getNodeH(d) <= 120 ? 3 : 4}; -webkit-box-orient:vertical; overflow:hidden;">
               ${d.title}
-            </h3>
+            </p>
           </div>
+          ${d.author || d.year ? `<p style="margin:0; font-size:11px; color:#64748B; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">${[d.author ? d.author.split(',')[0] : '', d.year ? String(d.year) : ''].filter(Boolean).join(' · ')}</p>` : ''}
         </div>
       `);
 
@@ -1230,35 +1225,33 @@ export default function MapPage() {
         </div>
 
         {/* ── Floating Top Left ── */}
-        <div className="absolute top-6 left-6 z-30 flex flex-col gap-4 pointer-events-none">
-        <button onClick={() => router.back()}
-          className="flex items-center gap-1.5 text-[12px] font-medium transition-opacity pointer-events-auto w-max"
-          style={{ color: "#94a3b8" }}>
-          <ArrowLeft size={13} /> Back to papers
-        </button>
-        
-        <div className="flex items-center gap-3">
-          <div className="w-9 h-9 rounded-full flex items-center justify-center font-bold text-[14px] bg-white text-black shrink-0 shadow-lg pointer-events-auto">
-            {centerPaper?.title?.charAt(0) || "P"}
-          </div>
-          <div className="flex flex-col gap-0.5">
-            <div className="flex items-center gap-2.5 pointer-events-auto">
-              <input 
-                className="text-[17px] font-semibold text-white tracking-tight bg-transparent border-none outline-none hover:bg-[#1A1D27] focus:bg-[#1A1D27] px-2 py-0.5 rounded transition-colors w-64 -ml-2"
-                defaultValue={centerPaper ? centerPaper.title : "Research Map"}
-                title="Edit Project Name"
-              />
-              <span className="px-2 py-0.5 rounded-full text-[10px] font-medium"
-                style={{ background: "#1f1f1f", border: "1px solid #243044", color: "#94a3b8" }}>
-                Draft
-              </span>
+        <div className="absolute top-5 left-5 z-30 flex flex-col gap-3 pointer-events-none">
+          <button onClick={() => router.back()}
+            className="flex items-center gap-1.5 text-[12px] font-medium transition-opacity pointer-events-auto w-max hover:opacity-80"
+            style={{ color: "#64748b" }}>
+            <ArrowLeft size={12} /> Back to papers
+          </button>
+
+          <div className="flex items-center gap-3 pointer-events-auto">
+            <div className="w-8 h-8 rounded-lg flex items-center justify-center font-semibold text-[13px] bg-[#1f1f1f] text-[#e2e8f0] shrink-0 border border-[#2a2a2a]">
+              {centerPaper?.title?.charAt(0) || "M"}
             </div>
-            <span className="text-[11px] pointer-events-auto" style={{ color: "#64748b" }}>
-              last updates on: 05 May, 2026
-            </span>
+            <div className="flex flex-col gap-1">
+              <div className="flex items-center gap-2">
+                <input
+                  className="text-[15px] font-[550] text-[#e2e8f0] tracking-tight bg-transparent border-none outline-none focus:bg-[#111111] px-1.5 py-0.5 rounded-md transition-colors w-60 -ml-1.5"
+                  defaultValue={centerPaper ? centerPaper.title : "Research Map"}
+                  title="Edit Map Name"
+                />
+                <span className="px-2 py-0.5 rounded-full text-[10px] font-[500] shrink-0"
+                  style={{ background: "rgba(255,255,255,0.05)", border: "1px solid #2a2a2a", color: "#64748b" }}>
+                  Draft
+                </span>
+              </div>
+              <span className="text-[11px] text-[#475569] pl-1.5">Last updated 5 May, 2026</span>
+            </div>
           </div>
         </div>
-      </div>
 
 
 
