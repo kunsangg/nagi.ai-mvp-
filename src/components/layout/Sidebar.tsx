@@ -67,28 +67,25 @@ export default function Sidebar() {
       )}
 
       {/* Workspace Switcher */}
-      <div className="mb-6 px-1 relative">
+      <div className="mb-6 px-0 relative">
         <button 
           onClick={() => !isCollapsed && setShowWorkspaces(!showWorkspaces)}
-          className={`w-full flex items-center ${isCollapsed ? "justify-center" : "justify-between"} p-2 rounded-lg hover:bg-[#1f1f1f] transition-colors border border-transparent hover:border-[#333333]`}
+          className={`w-full flex items-center ${isCollapsed ? "justify-center" : "justify-between"} p-1.5 rounded-md hover:bg-[#111111] transition-colors`}
           title={isCollapsed ? workspace : undefined}
         >
-          <div className="flex items-center gap-3 min-w-0">
-            <div className="w-6 h-6 rounded-md r from-[#2b2d2d] to-[#1a1c1d] flex items-center justify-center flex-shrink-0 border border-[#333333]">
+          <div className="flex items-center gap-2.5 min-w-0">
+            <div className="w-5 h-5 rounded-[4px] bg-[#111111] border border-[#1f1f1f] flex items-center justify-center flex-shrink-0 shadow-sm">
               {workspace === "Personal Workspace" ? (
-                <UserCircle2 size={14} className="text-[#64748b]" />
+                <UserCircle2 size={12} className="text-[#e2e8f0]" />
               ) : (
-                <Building2 size={14} className="text-[#3bc9db]" />
+                <Building2 size={12} className="text-[#3bc9db]" />
               )}
             </div>
-            {!isCollapsed && (
-              <div className="flex flex-col items-start min-w-0">
-                <span className="text-[11px] text-[#64748b] font-medium leading-none mb-1">Workspace</span>
-                <span className="text-sm text-[#e2e8f0] font-semibold truncate leading-none">{workspace}</span>
-              </div>
-            )}
+            <span className={`truncate text-[13.5px] font-[500] text-[#e2e8f0] transition-all duration-300 overflow-hidden ${isCollapsed ? "w-0 opacity-0" : "w-auto opacity-100"}`}>
+              {workspace}
+            </span>
           </div>
-          {!isCollapsed && <ChevronDown size={14} className="text-[#64748b] flex-shrink-0" />}
+          {!isCollapsed && <ChevronDown size={14} className="text-[#64748b] flex-shrink-0 mr-1" />}
         </button>
 
         {showWorkspaces && !isCollapsed && (
