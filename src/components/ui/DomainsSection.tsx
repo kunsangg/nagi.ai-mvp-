@@ -108,35 +108,39 @@ export default function DomainsSection() {
   }, [activate, moveTrack]);
 
   return (
-    <section className="w-full relative bg-transparent" style={{ padding: "120px 5vw 160px 5vw", overflow: "hidden" }}>
-      {/* ── TOP HEADING ── */}
-      <div className="w-full mb-20 flex flex-col justify-start">
-        <p
-          className="mb-4 font-[600] uppercase tracking-[2px] text-[12px]"
-          style={{ color: "rgba(255,255,255,0.6)" }}
-        >
-          WHO IT&apos;S FOR
-        </p>
-        <h2
-          className="font-[400]"
-          style={{
-            fontSize: "clamp(32px, 4vw, 56px)",
-            lineHeight: 1.1,
-            color: "#fff",
-            maxWidth: 600,
-            letterSpacing: "-1px"
-          }}
-        >
-          Explore your domain interest.
-        </h2>
-      </div>
-
-      <div 
-        className="flex justify-between items-stretch w-full max-w-full relative bg-white/[0.03] backdrop-blur-2xl border border-white/10 rounded-[32px] p-8 lg:p-16 shadow-2xl"
-      >
+    <section className="w-full relative bg-transparent" style={{ padding: "80px 4vw 120px 4vw", overflow: "hidden" }}>
+      {/* ── ENTIRE GLASS CARD ── */}
+      <div className="w-full max-w-full relative bg-white/[0.03] backdrop-blur-2xl border border-white/10 rounded-[48px] p-10 lg:p-20 shadow-2xl">
         
-        {/* ── LEFT COLUMN (LIST) ── */}
-        <div className="flex-grow mr-[4vw] lg:mr-[8vw]">
+        {/* ── TOP HEADING ── */}
+        <div className="w-full mb-20 flex flex-col justify-start">
+          <p
+            className="mb-4 font-[600] uppercase tracking-[2px] text-[12px]"
+            style={{ color: "rgba(255,255,255,0.6)" }}
+          >
+            WHO IT&apos;S FOR
+          </p>
+          <h2
+            className="font-[400]"
+            style={{
+              fontSize: "clamp(32px, 4vw, 56px)",
+              lineHeight: 1.1,
+              color: "#fff",
+              maxWidth: 600,
+              letterSpacing: "-1px"
+            }}
+          >
+            Explore your domain interest.
+          </h2>
+        </div>
+
+        {/* ── CONTENT (LIST + IMAGE) ── */}
+        <div 
+          className="flex justify-between items-stretch w-full m-0 p-0 relative"
+        >
+          
+          {/* ── LEFT COLUMN (LIST) ── */}
+          <div className="flex-grow mr-[4vw] lg:mr-[8vw]">
           <ul
             ref={listRef}
             className="list-none m-0 p-0 flex flex-col relative"
@@ -217,6 +221,7 @@ export default function DomainsSection() {
           </div>
         </div>
 
+      </div>
       </div>
     </section>
   );
