@@ -451,7 +451,7 @@ export default function HeroGeometric({
         className="absolute inset-0 h-full w-full"
         style={{ width: "100%", height: "100%", display: "block" }}
       />
-      {children && <div className="relative z-10 h-full w-full flex flex-col">{children}</div>}
+      {children && <div className="relative z-10 h-full w-full flex flex-col items-center justify-center">{children}</div>}
     </div>
   );
 }
