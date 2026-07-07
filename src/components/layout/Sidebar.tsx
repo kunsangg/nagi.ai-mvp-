@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { Plus, Compass, Network, Folder, Library, MessageSquare, Settings, UserCircle2, FileText, PanelLeftClose, PanelLeft, X, Users, Database, LayoutGrid, BookOpen, Layers, SearchX, Scale, Building2, PenTool, ChevronDown } from "lucide-react";
+import { Plus, Compass, Network, Folder, Library, MessageSquare, Settings, UserCircle2, FileText, PanelLeftClose, PanelLeft, X, Users, Database, LayoutGrid, BookOpen, Layers, SearchX, Scale, Building2, PenTool, ChevronDown, BarChart3 } from "lucide-react";
 
 export default function Sidebar() {
   const [isCollapsed, setIsCollapsed] = useState(false);
@@ -135,6 +135,7 @@ export default function Sidebar() {
         <NavItem icon={<Users size={15} />} label="Authors" isCollapsed={isCollapsed} />
         <NavItem icon={<FileText size={15} />} label="Saved Papers" isCollapsed={isCollapsed} />
         <NavItem icon={<LayoutGrid size={15} />} label="Workspaces" isCollapsed={isCollapsed} />
+        <NavItem icon={<BarChart3 size={15} />} label="Pricing" href="/pricing" isCollapsed={isCollapsed} />
         
         {!isCollapsed && recentItems.length > 0 && (
           <div className="mt-8 mb-3">
