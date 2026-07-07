@@ -15,65 +15,74 @@ const DOMAINS = [
   { id: "materials", label: "Advanced Materials",        img: "https://images.pexels.com/photos/3861438/pexels-photo-3861438.jpeg?auto=compress&cs=tinysrgb&w=900" },
 ];
 
-const DIM   = "rgba(255,255,255,0.11)";
+const DIM   = "rgba(255,255,255,0.22)";
 const BRIGHT = "#ffffff";
-const EASING = "0.55s cubic-bezier(0.25, 0.46, 0.45, 0.94)";
+const EASING_TRACK = "transform 0.6s cubic-bezier(0.25, 1, 0.5, 1)";
+const EASING_COLOR = "color 0.4s cubic-bezier(0.25, 1, 0.5, 1), transform 0.4s cubic-bezier(0.25, 1, 0.5, 1)";
+const EASING_IMG   = "opacity 0.4s ease, visibility 0.4s ease, transform 0.6s cubic-bezier(0.175, 0.885, 0.32, 1.1)";
 
 export default function DomainsSection() {
   /* DOM refs — no React state so updates are synchronous & zero-latency */
   const listRef       = useRef<HTMLUListElement>(null);
   const rightColRef   = useRef<HTMLDivElement>(null);
   const trackRef      = useRef<HTMLDivElement>(null);
-  const spanRefs      = useRef<(HTMLSpanElement | null)[]>([]);
-  const imgRefs       = useRef<(HTMLImageElement | null)[]>([]);
   const liRefs        = useRef<(HTMLLIElement | null)[]>([]);
-
-  const currentIdx    = useRef(0);
+  const imgRefs       = useRef<(HTMLImageElement | null)[]>([]);
   const isHovering    = useRef(false);
-  const cycleRef      = useRef<NodeJS.Timeout | null>(null);
+  const currentIdx    = useRef(0);
 
-  /* Move the image track so the active slot's vertical center
-     aligns with the hovered <li>'s center — exactly like the reference */
+  /* Move the image track so its vertical center matches the hovered <li>'s center */
   const moveTrack = useCallback((liEl: HTMLLIElement) => {
     const track = trackRef.current;
     const right = rightColRef.current;
     if (!track || !right) return;
     const liRect    = liEl.getBoundingClientRect();
     const rightRect = right.getBoundingClientRect();
-    const targetCY  = liEl.offsetTop + liEl.offsetHeight / 2;
-    void targetCY;
-    // Use viewport-relative math (same as reference)
-    const relY = liRect.top + liRect.height / 2 - rightRect.top;
-    track.style.transform = `translateY(calc(-50% + ${relY}px))`;
+    
+    // Calculate exactly how far down the right container the center of the text is
+    const targetCenterY = liRect.top + (liRect.height / 2);
+    const relativeY = targetCenterY - rightRect.top;
+    
+    // Move the image track so its center (-50%) matches relativeY
+    track.style.transform = `translateY(calc(-50% + ${relativeY}px))`;
   }, []);
 
   /* Activate domain i — pure DOM, zero React re-renders */
-  const activate = useCallback((i: number) => {
-    currentIdx.current = i;
-    spanRefs.current.forEach((el, idx) => {
-      if (el) el.style.color = idx === i ? BRIGHT : DIM;
+  const activate = useCallback((index: number) => {
+    currentIdx.current = index;
+    liRefs.current.forEach((el, idx) => {
+      if (el) {
+        if (isHovering.current) {
+          el.style.color = idx === index ? BRIGHT : DIM;
+        } else {
+          el.style.color = idx === 0 ? BRIGHT : DIM; // Default state when not hovered
+        }
+      }
     });
+    
+    const activeImageIdx = isHovering.current ? index : 0;
+    
     imgRefs.current.forEach((el, idx) => {
-      if (el) el.style.opacity = idx === i ? "1" : "0";
+      if (el) {
+        if (idx === activeImageIdx) {
+          el.style.opacity = "1";
+          el.style.visibility = "visible";
+          el.style.transform = "scale(1) translateY(0)";
+        } else {
+          el.style.opacity = "0";
+          el.style.visibility = "hidden";
+          el.style.transform = "scale(0.95) translateY(20px)";
+        }
+      }
     });
-    const li = liRefs.current[i];
+    
+    const li = liRefs.current[activeImageIdx];
     if (li) moveTrack(li);
   }, [moveTrack]);
 
-  /* Auto-cycle */
-  const startCycle = useCallback(() => {
-    if (cycleRef.current) clearInterval(cycleRef.current);
-    cycleRef.current = setInterval(() => {
-      if (!isHovering.current) {
-        activate((currentIdx.current + 1) % DOMAINS.length);
-      }
-    }, 2400);
-  }, [activate]);
-
   useEffect(() => {
-    // Initial state — first item active after layout
-    const t = setTimeout(() => { activate(0); }, 80);
-    startCycle();
+    // Initial position
+    const t = setTimeout(() => { activate(0); }, 100);
 
     const onResize = () => {
       const li = liRefs.current[currentIdx.current];
@@ -83,53 +92,48 @@ export default function DomainsSection() {
 
     return () => {
       clearTimeout(t);
-      if (cycleRef.current) clearInterval(cycleRef.current);
       window.removeEventListener("resize", onResize);
     };
-  }, [activate, startCycle, moveTrack]);
+  }, [activate, moveTrack]);
 
   return (
-    <section style={{ background: "#06090f" }} className="w-full">
-      <div className="w-full h-px" style={{ background: "rgba(255,255,255,0.07)" }} />
-
-      <div className="max-w-[1400px] mx-auto px-8 md:px-16 pt-20 pb-28">
-
-        {/* ── HEADING ── */}
-        <div className="mb-14">
-          <p
-            className="mb-3 font-[700] uppercase tracking-[0.22em]"
-            style={{ fontSize: 10, color: "#3bc9db" }}
-          >
-            WHO IT&apos;S FOR
-          </p>
-          <h2
-            className="font-[750] leading-none"
-            style={{
-              fontSize: "clamp(40px, 5.5vw, 80px)",
-              letterSpacing: "-0.035em",
-              color: "rgba(255,255,255,0.92)",
-            }}
-          >
-            Explore Domains
-          </h2>
-          <p
-            className="mt-4"
-            style={{ fontSize: 15, color: "rgba(255,255,255,0.35)", maxWidth: 460, lineHeight: 1.6 }}
-          >
-            Built for every field that runs on research.
-          </p>
+    <section className="w-full relative bg-transparent" style={{ padding: "60px 5vw", overflow: "hidden" }}>
+      <div 
+        className="flex justify-between items-stretch w-full max-w-full m-0 p-0 relative"
+      >
+        
+        {/* ── LEFT COLUMN (TEXT) ── */}
+        <div className="flex flex-col justify-start w-[320px] flex-shrink-0 pr-[2vw] mt-2">
+          <div className="mb-10">
+            <p
+              className="mb-4 font-[600] uppercase tracking-[2px] text-[12px]"
+              style={{ color: "rgba(255,255,255,0.6)" }}
+            >
+              WHO IT&apos;S FOR
+            </p>
+            <h2
+              className="font-[400]"
+              style={{
+                fontSize: "clamp(32px, 4vw, 56px)",
+                lineHeight: 1.1,
+                color: "#fff",
+                maxWidth: 600,
+                letterSpacing: "-1px"
+              }}
+            >
+              Explore your domain interest.
+            </h2>
+          </div>
         </div>
 
-        {/* ── BODY GRID ── */}
-        <div className="flex gap-16 lg:gap-24 items-start">
-
-          {/* ── LIST ── */}
+        {/* ── MIDDLE COLUMN (LIST) ── */}
+        <div className="flex-grow ml-[6vw] mr-[4vw]">
           <ul
             ref={listRef}
-            className="list-none m-0 p-0 flex flex-col flex-1"
+            className="list-none m-0 p-0 flex flex-col relative"
             onMouseLeave={() => {
               isHovering.current = false;
-              startCycle();
+              activate(0);
             }}
           >
             {DOMAINS.map((d, i) => (
@@ -140,115 +144,72 @@ export default function DomainsSection() {
                   isHovering.current = true;
                   activate(i);
                 }}
-                className="relative border-b last:border-0"
-                style={{ borderColor: "rgba(255,255,255,0.055)", cursor: "default" }}
+                className="block w-full box-border font-[600] cursor-pointer"
+                style={{
+                  paddingLeft: 24,
+                  marginBottom: 16,
+                  fontSize: "clamp(40px, 5vw, 80px)",
+                  lineHeight: 1.1,
+                  letterSpacing: "-1.5px",
+                  color: i === 0 ? BRIGHT : DIM,
+                  transition: EASING_COLOR,
+                  transformOrigin: "left center"
+                }}
               >
-                <span
-                  ref={(el) => { spanRefs.current[i] = el; }}
-                  style={{
-                    display: "block",
-                    padding: "16px 0",
-                    fontSize: "clamp(24px, 3.4vw, 50px)",
-                    fontWeight: 700,
-                    letterSpacing: "-0.025em",
-                    lineHeight: 1.05,
-                    color: i === 0 ? BRIGHT : DIM,
-                    transition: `color ${EASING}`,
-                    userSelect: "none",
-                  }}
-                >
-                  {d.label}
-                </span>
+                {d.label}
               </li>
             ))}
           </ul>
+        </div>
 
-          {/* ── IMAGE COLUMN ── */}
+        {/* ── RIGHT COLUMN (IMAGE TRACK) ── */}
+        <div
+          ref={rightColRef}
+          className="hidden lg:block relative w-[320px] flex-shrink-0 h-auto"
+        >
           <div
-            ref={rightColRef}
-            className="hidden lg:block flex-shrink-0"
-            style={{ width: 360, position: "relative", height: "100%" }}
+            ref={trackRef}
+            style={{
+              position: "absolute",
+              right: 0,
+              top: 0,
+              width: "100%",
+              aspectRatio: "4/4.5",
+              backgroundColor: "transparent",
+              overflow: "hidden",
+              borderRadius: 4,
+              pointerEvents: "none",
+              transition: EASING_TRACK,
+              transform: "translateY(-50%)",
+              zIndex: 10,
+            }}
           >
-            <div
-              style={{
-                position: "sticky",
-                top: 0,
-                height: "100vh",
-                overflow: "hidden",
-                pointerEvents: "none",
-              }}
-            >
-              {/* Stacked image track — moves vertically to match hovered row */}
-              <div
-                ref={trackRef}
+            {DOMAINS.map((d, i) => (
+              <img
+                key={d.id}
+                ref={(el) => { imgRefs.current[i] = el; }}
+                src={d.img}
+                alt={d.label}
+                loading="lazy"
                 style={{
                   position: "absolute",
                   top: 0,
                   left: 0,
                   width: "100%",
-                  transition: `transform ${EASING}`,
+                  height: "100%",
+                  objectFit: "cover",
+                  opacity: i === 0 ? 1 : 0,
+                  visibility: i === 0 ? "visible" : "hidden",
+                  transition: EASING_IMG,
+                  transform: i === 0 ? "scale(1) translateY(0)" : "scale(0.95) translateY(20px)",
                 }}
-              >
-                {DOMAINS.map((d, i) => (
-                  <div
-                    key={d.id}
-                    style={{
-                      width: "100%",
-                      height: 300,
-                      marginBottom: 20,
-                      borderRadius: 10,
-                      overflow: "hidden",
-                      position: "relative",
-                    }}
-                  >
-                    <img
-                      ref={(el) => { imgRefs.current[i] = el; }}
-                      src={d.img}
-                      alt={d.label}
-                      loading="lazy"
-                      style={{
-                        width: "100%",
-                        height: "100%",
-                        objectFit: "cover",
-                        opacity: i === 0 ? 1 : 0,
-                        transition: "opacity 0.4s ease",
-                        display: "block",
-                      }}
-                    />
-                    {/* Bottom label */}
-                    <div
-                      style={{
-                        position: "absolute",
-                        inset: 0,
-                        background: "linear-gradient(to top, rgba(0,0,0,0.65) 0%, transparent 50%)",
-                        borderRadius: 10,
-                        display: "flex",
-                        alignItems: "flex-end",
-                        padding: "0 16px 14px",
-                      }}
-                    >
-                      <span
-                        style={{
-                          fontSize: 10,
-                          fontWeight: 700,
-                          letterSpacing: "0.18em",
-                          textTransform: "uppercase",
-                          color: "#3bc9db",
-                        }}
-                      >
-                        {d.label}
-                      </span>
-                    </div>
-                  </div>
-                ))}
-              </div>
-            </div>
+              />
+            ))}
           </div>
-
         </div>
-      </div>
 
-      <div className="w-full h-px" style={{ background: "rgba(255,255,255,0.07)" }} />
+      </div>
     </section>
   );
 }
+
