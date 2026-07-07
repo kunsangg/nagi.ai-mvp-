@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
+import Link from "next/link";
 import { Plus, Compass, Network, Folder, Library, MessageSquare, Settings, UserCircle2, FileText, PanelLeftClose, PanelLeft, X, Users, Database, LayoutGrid, BookOpen, Layers, SearchX, Scale, Building2, PenTool, ChevronDown, BarChart3 } from "lucide-react";
 
 export default function Sidebar() {
@@ -32,17 +33,17 @@ export default function Sidebar() {
       {/* Logo Area */}
       <div className={`flex items-center mb-8 ${isCollapsed ? "justify-center px-0" : "justify-between px-2"}`}>
         {!isCollapsed && (
-          <div className="select-none flex items-center gap-3">
+          <Link href="/" className="select-none flex items-center gap-3 cursor-pointer hover:opacity-80 transition-opacity">
             <div className="   text-[#3bc9db] text-[22px] font-black leading-none">
               海
             </div>
             <span className="text-[#e2e8f0] font-bold text-[15px] tracking-widest">NAGI</span>
-          </div>
+          </Link>
         )}
         {isCollapsed && (
-          <div className="   text-[#3bc9db] text-[22px] font-black leading-none">
+          <Link href="/" className="   text-[#3bc9db] text-[22px] font-black leading-none cursor-pointer hover:opacity-80 transition-opacity">
             海
-          </div>
+          </Link>
         )}
         <button 
           onClick={() => setIsCollapsed(!isCollapsed)}

@@ -1,17 +1,21 @@
 "use client";
 
 import { useState } from "react";
-import { ArrowLeft, Save, Sparkles, BookOpen, Layers, AlignLeft, AlignCenter, AlignRight, Bold, Italic, Link, ChevronDown, CheckCircle2 } from "lucide-react";
+import { ArrowLeft, Save, Sparkles, AlignLeft, AlignCenter, AlignRight, Bold, Italic, Link, ChevronDown, CheckCircle2, Send, Paperclip, Loader2 } from "lucide-react";
 import { useRouter } from "next/navigation";
 
 const SF = "-apple-system, BlinkMacSystemFont, 'SF Pro Text', 'Helvetica Neue', sans-serif";
-const MONO = "'SF Mono', SFMono-Regular, ui-monospace, Menlo, monospace";
 
 export default function NagiWriterPage() {
   const router = useRouter();
-  const [content, setContent] = useState("# The Future of AI in Healthcare\n\nArtificial Intelligence is rapidly transforming the healthcare landscape...");
+  const [content, setContent] = useState("");
   const [isSaving, setIsSaving] = useState(false);
   const [saved, setSaved] = useState(false);
+  
+  // Chat state
+  const [chatInput, setChatInput] = useState("");
+  const [isGenerating, setIsGenerating] = useState(false);
+  const [chatMessage, setChatMessage] = useState("");
 
   const handleSave = () => {
     setIsSaving(true);
@@ -22,109 +26,142 @@ export default function NagiWriterPage() {
     }, 1000);
   };
 
+  const handleCopilotSubmit = async () => {
+    if (!chatInput.trim() || isGenerating) return;
+    
+    const command = chatInput;
+    setChatInput("");
+    setIsGenerating(true);
+    setChatMessage("");
+
+    try {
+      const res = await fetch("/api/writer-agent", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ command, currentText: content })
+      });
+
+      if (res.ok) {
+        const data = await res.json();
+        if (data.updatedText) {
+          setContent(data.updatedText);
+        }
+        if (data.message) {
+          setChatMessage(data.message);
+        }
+      } else {
+        console.error("Failed to generate content");
+        setChatMessage("Sorry, I encountered an error. Please try again.");
+      }
+    } catch (e) {
+      console.error(e);
+      setChatMessage("Sorry, I encountered an error. Please try again.");
+    } finally {
+      setIsGenerating(false);
+      setTimeout(() => setChatMessage(""), 5000); // clear message after 5s
+    }
+  };
+
+  const insertCitation = (citation: string) => {
+    const spacer = content.length > 0 && !content.endsWith(" ") ? " " : "";
+    setContent(prev => prev + spacer + citation);
+  };
+
   return (
-    <div style={{ width: "100%", height: "100%", display: "flex", flexDirection: "column", background: "#0a0a0a", overflow: "hidden" }}>
+    <div className="w-full h-full flex flex-col bg-[#0a0a0a] font-sans overflow-hidden">
       
       {/* Header */}
-      <header style={{
-        display: "flex", alignItems: "center", justifyContent: "space-between",
-        padding: "0 24px", height: 56, flexShrink: 0,
-        background: "rgba(17,17,17,0.95)", borderBottom: "1px solid #1f1f1f",
-      }}>
-        <div style={{ display: "flex", alignItems: "center", gap: 16 }}>
-          <button onClick={() => router.back()} style={{
-            display: "flex", alignItems: "center", gap: 6,
-            color: "#64748b", background: "none", border: "none", cursor: "pointer",
-            fontSize: 13,
-          }}>
+      <header className="flex items-center justify-between px-6 h-14 shrink-0 bg-[#0a0a0a] border-b border-[#1f1f1f]">
+        <div className="flex items-center gap-4">
+          <button onClick={() => router.back()} className="flex items-center gap-1.5 text-[#64748b] hover:text-white transition-colors bg-transparent border-none cursor-pointer text-[13px]">
             <ArrowLeft size={14} /> Back
           </button>
-          <div style={{ width: 1, height: 16, background: "#1f1f1f" }} />
-          <div style={{ fontSize: 13, color: "#94a3b8" }}>Projects / Stanford Neuro Lab / <span style={{ color: "#e2e8f0" }}>Draft 1</span></div>
+          <div className="w-px h-4 bg-[#1f1f1f]" />
+          <div className="text-[13px] text-[#94a3b8]">Projects / Stanford Neuro Lab / <span className="text-[#e2e8f0]">Draft 1</span></div>
         </div>
 
-        <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
-          <div style={{ fontSize: 12, color: "#64748b" }}>
-            {saved ? "Saved" : isSaving ? "Saving..." : "Edited just now"}
-          </div>
-          <button onClick={handleSave} style={{
-            display: "flex", alignItems: "center", gap: 6,
-            background: saved ? "#10b981" : "#e2e8f0", color: saved ? "#fff" : "#000000",
-            border: "none", borderRadius: 6, padding: "6px 14px",
-            fontSize: 13, fontWeight: 600, cursor: "pointer", transition: "all 0.2s"
-          }}>
-            {saved ? <CheckCircle2 size={14} /> : <Save size={14} />}
-            {saved ? "Saved" : "Save"}
-          </button>
+        <div className="flex items-center gap-3">
+          {/* Removed Save block per user request */}
         </div>
       </header>
 
       {/* Main Layout */}
-      <div style={{ display: "flex", flex: 1, overflow: "hidden" }}>
+      <div className="flex flex-1 overflow-hidden">
         
-        {/* Editor Area */}
-        <div style={{ flex: 1, display: "flex", flexDirection: "column", background: "#111111", position: "relative" }}>
+        {/* Editor Area (Modern Dark Theme) */}
+        <div className="flex-1 flex flex-col bg-[#111111] relative">
           
-          {/* Mock formatting toolbar */}
-          <div style={{
-            position: "absolute", top: 20, left: "50%", transform: "translateX(-50%)",
-            background: "rgba(20,25,35,0.8)", backdropFilter: "blur(10px)",
-            border: "1px solid #2b2d2d", borderRadius: 8, padding: "6px 12px",
-            display: "flex", alignItems: "center", gap: 12, zIndex: 10
-          }}>
-            <div style={{ display: "flex", gap: 4 }}>
-              <button style={{ background: "none", border: "none", color: "#e2e8f0", padding: 4, cursor: "pointer", borderRadius: 4 }}><Bold size={14} /></button>
-              <button style={{ background: "none", border: "none", color: "#94a3b8", padding: 4, cursor: "pointer", borderRadius: 4 }}><Italic size={14} /></button>
-              <button style={{ background: "none", border: "none", color: "#94a3b8", padding: 4, cursor: "pointer", borderRadius: 4 }}><Link size={14} /></button>
+          {/* Professional Toolbar */}
+          <div className="w-full bg-[#111111] border-b border-[#1f1f1f] px-4 py-2 flex items-center justify-center shrink-0 z-10 shadow-sm">
+            <div className="flex items-center gap-3 bg-[#0a0a0a] border border-[#1f1f1f] rounded-md px-2 py-1">
+              <button className="flex items-center gap-1 bg-transparent border-none text-[#e2e8f0] text-[13px] font-medium cursor-pointer hover:bg-[#1f1f1f] px-2 py-1 rounded">
+                Heading 1 <ChevronDown size={14} className="opacity-70" />
+              </button>
+              <div className="w-px h-4 bg-[#1f1f1f]" />
+              <div className="flex gap-1">
+                <button className="bg-transparent border-none text-[#e2e8f0] p-1.5 cursor-pointer rounded hover:bg-[#1f1f1f]"><Bold size={14} /></button>
+                <button className="bg-transparent border-none text-[#94a3b8] p-1.5 cursor-pointer rounded hover:bg-[#1f1f1f]"><Italic size={14} /></button>
+                <button className="bg-transparent border-none text-[#94a3b8] p-1.5 cursor-pointer rounded hover:bg-[#1f1f1f]"><Link size={14} /></button>
+              </div>
+              <div className="w-px h-4 bg-[#1f1f1f]" />
+              <div className="flex gap-1">
+                <button className="bg-transparent border-none text-[#e2e8f0] p-1.5 cursor-pointer rounded hover:bg-[#1f1f1f]"><AlignLeft size={14} /></button>
+                <button className="bg-transparent border-none text-[#94a3b8] p-1.5 cursor-pointer rounded hover:bg-[#1f1f1f]"><AlignCenter size={14} /></button>
+                <button className="bg-transparent border-none text-[#94a3b8] p-1.5 cursor-pointer rounded hover:bg-[#1f1f1f]"><AlignRight size={14} /></button>
+              </div>
             </div>
-            <div style={{ width: 1, height: 16, background: "#2b2d2d" }} />
-            <div style={{ display: "flex", gap: 4 }}>
-              <button style={{ background: "none", border: "none", color: "#e2e8f0", padding: 4, cursor: "pointer", borderRadius: 4 }}><AlignLeft size={14} /></button>
-              <button style={{ background: "none", border: "none", color: "#94a3b8", padding: 4, cursor: "pointer", borderRadius: 4 }}><AlignCenter size={14} /></button>
-              <button style={{ background: "none", border: "none", color: "#94a3b8", padding: 4, cursor: "pointer", borderRadius: 4 }}><AlignRight size={14} /></button>
-            </div>
-            <div style={{ width: 1, height: 16, background: "#2b2d2d" }} />
-            <button style={{ display: "flex", alignItems: "center", gap: 4, background: "none", border: "none", color: "#e2e8f0", fontSize: 12, cursor: "pointer" }}>
-              Heading 1 <ChevronDown size={12} />
-            </button>
           </div>
 
-          <textarea
-            value={content}
-            onChange={(e) => setContent(e.target.value)}
-            style={{
-              flex: 1, background: "transparent", border: "none", outline: "none",
-              resize: "none", color: "#e2e8f0", fontSize: 16, lineHeight: 1.8,
-              padding: "100px 10% 40px",
-            }}
-          />
+          {/* Scrolling Paper Container */}
+          <div className="flex-1 overflow-y-auto px-8 py-12 pb-32 flex justify-center relative">
+            {isGenerating && (
+              <div className="absolute inset-0 bg-[#111111]/50 backdrop-blur-[1px] flex items-center justify-center z-10">
+                <div className="flex items-center gap-2 text-[#3bc9db] bg-[#0a0a0a] px-4 py-2 rounded-full border border-[#1f1f1f]">
+                  <Loader2 size={16} className="animate-spin" />
+                  <span className="text-[13px] font-medium">Nagi Research Assistant is writing...</span>
+                </div>
+              </div>
+            )}
+            
+            {/* The "Paper" Container */}
+            <div className="w-full max-w-[800px] min-h-[1056px] relative">
+              <textarea
+                value={content}
+                onChange={(e) => setContent(e.target.value)}
+                placeholder="Write your paper here..."
+                className="w-full h-full bg-transparent border-none outline-none resize-none text-[#e2e8f0] text-[18px] leading-[1.8] placeholder:text-[#475569] font-sans"
+              />
+            </div>
+          </div>
         </div>
 
         {/* Right Sidebar - AI Assistant */}
-        <aside style={{ width: 340, background: "#0a0a0a", borderLeft: "1px solid #1f1f1f", display: "flex", flexDirection: "column" }}>
+        <aside className="w-[340px] bg-[#0a0a0a] border-l border-[#1f1f1f] flex flex-col shrink-0 relative">
           
-          <div style={{ padding: "20px 24px", borderBottom: "1px solid #1f1f1f", display: "flex", alignItems: "center", gap: 10 }}>
-            <Sparkles size={16} color="#a78bfa" />
-            <span style={{ fontSize: 14, fontWeight: 600, color: "#e2e8f0" }}>Nagi Copilot</span>
+          <div className="px-5 py-4 border-b border-[#1f1f1f] flex items-center gap-2">
+            <span className="text-[14px] font-semibold text-[#e2e8f0]">Nagi Research Assistant</span>
           </div>
 
-          <div style={{ flex: 1, overflowY: "auto", padding: 24, display: "flex", flexDirection: "column", gap: 24 }}>
+          <div className="flex-1 overflow-y-auto p-5 flex flex-col gap-6">
             
             {/* Auto-suggested citations */}
             <div>
-              <div style={{ fontSize: 11, fontWeight: 700, color: "#64748b", textTransform: "uppercase", letterSpacing: "0.05em", marginBottom: 12 }}>
+              <div className="text-[11px] font-bold text-[#64748b] uppercase tracking-wider mb-3">
                 Suggested Citations
               </div>
-              <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
+              <div className="flex flex-col gap-3">
                 {[
-                  { title: "Deep Learning for Healthcare", author: "Esteva et al.", year: 2019 },
-                  { title: "AI in medical imaging", author: "Litjens et al.", year: 2017 }
+                  { title: "Deep Learning for Healthcare", author: "Esteva et al.", year: 2019, key: "[Esteva et al., 2019]" },
+                  { title: "AI in medical imaging", author: "Litjens et al.", year: 2017, key: "[Litjens et al., 2017]" }
                 ].map((paper, i) => (
-                  <div key={i} style={{ background: "#111111", border: "1px solid #1f1f1f", borderRadius: 8, padding: 12 }}>
-                    <div style={{ fontSize: 13, fontWeight: 600, color: "#e2e8f0", marginBottom: 4, lineHeight: 1.4 }}>{paper.title}</div>
-                    <div style={{ fontSize: 11, color: "#64748b" }}>{paper.author} · {paper.year}</div>
-                    <button style={{ marginTop: 8, fontSize: 11, color: "#a78bfa", background: "rgba(167,139,250,0.1)", border: "none", padding: "4px 8px", borderRadius: 4, cursor: "pointer", fontWeight: 600 }}>
-                      + Insert Citation
+                  <div key={i} className="bg-[#111111] border border-[#1f1f1f] rounded-md p-3 hover:border-[#3bc9db]/30 transition-colors">
+                    <div className="text-[13px] font-semibold text-[#e2e8f0] mb-1 leading-snug">{paper.title}</div>
+                    <div className="text-[11px] text-[#64748b] mb-3">{paper.author} · {paper.year}</div>
+                    <button 
+                      onClick={() => insertCitation(paper.key)}
+                      className="text-[11px] text-[#e2e8f0] bg-[#1a1a1a] border border-[#2a2a2a] hover:bg-[#2a2a2a] transition-colors px-2 py-1 rounded cursor-pointer font-medium"
+                    >
+                      Insert Citation
                     </button>
                   </div>
                 ))}
@@ -133,19 +170,58 @@ export default function NagiWriterPage() {
 
             {/* Gap Analysis Context */}
             <div>
-              <div style={{ fontSize: 11, fontWeight: 700, color: "#64748b", textTransform: "uppercase", letterSpacing: "0.05em", marginBottom: 12 }}>
-                From your Gap Analysis
+              <div className="text-[11px] font-bold text-[#64748b] uppercase tracking-wider mb-3">
+                From Gap Analysis
               </div>
-              <div style={{ background: "rgba(59,201,219,0.05)", border: "1px solid rgba(59,201,219,0.2)", borderRadius: 8, padding: 12 }}>
-                <p style={{ fontSize: 13, color: "#cbd5e1", lineHeight: 1.6, margin: 0 }}>
+              <div className="bg-[#111111] border border-[#1f1f1f] border-l-2 border-l-[#3bc9db] rounded-md p-3">
+                <p className="text-[12px] text-[#cbd5e1] leading-relaxed m-0 mb-3">
                   You noted that prior work ignored longitudinal effects. Consider adding a paragraph here addressing how your methodology tracks patients over 5 years.
                 </p>
-                <button style={{ marginTop: 8, fontSize: 11, color: "#3bc9db", background: "none", border: "none", padding: 0, cursor: "pointer", fontWeight: 600 }}>
-                  Generate Draft
+                <button 
+                  onClick={() => {
+                    setChatInput("Write a paragraph addressing how our methodology tracks patients over 5 years, highlighting longitudinal effects.");
+                  }}
+                  className="text-[11px] text-black bg-[#e2e8f0] hover:bg-white transition-colors border-none px-2.5 py-1 rounded cursor-pointer font-medium"
+                >
+                  Use as Prompt
                 </button>
               </div>
             </div>
 
+          </div>
+
+          {/* AI Message Popover */}
+          {chatMessage && (
+            <div className="absolute bottom-[80px] left-4 right-4 bg-[#111111] border border-[#1f1f1f] p-3 rounded-lg shadow-xl animate-in fade-in slide-in-from-bottom-2">
+              <p className="text-[13px] text-[#e2e8f0] m-0 leading-relaxed">{chatMessage}</p>
+            </div>
+          )}
+
+          {/* Chatbot Interface at the bottom */}
+          <div className="p-4 border-t border-[#1f1f1f] bg-[#0a0a0a]">
+            <div className="flex items-center gap-2 bg-[#111111] border border-[#1f1f1f] rounded-lg p-2 focus-within:border-[#3bc9db]/50 transition-colors">
+              <button className="text-[#64748b] hover:text-[#e2e8f0] transition-colors bg-transparent border-none p-1 cursor-pointer">
+                <Paperclip size={16} />
+              </button>
+              <input
+                type="text"
+                value={chatInput}
+                onChange={(e) => setChatInput(e.target.value)}
+                placeholder="Ask Nagi Research Assistant to write..."
+                disabled={isGenerating}
+                className="flex-1 bg-transparent border-none outline-none text-[13px] text-[#e2e8f0] placeholder:text-[#64748b] disabled:opacity-50"
+                onKeyDown={(e) => {
+                  if (e.key === 'Enter') handleCopilotSubmit();
+                }}
+              />
+              <button 
+                onClick={handleCopilotSubmit}
+                disabled={!chatInput.trim() || isGenerating}
+                className="bg-[#e2e8f0] hover:bg-white text-black border-none p-1.5 rounded-md cursor-pointer transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+              >
+                {isGenerating ? <Loader2 size={14} className="animate-spin" /> : <Send size={14} />}
+              </button>
+            </div>
           </div>
 
         </aside>

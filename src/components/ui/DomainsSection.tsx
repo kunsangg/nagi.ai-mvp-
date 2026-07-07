@@ -1,6 +1,7 @@
 "use client";
 
 import { useRef, useEffect, useCallback } from "react";
+import { useRouter } from "next/navigation";
 
 const DOMAINS = [
   { id: "pharma",    label: "Pharmaceuticals",          img: "https://images.pexels.com/photos/12672390/pexels-photo-12672390.jpeg?auto=compress&cs=tinysrgb&w=900" },
@@ -22,6 +23,7 @@ const EASING_COLOR = "color 0.4s cubic-bezier(0.25, 1, 0.5, 1), transform 0.4s c
 const EASING_IMG   = "opacity 0.4s ease, visibility 0.4s ease, transform 0.6s cubic-bezier(0.175, 0.885, 0.32, 1.1)";
 
 export default function DomainsSection() {
+  const router = useRouter();
   /* DOM refs — no React state so updates are synchronous & zero-latency */
   const listRef       = useRef<HTMLUListElement>(null);
   const rightColRef   = useRef<HTMLDivElement>(null);
@@ -156,6 +158,9 @@ export default function DomainsSection() {
                 onMouseEnter={() => {
                   isHovering.current = true;
                   activate(i);
+                }}
+                onClick={() => {
+                  router.push(`/search?q=${encodeURIComponent(d.label)}`);
                 }}
                 className="block w-full box-border font-[600] cursor-pointer"
                 style={{

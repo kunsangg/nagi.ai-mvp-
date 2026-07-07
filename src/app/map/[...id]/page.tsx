@@ -1357,7 +1357,7 @@ export default function MapPage() {
               { t: "comment", icon: <MessageCircle size={16} />, tip: "Comment" },
             ],
             [
-              { t: "ai",      icon: <Sparkles     size={16} />, tip: "AI Copilot", special: true },
+              { t: "ai",      icon: <Sparkles     size={16} />, tip: "Nagi Research Assistant", special: true },
             ],
             [
               { t: "export",  icon: <Download     size={16} />, tip: "Export" },
@@ -1436,7 +1436,7 @@ export default function MapPage() {
             className={`pb-2.5 text-[11px] font-bold uppercase tracking-wider transition-colors ${activeSidebarTab === "copilot" ? "text-[#E2E8F0] border-b-2 border-[#3bc9db]" : "text-[#808080] hover:text-[#B0B0B0] border-b-2 border-transparent"}`}
             style={{ }}
           >
-            Copilot
+            Assistant
           </button>
         </div>
 

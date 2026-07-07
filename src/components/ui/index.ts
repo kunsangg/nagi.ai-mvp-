@@ -4,3 +4,4 @@ export { KineticTextReveal } from './KineticTextReveal';
 export { AsciiBackground } from './AsciiBackground';
 export { DitherGradient } from './DitherGradient';
 export { default as DomainsSection } from './DomainsSection';
+export { PaperCard } from './PaperCard';

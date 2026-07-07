@@ -170,8 +170,8 @@ export async function searchPapers(
   // Re-rank by our composite score
   scoredWorks.sort((a: any, b: any) => b._score - a._score);
 
-  // Return top 10 after re-ranking
-  const papers = scoredWorks.slice(0, 10).map(({ _score, ...paper }: any) => paper);
+  // Return top 20 after re-ranking
+  const papers = scoredWorks.slice(0, 20).map(({ _score, ...paper }: any) => paper);
 
   return { papers, totalResults };
 }
