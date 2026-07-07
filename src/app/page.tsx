@@ -1,4 +1,4 @@
-import { Sidebar } from "@/components/layout";
+import { Sidebar, Footer } from "@/components/layout";
 import { HeroSearch } from "@/components/search";
 import { FeatureCards, HeroGeometric, DomainsSection } from "@/components/ui";
 
@@ -21,6 +21,7 @@ export default function Home() {
         {/* Domains section — below the fold, scrolls in naturally */}
         <DomainsSection />
 
+        <Footer />
       </div>
     </div>
   );
