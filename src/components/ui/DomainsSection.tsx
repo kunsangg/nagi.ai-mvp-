@@ -31,7 +31,7 @@ export default function DomainsSection() {
   const isHovering    = useRef(false);
   const currentIdx    = useRef(0);
 
-  /* Move the image track so its vertical center matches the hovered <li>'s center */
+  /* Move the image track so its vertical center matches the hovered <li>'s center, but clamped within the container */
   const moveTrack = useCallback((liEl: HTMLLIElement) => {
     const track = trackRef.current;
     const right = rightColRef.current;
@@ -41,7 +41,18 @@ export default function DomainsSection() {
     
     // Calculate exactly how far down the right container the center of the text is
     const targetCenterY = liRect.top + (liRect.height / 2);
-    const relativeY = targetCenterY - rightRect.top;
+    let relativeY = targetCenterY - rightRect.top;
+    
+    // Clamp the movement so the image never overflows the glass box
+    const trackHeight = track.getBoundingClientRect().height;
+    const minY = trackHeight / 2;
+    const maxY = rightRect.height - (trackHeight / 2);
+    
+    // Only clamp if the container is actually taller than the image
+    if (rightRect.height > trackHeight) {
+      if (relativeY < minY) relativeY = minY;
+      if (relativeY > maxY) relativeY = maxY;
+    }
     
     // Move the image track so its center (-50%) matches relativeY
     track.style.transform = `translateY(calc(-50% + ${relativeY}px))`;
@@ -97,37 +108,35 @@ export default function DomainsSection() {
   }, [activate, moveTrack]);
 
   return (
-    <section className="w-full relative bg-transparent" style={{ padding: "60px 5vw", overflow: "hidden" }}>
+    <section className="w-full relative bg-transparent" style={{ padding: "120px 5vw 160px 5vw", overflow: "hidden" }}>
+      {/* ── TOP HEADING ── */}
+      <div className="w-full mb-20 flex flex-col justify-start">
+        <p
+          className="mb-4 font-[600] uppercase tracking-[2px] text-[12px]"
+          style={{ color: "rgba(255,255,255,0.6)" }}
+        >
+          WHO IT&apos;S FOR
+        </p>
+        <h2
+          className="font-[400]"
+          style={{
+            fontSize: "clamp(32px, 4vw, 56px)",
+            lineHeight: 1.1,
+            color: "#fff",
+            maxWidth: 600,
+            letterSpacing: "-1px"
+          }}
+        >
+          Explore your domain interest.
+        </h2>
+      </div>
+
       <div 
-        className="flex justify-between items-stretch w-full max-w-full m-0 p-0 relative"
+        className="flex justify-between items-stretch w-full max-w-full relative bg-white/[0.03] backdrop-blur-2xl border border-white/10 rounded-[32px] p-8 lg:p-16 shadow-2xl"
       >
         
-        {/* ── LEFT COLUMN (TEXT) ── */}
-        <div className="flex flex-col justify-start w-[320px] flex-shrink-0 pr-[2vw] mt-2">
-          <div className="mb-10">
-            <p
-              className="mb-4 font-[600] uppercase tracking-[2px] text-[12px]"
-              style={{ color: "rgba(255,255,255,0.6)" }}
-            >
-              WHO IT&apos;S FOR
-            </p>
-            <h2
-              className="font-[400]"
-              style={{
-                fontSize: "clamp(32px, 4vw, 56px)",
-                lineHeight: 1.1,
-                color: "#fff",
-                maxWidth: 600,
-                letterSpacing: "-1px"
-              }}
-            >
-              Explore your domain interest.
-            </h2>
-          </div>
-        </div>
-
-        {/* ── MIDDLE COLUMN (LIST) ── */}
-        <div className="flex-grow ml-[6vw] mr-[4vw]">
+        {/* ── LEFT COLUMN (LIST) ── */}
+        <div className="flex-grow mr-[4vw] lg:mr-[8vw]">
           <ul
             ref={listRef}
             className="list-none m-0 p-0 flex flex-col relative"
@@ -165,7 +174,7 @@ export default function DomainsSection() {
         {/* ── RIGHT COLUMN (IMAGE TRACK) ── */}
         <div
           ref={rightColRef}
-          className="hidden lg:block relative w-[320px] flex-shrink-0 h-auto"
+          className="hidden lg:block relative w-[400px] xl:w-[480px] flex-shrink-0 h-auto"
         >
           <div
             ref={trackRef}
