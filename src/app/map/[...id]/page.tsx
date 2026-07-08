@@ -3,6 +3,7 @@
 import { useEffect, useRef, useState, useCallback } from "react";
 import { useParams, useRouter } from "next/navigation";
 import Sidebar from "@/components/layout/Sidebar";
+import NextLink from "next/link";
 import * as d3 from "d3";
 import {
   ArrowLeft, Plus, Trash2, Link2, MousePointer,
@@ -10,12 +11,13 @@ import {
   BookOpen, Map, LayoutGrid, StickyNote, Diamond,
   Circle, Square, Minus, ExternalLink, AlignLeft,
   Hand, Sparkles, Play, CheckCircle2, Upload, BoxSelect,
-  Database, Phone, Megaphone, Users, LineChart, Webhook, Link, Code,
+  Database, Phone, Megaphone, Users, LineChart, Webhook, Code, Compass, Folder, Network,
   MessageSquare, FileText, Terminal, Settings2, Download, MessageCircle, ArrowUpRight,
+  Type, ImageIcon,
   History, MoreHorizontal, Paperclip, Mic, ChevronDown, User, Send,
   AlignStartVertical, AlignCenterHorizontal, AlignEndVertical,
   AlignStartHorizontal, AlignCenterVertical, AlignEndHorizontal,
-  AlignHorizontalSpaceBetween, AlignVerticalSpaceBetween
+  AlignHorizontalSpaceBetween, AlignVerticalSpaceBetween, PanelRightClose
 } from "lucide-react";
 
 const SF   = "-apple-system, BlinkMacSystemFont, 'SF Pro Text', 'Helvetica Neue', sans-serif";
@@ -303,7 +305,8 @@ export default function MapPage() {
 
   const selectedNode = selectedNodeIds.length === 1 ? nodes.find(n => n.id === selectedNodeIds[0]) || null : null;
 
-  const [activeSidebarTab, setActiveSidebarTab] = useState<"design" | "copilot">("copilot");
+
+  const [showAIChat, setShowAIChat] = useState(true);
 
   const [openSections, setOpenSections] = useState<Record<string, boolean>>({
     general: true,
@@ -320,7 +323,7 @@ export default function MapPage() {
 
   useEffect(() => {
     if (selectedNodeIds.length > 0 || selectedEdge) {
-      setActiveSidebarTab("design");
+      // activeSidebarTab removed
     }
   }, [selectedNodeIds, selectedEdge]);
   const stateRef = useRef({ activeTool, connectSource, selectedNodeIds, selectedEdge, nodes, edges, history, historyIndex, clipboard });
@@ -1294,11 +1297,83 @@ export default function MapPage() {
         }
       `}</style>
 
-      {/* ── Left Sidebar ── */}
-      <Sidebar />
+    {/* ── Main Canvas Area ── */}
+    <div className="flex-1 relative overflow-hidden">
+    
+      {/* ── Floating Mini Dock (Left) ── */}
+      <div className="absolute left-6 top-1/2 -translate-y-1/2 z-40 flex flex-col items-center gap-3 py-4 px-2 rounded-full shadow-2xl backdrop-blur-2xl"
+           style={{ 
+             background: "rgba(255, 255, 255, 0.06)",
+             border: "1px solid rgba(255, 255, 255, 0.12)",
+             boxShadow: "0 20px 40px rgba(0,0,0,0.6), inset 0 1px 0 rgba(255,255,255,0.15)"
+           }}>
+        <NextLink href="/" className="p-2.5 text-white/60 hover:text-white hover:bg-white/10 rounded-full transition-all duration-200" title="Home">
+          <Compass size={20} strokeWidth={1.5} />
+        </NextLink>
+        <button className="p-2.5 text-white/60 hover:text-white hover:bg-white/10 rounded-full transition-all duration-200" title="Projects">
+          <Folder size={20} strokeWidth={1.5} />
+        </button>
+        <div className="w-8 h-[1px] bg-white/10 my-1"></div>
+        <button className="p-2.5 text-white bg-white/15 rounded-full transition-all shadow-[0_4px_15px_rgba(0,0,0,0.3)]" title="Map">
+          <Network size={20} strokeWidth={1.5} />
+        </button>
+        <button className="p-2.5 text-white/60 hover:text-white hover:bg-white/10 rounded-full transition-all duration-200" title="Add Node">
+          <Plus size={20} strokeWidth={1.5} />
+        </button>
+        <div className="w-8 h-[1px] bg-white/10 my-1"></div>
+        <button className="p-2.5 text-white/60 hover:text-white hover:bg-white/10 rounded-full transition-all duration-200" title="Settings">
+          <Settings2 size={20} strokeWidth={1.5} />
+        </button>
+      </div>
+      
+      {/* ── Floating Top Nav (Left: Title, Right: Actions) ── */}
+      <div className="absolute top-6 left-6 right-6 z-40 flex items-start justify-between pointer-events-none">
+        
+        {/* Left: Project Info */}
+        <div className="flex items-center gap-3 px-4 py-2.5 rounded-[16px] shadow-lg backdrop-blur-md pointer-events-auto transition-all"
+             style={{ 
+               background: "rgba(10, 10, 10, 0.7)",
+               border: "1px solid rgba(255, 255, 255, 0.08)"
+             }}>
+          <button onClick={() => router.back()} className="text-white/40 hover:text-white transition-colors mr-1">
+            <ArrowLeft size={16} />
+          </button>
+          
+          <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-[#3bc9db] to-blue-600 flex items-center justify-center shadow-[0_0_10px_rgba(59,201,219,0.3)] text-[14px] font-bold text-white shrink-0">
+            {centerPaper?.title?.charAt(0) || "M"}
+          </div>
+          
+          <div className="flex flex-col justify-center">
+            <div className="flex items-center gap-2">
+              <span className="text-[14px] font-semibold text-white tracking-wide max-w-[600px]" style={{ lineHeight: "1.2" }}>
+                {centerPaper ? centerPaper.title : "Research Map"}
+              </span>
+              <span className="px-2 py-0.5 rounded text-[10px] font-medium shrink-0"
+                    style={{ background: "rgba(255,255,255,0.05)", border: "1px solid rgba(255,255,255,0.1)", color: "#94a3b8" }}>
+                Draft
+              </span>
+            </div>
+            <span className="text-[11px] text-[#94a3b8] mt-1 flex items-center gap-1.5">
+              <div className="w-1.5 h-1.5 rounded-full bg-green-500"></div> Last updated 5 May, 2026
+            </span>
+          </div>
+        </div>
 
-      {/* ── Main Canvas Area ── */}
-      <div className="flex-1 relative overflow-hidden">
+        {/* Right: Actions */}
+        <div className="flex items-center gap-2.5 pointer-events-auto">
+          <button className="w-8 h-8 rounded-full bg-[#262626] flex items-center justify-center text-[#8a8a8a] hover:text-[#eaeaea] hover:bg-[#333] transition-colors border border-[#333]">
+            <Plus size={16} />
+          </button>
+          
+          <button className="w-8 h-8 rounded-full border-2 border-[#161616] overflow-hidden shadow-sm">
+            <img src="https://i.pravatar.cc/100?img=1" alt="User Avatar" className="w-full h-full object-cover" />
+          </button>
+          
+          <button className="px-4 py-1.5 rounded-[8px] bg-[#1a73e8] hover:bg-[#1557b0] text-white text-[13px] font-semibold transition-colors">
+            Share
+          </button>
+        </div>
+      </div>
       
         {/* ── Floating Canvas ── */}
         <div ref={containerRef} className="absolute inset-0"
@@ -1426,113 +1501,51 @@ export default function MapPage() {
           </div>
         )}
 
-        {/* ── Floating Top Left ── */}
-        <div className="absolute top-5 left-5 z-30 flex flex-col gap-3 pointer-events-none">
-          <button onClick={() => router.back()}
-            className="flex items-center gap-1.5 text-[12px] font-medium transition-opacity pointer-events-auto w-max hover:opacity-80"
-            style={{ color: "#64748b" }}>
-            <ArrowLeft size={12} /> Back to papers
-          </button>
-
-          <div className="flex items-center gap-3 pointer-events-auto">
-            <div className="w-8 h-8 rounded-lg flex items-center justify-center font-semibold text-[13px] bg-[#1f1f1f] text-[#e2e8f0] shrink-0 border border-[#2a2a2a]">
-              {centerPaper?.title?.charAt(0) || "M"}
-            </div>
-            <div className="flex flex-col gap-1">
-              <div className="flex items-center gap-2">
-                <input
-                  className="text-[15px] font-[550] text-[#e2e8f0] tracking-tight bg-transparent border-none outline-none focus:bg-[#111111] px-1.5 py-0.5 rounded-md transition-colors w-60 -ml-1.5"
-                  defaultValue={centerPaper ? centerPaper.title : "Research Map"}
-                  title="Edit Map Name"
-                />
-                <span className="px-2 py-0.5 rounded-full text-[10px] font-[500] shrink-0"
-                  style={{ background: "rgba(255,255,255,0.05)", border: "1px solid #2a2a2a", color: "#64748b" }}>
-                  Draft
-                </span>
-              </div>
-              <span className="text-[11px] text-[#475569] pl-1.5">Last updated 5 May, 2026</span>
-            </div>
-          </div>
-        </div>
 
 
 
 
-      {/* ── Floating Bottom Center Toolbar (Premium Glass Dock) ── */}
-      <div className="absolute bottom-6 left-1/2 -translate-x-1/2 z-30 flex flex-col items-center pointer-events-none">
-        <div 
-          className="flex items-center gap-3 px-3 py-2 pointer-events-auto rounded-[16px] shadow-2xl backdrop-blur-2xl transition-all"
-          style={{ 
-            background: "rgba(10, 15, 26, 0.85)", 
-            border: "1px solid rgba(255, 255, 255, 0.1)",
-            boxShadow: "0 10px 30px rgba(0,0,0,0.5), inset 0 1px 0 rgba(255,255,255,0.15)"
-          }}
-        >
-          {([
-            [
-              { t: "select",  icon: <MousePointer size={16} />, tip: "Cursor"  },
-              { t: "hand",    icon: <Hand         size={16} />, tip: "Pan" },
-            ],
-            [
-              { t: "paper",   icon: <FileText     size={16} />, tip: "Paper"  },
-              { t: "note",    icon: <StickyNote   size={16} />, tip: "Note" },
-              { t: "question",icon: <MessageSquare size={16} />, tip: "Question" },
-              { t: "timeline",icon: <Minus        size={16} />, tip: "Timeline" },
-              { t: "frame",   icon: <BoxSelect    size={16} />, tip: "Frame" },
-              { t: "shape",   icon: <Square       size={16} />, tip: "Shape" },
-            ],
-            [
-              { t: "connect", icon: <ArrowUpRight size={16} />, tip: "Connect" },
-              { t: "comment", icon: <MessageCircle size={16} />, tip: "Comment" },
-            ],
-            [
-              { t: "ai",      icon: <Sparkles     size={16} />, tip: "Nagi Research Assistant", special: true },
-            ],
-            [
-              { t: "export",  icon: <Download     size={16} />, tip: "Export" },
-            ]
-          ] as any[][]).map((group, groupIndex, arr) => (
-            <div key={groupIndex} className="flex items-center gap-0.5 relative">
-              {group.map((item) => {
-                const isActive = activeTool === item.t;
-                return (
-                  <button 
-                    key={item.t} 
-                    className={`relative group w-8 h-8 flex items-center justify-center rounded-[10px] transition-all duration-300 active:scale-95 ${
-                      item.special ? "hover:scale-105 hover:-translate-y-0.5 mx-1" : "hover:bg-[rgba(255,255,255,0.06)] hover:text-white"
-                    }`}
-                    onClick={() => {
-                      if (item.t === "paper") setShowAdd(true);
-                      else if (item.t === "ai") setActiveTool("ai" as Tool);
-                      else setActiveTool(item.t as Tool);
-                    }}
-                    style={item.special ? {
-                      background: "linear-gradient(135deg, #3BC9DB, #8B5CF6)",
-                      boxShadow: "0 4px 15px rgba(139, 92, 246, 0.4), inset 0 1px 1px rgba(255,255,255,0.4)",
-                      color: "#ffffff"
-                    } : {
-                      background: isActive ? "rgba(255,255,255,0.1)" : "transparent",
-                      color: isActive ? "#ffffff" : "#94a3b8",
-                      boxShadow: isActive ? "inset 0 1px 2px rgba(255,255,255,0.1), 0 1px 2px rgba(0,0,0,0.2)" : "none",
-                    }}
-                  >
-                    {item.icon}
-                    {/* Premium Tooltip */}
-                    <div className="absolute -top-[48px] left-1/2 -translate-x-1/2 px-2.5 py-1.5 rounded-[8px] text-[11px] font-semibold opacity-0 group-hover:opacity-100 transition-all duration-200 pointer-events-none whitespace-nowrap shadow-2xl backdrop-blur-xl z-50 translate-y-1 group-hover:translate-y-0"
-                      style={{ background: "rgba(5, 5, 5, 0.95)", border: "1px solid rgba(255,255,255,0.1)", color: "#f8fafc", letterSpacing: "0.02em" }}>
-                      {item.tip}
-                    </div>
-                  </button>
-                );
-              })}
-              {groupIndex < arr.length - 1 && <div className="w-[1px] h-4 mx-1.5 bg-[rgba(255,255,255,0.08)]"></div>}
-            </div>
-          ))}
-        </div>
+
+      {/* ── Floating Bottom Center Toolbar ── */}
+      <div className="absolute bottom-8 left-1/2 -translate-x-1/2 z-40 flex items-center gap-1 px-3 py-1.5 rounded-[14px] shadow-2xl backdrop-blur-xl transition-all"
+           style={{ 
+             background: "rgba(22, 22, 22, 0.9)",
+             border: "1px solid rgba(255, 255, 255, 0.08)",
+             boxShadow: "0 10px 40px rgba(0,0,0,0.8), inset 0 1px 0 rgba(255,255,255,0.05)"
+           }}>
+        {([
+          { tool: "line",   icon: <Minus size={16} strokeWidth={1.5} />, tip: "Line" },
+          { tool: "text",   icon: <Type size={16} strokeWidth={1.5} />, tip: "Text" },
+          { tool: "shape",  icon: <Square size={16} strokeWidth={1.5} />, tip: "Shape" },
+          { tool: "eraser", icon: <X size={16} strokeWidth={1.5} />, tip: "Eraser" }, // placeholder for eraser
+          { divider: true },
+          { tool: "select", icon: <MousePointer size={16} strokeWidth={1.5} />, tip: "Select" },
+          { tool: "pan",    icon: <Hand size={16} strokeWidth={1.5} />, tip: "Pan" },
+          { tool: "image",  icon: <ImageIcon size={16} strokeWidth={1.5} />, tip: "Image" },
+          { divider: true },
+          { tool: "ai", icon: <Sparkles size={16} strokeWidth={1.5} />, tip: "Toggle AI Chat", color: showAIChat ? "text-[#3bc9db]" : "text-white/60", onClick: () => setShowAIChat(!showAIChat) },
+          { tool: "menu", icon: <MoreHorizontal size={16} strokeWidth={1.5} />, tip: "More" },
+        ]).map((item, i) => (
+          item.divider ? (
+            <div key={i} className="w-[1px] h-4 bg-white/10 mx-1"></div>
+          ) : (
+            <button key={i} title={item.tip}
+              onClick={() => {
+                if (item.onClick) {
+                  item.onClick();
+                } else if (item.tool && item.tool !== "menu" && item.tool !== "eraser") {
+                  setActiveTool(item.tool as any);
+                }
+              }}
+              className={`p-2 rounded-[10px] transition-all duration-200 ${activeTool === item.tool && !item.onClick ? "bg-white/10 text-white" : "text-white/60 hover:text-white hover:bg-white/5"} ${item.color || ""}`}>
+              {item.icon}
+            </button>
+          )
+        ))}
       </div>
 
-      {/* ── Floating Bottom Right (Zoom) ── */}
-      <div className="absolute bottom-6 right-6 z-30 flex items-center gap-1.5 pointer-events-auto nagi-glass-toolbar px-3 py-2">
+      {/* ── Floating Zoom Controls ── */}
+      <div className="absolute bottom-6 right-[350px] z-30 flex items-center gap-1.5 pointer-events-auto nagi-glass-toolbar px-3 py-2">
         {([
           { fn: () => doZoom("out"), icon: <ZoomOut    size={14} />, tip: "Zoom out" },
           { fn: () => doZoom("in"),  icon: <ZoomIn     size={14} />, tip: "Zoom in"  },
@@ -1545,33 +1558,138 @@ export default function MapPage() {
         ))}
       </div>
 
-
-
-      </div>
-      {/* ── Fixed Right Sidebar (Unified) ── */}
-      <aside className="w-[280px] flex-shrink-0 h-[calc(100vh-24px)] my-3 mr-3 flex flex-col z-40 transition-all duration-300 bg-[#0a0a0a]/80 backdrop-blur-2xl rounded-2xl border border-white/5 shadow-2xl shadow-black/50 overflow-hidden">
+      {/* ── Floating AI Chat Window (Bottom Right) ── */}
+      {showAIChat && (
+      <div className="absolute bottom-6 right-6 z-50 w-[320px] flex flex-col bg-[#0a0a0a]/90 backdrop-blur-3xl rounded-2xl border border-white/10 shadow-2xl shadow-black/80 overflow-hidden transition-all duration-300"
+           style={{ maxHeight: "420px" }}
+           onClick={(e) => e.stopPropagation()}>
         
-        {/* Tab Header */}
-        <div className="flex items-center px-2 py-2 gap-1 border-b border-white/5 bg-white/[0.02]">
-          <button 
-            onClick={() => setActiveSidebarTab("design")}
-            className={`flex-1 py-1.5 rounded-lg text-[11px] font-semibold tracking-wide transition-all ${activeSidebarTab === "design" ? "bg-white/10 text-white shadow-sm ring-1 ring-white/5" : "text-[#808080] hover:text-[#e2e8f0] hover:bg-white/5"}`}
-          >
-            Design
-          </button>
-          <button 
-            onClick={() => setActiveSidebarTab("copilot")}
-            className={`flex-1 py-1.5 rounded-lg text-[11px] font-semibold tracking-wide transition-all ${activeSidebarTab === "copilot" ? "bg-white/10 text-white shadow-sm ring-1 ring-white/5" : "text-[#808080] hover:text-[#e2e8f0] hover:bg-white/5"}`}
-          >
-            Assistant
+        {/* Header */}
+        <div className="flex items-center justify-between px-4 py-3 border-b border-white/10 bg-white/[0.02]">
+          <div className="flex items-center gap-2">
+            <Sparkles size={14} className="text-[#3bc9db]" />
+            <span className="text-[12px] font-semibold text-white tracking-wide">Ask AI</span>
+          </div>
+          <button onClick={() => setShowAIChat(false)} className="text-white/40 hover:text-white transition-colors">
+            <X size={14} />
           </button>
         </div>
 
+        {/* Chat History */}
+        <div className="flex-1 overflow-y-auto px-4 py-4 flex flex-col gap-4 custom-scrollbar" style={{ WebkitOverflowScrolling: "touch" }}>
+          {chatMessages.map((msg, i) => (
+            <div key={i} className="flex gap-3">
+              <div className="shrink-0 mt-0.5">
+                {msg.role === "user" ? (
+                  <div className="w-5 h-5 rounded-[4px] bg-white/10 flex items-center justify-center border border-white/10">
+                    <User size={10} className="text-[#E2E8F0]" />
+                  </div>
+                ) : (
+                  <div className="w-5 h-5 rounded-[4px] flex items-center justify-center bg-[#3bc9db] shadow-[0_0_8px_rgba(59,201,219,0.4)]">
+                    <Sparkles size={10} className="text-white" />
+                  </div>
+                )}
+              </div>
+              <div className="flex-1 text-[12px] leading-relaxed text-[#D1D5DB] whitespace-pre-wrap">
+                {msg.text}
+              </div>
+            </div>
+          ))}
+          {isProcessingAI && (
+            <div className="flex gap-3">
+              <div className="shrink-0 mt-0.5">
+                <div className="w-5 h-5 rounded-[4px] flex items-center justify-center bg-[#3bc9db] shadow-[0_0_8px_rgba(59,201,219,0.4)]">
+                  <Sparkles size={10} className="text-white" />
+                </div>
+              </div>
+              <div className="flex-1 flex items-center h-5">
+                <Loader2 size={12} className="animate-spin text-[#808080]" />
+              </div>
+            </div>
+          )}
+        </div>
+
+        {/* Input Area */}
+        <div className="p-3 bg-black/40 border-t border-white/10">
+          <div className="bg-[#000000] border border-white/10 rounded-[8px] overflow-hidden flex flex-col transition-colors focus-within:border-[#3bc9db]">
+            
+            {/* Context Pill */}
+            <div className="px-2 py-1.5 flex items-center border-b border-white/5">
+              <button 
+                type="button"
+                onClick={() => setIsContextAdded(!isContextAdded)}
+                className={`flex items-center gap-1.5 px-1.5 py-0.5 rounded transition-colors text-[10px] font-medium ${isContextAdded ? 'bg-[#3bc9db]/15 text-[#3bc9db] border border-[#3bc9db]/30' : 'bg-white/5 hover:bg-white/10 text-white/50 hover:text-white'}`} 
+              >
+                <Paperclip size={10} /> {isContextAdded ? "Context Added" : "Add Context"}
+              </button>
+            </div>
+
+            {/* Textarea */}
+            <form onSubmit={handleAIChatSubmit} className="flex flex-col relative">
+              <textarea
+                value={aiCommand}
+                onChange={(e) => setAiCommand(e.target.value)}
+                onKeyDown={(e) => {
+                  if (e.key === 'Enter' && !e.shiftKey) {
+                    e.preventDefault();
+                    handleAIChatSubmit(e as any);
+                  }
+                }}
+                disabled={isProcessingAI}
+                placeholder="Message Nagi..."
+                className="w-full bg-transparent resize-none outline-none px-3 py-2 text-[12px] text-[#E2E8F0] placeholder-white/40 min-h-[40px] max-h-[120px]"
+              />
+              
+              {/* Bottom Row Controls */}
+              <div className="flex items-center justify-between px-2 py-1.5 border-t border-white/5 relative">
+                <div className="flex items-center gap-0.5 relative">
+                  <button type="button" className="p-1.5 rounded hover:bg-white/10 text-white/40 hover:text-white transition-colors">
+                    <Mic size={12} />
+                  </button>
+                  <div className="relative">
+                    <button 
+                      type="button" 
+                      onClick={() => setShowModelDropdown(!showModelDropdown)}
+                      className="flex items-center gap-1 px-1.5 py-1 rounded hover:bg-white/10 text-white/40 hover:text-white transition-colors text-[10px] font-medium" 
+                    >
+                      {selectedModel} <ChevronDown size={10} />
+                    </button>
+                    {showModelDropdown && (
+                      <div className="absolute bottom-full left-0 mb-1 w-32 bg-[#111111] border border-white/10 rounded-md shadow-lg overflow-hidden z-50">
+                        {['Llama 3.1 8B (Groq)', 'Gemma 2 9B (Fireworks)'].map(model => (
+                          <button
+                            key={model}
+                            type="button"
+                            onClick={() => {
+                              setSelectedModel(model);
+                              setShowModelDropdown(false);
+                            }}
+                            className={`w-full text-left px-3 py-1.5 text-[10px] transition-colors ${selectedModel === model ? 'bg-[#3bc9db]/10 text-[#3bc9db]' : 'text-white/60 hover:bg-white/10 hover:text-white'}`}
+                          >
+                            {model}
+                          </button>
+                        ))}
+                      </div>
+                    )}
+                  </div>
+                </div>
+                <button type="submit" disabled={isProcessingAI || !aiCommand.trim()} className="p-1.5 rounded hover:bg-white/10 text-white/40 hover:text-white transition-colors disabled:opacity-50 disabled:hover:bg-transparent">
+                  <Send size={12} />
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      </div>
+      )}
+
+      {/* ── Floating Right Sidebar (Figma Properties Panel) ── */}
+      <aside className="absolute top-20 right-6 w-[280px] max-h-[calc(100vh-140px)] flex flex-col z-40 transition-all duration-300 bg-[#161616] rounded-[16px] border border-[#2a2a2a] shadow-2xl overflow-hidden"
+             onClick={(e) => e.stopPropagation()}>
         <div className="flex-1 overflow-hidden relative">
           
-          
           {/* ── DESIGN TAB ── */}
-          {activeSidebarTab === "design" && (
+          {true && (
             <div className="absolute inset-0 overflow-y-auto flex flex-col custom-scrollbar" style={{ WebkitOverflowScrolling: "touch" }}>
               
               <style>{`
@@ -1648,282 +1766,204 @@ export default function MapPage() {
 
                   {/* === SINGLE NODE INSPECTOR === */}
                   {selectedNode && (
-                    <>
-                      {/* Global Type Indicator */}
-                      <div className="flex items-center justify-between px-5 py-4 shrink-0 bg-[#070b14]" style={{ borderBottom: "1px solid #1f1f1f" }}>
-                        <div className="flex items-center gap-2.5">
-                          <div className="w-2.5 h-2.5 rounded-sm shadow-[0_0_8px_rgba(255,255,255,0.2)]" style={{ background: selectedNode.customColor || TYPE_COLOR[selectedNode.type] }} />
-                          <span className="text-[11px] font-bold tracking-[0.15em] uppercase text-[#E2E8F0]" style={{ }}>
-                            {TYPE_LABEL[selectedNode.type] || selectedNode.type}
-                          </span>
-                        </div>
+                    <div className="flex flex-col">
+                      {/* Asset / Header */}
+                      <div className="flex items-center justify-between px-4 py-3 shrink-0 border-b border-[#2a2a2a]">
+                        <span className="text-[13px] font-semibold text-[#eaeaea]">Asset</span>
+                        <button className="text-[#8a8a8a] hover:text-[#eaeaea] transition-colors"><PanelRightClose size={14}/></button>
                       </div>
 
-                      {/* --- GENERAL SECTION --- */}
-                      <div className="flex flex-col border-b border-white/5">
-                        <button onClick={() => toggleSection('general')} className="flex items-center justify-between px-4 py-2.5 hover:bg-white/[0.03] transition-colors w-full text-left">
-                          <span className="text-[11px] font-semibold text-[#8b949e]">General</span>
-                          <ChevronDown size={14} className={`text-[#64748B] transition-transform duration-200 ${openSections.general ? 'rotate-180' : ''}`} />
-                        </button>
-                        {openSections.general && (
-                          <div className="flex flex-col gap-3 px-4 pb-4 pt-1">
-                            <input
-                              value={selectedNode.title}
-                              onChange={(e) => updateSelectedNode({ title: e.target.value })}
-                              className="text-[13px] font-semibold leading-snug bg-transparent border border-transparent hover:border-white/10 focus:border-[#3BC9DB] focus:bg-white/[0.03] rounded-md outline-none px-2 py-1 -mx-2 transition-all w-[calc(100%+16px)] text-white"
-                              placeholder="Title..."
-                            />
-                            <textarea
-                              value={selectedNode.description || ""}
-                              onChange={(e) => updateSelectedNode({ description: e.target.value })}
-                              className="text-[12px] leading-relaxed bg-transparent border border-transparent hover:border-white/10 focus:border-[#3BC9DB] focus:bg-white/[0.03] rounded-md outline-none resize-none px-2 py-1 -mx-2 transition-all w-[calc(100%+16px)] text-[#8b949e]"
-                              style={{ minHeight: "60px" }}
-                              placeholder="Add a description..."
-                            />
-                          </div>
-                        )}
-                      </div>
-
-                      {/* --- APPEARANCE SECTION --- */}
-                      <div className="flex flex-col border-b border-white/5">
-                        <button onClick={() => toggleSection('appearance')} className="flex items-center justify-between px-4 py-2.5 hover:bg-white/[0.03] transition-colors w-full text-left">
-                          <span className="text-[11px] font-semibold text-[#8b949e]">Appearance</span>
-                          <ChevronDown size={14} className={`text-[#64748B] transition-transform duration-200 ${openSections.appearance ? 'rotate-180' : ''}`} />
-                        </button>
-                        {openSections.appearance && (
-                          <div className="flex flex-col gap-4 px-5 pb-5 pt-1">
-                            
-                            {/* Color Picker Swatches */}
-                            <div className="flex flex-col gap-2">
-                              <span className="text-[10px] font-medium text-[#64748B]" style={{ }}>Accent Color</span>
-                              <div className="flex gap-1.5 flex-wrap">
-                                {["", "#ef4444", "#f59e0b", "#10b981", "#3bc9db", "#6366f1", "#a855f7", "#ec4899", "#ffffff", "#444444"].map((c) => (
-                                  <button key={c || "default"} onClick={() => updateSelectedNode({ customColor: c || undefined })}
-                                    className="w-5 h-5 rounded-full border-2 flex items-center justify-center transition-transform hover:scale-110 shadow-sm"
-                                    style={{
-                                      background: c || "rgba(255,255,255,0.05)",
-                                      borderColor: selectedNode.customColor === c || (!selectedNode.customColor && !c) ? "#fff" : "transparent",
-                                    }}>
-                                    {!c && <X size={10} color="#64748B" />}
-                                  </button>
-                                ))}
-                              </div>
-                            </div>
-
-                            {/* Opacity Slider (Mock) */}
-                            <div className="flex flex-col gap-2">
-                               <div className="flex justify-between items-center">
-                                  <span className="text-[10px] font-medium text-[#64748B]" style={{ }}>Opacity</span>
-                                  <span className="text-[10px] font-mono text-[#E2E8F0]">100%</span>
-                               </div>
-                               <input type="range" min="0" max="100" defaultValue="100" className="nagi-slider" />
-                            </div>
-
-                          </div>
-                        )}
-                      </div>
-
-                      {/* --- SIZE & LAYOUT SECTION --- */}
-                      <div className="flex flex-col border-b border-white/5">
-                        <button onClick={() => toggleSection('layout')} className="flex items-center justify-between px-4 py-2.5 hover:bg-white/[0.03] transition-colors w-full text-left">
-                          <span className="text-[11px] font-semibold text-[#8b949e]">Layout</span>
-                          <ChevronDown size={14} className={`text-[#64748B] transition-transform duration-200 ${openSections.layout ? 'rotate-180' : ''}`} />
-                        </button>
-                        {openSections.layout && (
-                          <div className="flex flex-col gap-4 px-4 pb-4 pt-1">
-                            <div className="flex items-center gap-2">
-                              <div className="flex-1 flex items-center gap-2 bg-white/[0.03] border border-transparent hover:border-white/10 focus-within:border-[#3bc9db] rounded-md px-2 py-1 transition-colors">
-                                <span className="text-[10px] font-medium text-[#64748B]">W</span>
-                                <input 
-                                  type="text" 
-                                  value={selectedNode.width || "Auto"} 
-                                  onChange={(e) => {
-                                    const val = parseInt(e.target.value);
-                                    updateSelectedNode({ width: isNaN(val) ? undefined : val });
-                                  }}
-                                  className="w-full bg-transparent outline-none text-[11px] text-[#E2E8F0] font-mono" 
-                                />
-                              </div>
-                              <div className="w-3 flex justify-center text-[#475569]"><Link2 size={12}/></div>
-                              <div className="flex-1 flex items-center gap-2 bg-white/[0.03] border border-transparent hover:border-white/10 focus-within:border-[#3bc9db] rounded-md px-2 py-1 transition-colors">
-                                <span className="text-[10px] font-medium text-[#64748B]">H</span>
-                                <input 
-                                  type="text" 
-                                  value={selectedNode.height || "Auto"} 
-                                  onChange={(e) => {
-                                    const val = parseInt(e.target.value);
-                                    updateSelectedNode({ height: isNaN(val) ? undefined : val });
-                                  }}
-                                  className="w-full bg-transparent outline-none text-[11px] text-[#E2E8F0] font-mono" 
-                                />
-                              </div>
-                            </div>
-                            
-                            <div className="flex flex-col gap-2 mt-1">
-                               <span className="text-[10px] font-medium text-[#64748B]" style={{ }}>Corner Radius</span>
-                               <div className="flex items-center bg-[rgba(255,255,255,0.03)] border border-[#1f1f1f] p-0.5 rounded-[8px]">
-                                  {[0, 8, 16, 24].map((r) => {
-                                    const isActive = selectedNode.borderRadius === r || (!selectedNode.borderRadius && r === 16);
-                                    return (
-                                      <button 
-                                        key={r} 
-                                        onClick={() => updateSelectedNode({ borderRadius: r })}
-                                        className={`flex-1 py-1 rounded-[6px] text-[11px] font-medium ${isActive ? 'bg-[#3BC9DB] text-[#050505]' : 'text-[#94A3B8] hover:text-[#fff]'}`}
-                                      >
-                                        {r}
-                                      </button>
-                                    );
-                                  })}
-                               </div>
-                            </div>
-                          </div>
-                        )}
-                      </div>
-
-                      {/* --- METADATA SECTION (Papers Only) --- */}
-                      {selectedNode.type === "paper" && (
-                        <div className="flex flex-col border-b border-[#1f1f1f]">
-                          <button onClick={() => toggleSection('metadata')} className="flex items-center justify-between px-5 py-3 hover:bg-[rgba(255,255,255,0.02)] transition-colors w-full text-left">
-                            <span className="text-[11px] font-bold uppercase tracking-wider text-[#94A3B8]" style={{ }}>Metadata</span>
-                            <ChevronDown size={14} className={`text-[#64748B] transition-transform duration-200 ${openSections.metadata ? 'rotate-180' : ''}`} />
+                      <div className="flex flex-col mt-2">
+                        {/* --- PLACEMENT SECTION --- */}
+                        <div className="flex flex-col">
+                          <button onClick={() => toggleSection('layout')} className="flex items-center justify-between px-4 py-2 hover:bg-white/[0.02] transition-colors w-full text-left group">
+                            <span className="text-[12px] font-semibold text-[#eaeaea]">Placement</span>
+                            <ChevronDown size={14} className={`text-[#8a8a8a] transition-transform duration-200 group-hover:text-[#eaeaea] ${openSections.layout ? 'rotate-180' : ''}`} />
                           </button>
-                          {openSections.metadata && (
-                            <div className="flex flex-col gap-2.5 px-5 pb-5 pt-1">
-                              {[
-                                { key: "author", label: "Author", value: selectedNode.author },
-                                { key: "year", label: "Year", value: selectedNode.year?.toString() },
-                                { key: "citations", label: "Citations", value: selectedNode.citations?.toString(), isNumber: true },
-                                { key: "field", label: "Field", value: selectedNode.field },
-                                { key: "journal", label: "Journal", value: selectedNode.journal },
-                              ].map(row => (
-                                <div key={row.label} className="flex items-center justify-between gap-2 group">
-                                  <span className="text-[11px] font-medium text-[#64748B]" style={{ }}>{row.label}</span>
-                                  <input 
-                                    type="text"
-                                    value={row.value || ""}
-                                    onChange={(e) => updateSelectedNode({ [row.key]: row.isNumber ? (parseInt(e.target.value) || 0) : e.target.value })}
-                                    className="text-[11px] font-medium text-right bg-transparent border-b border-transparent group-hover:border-[#1f1f1f] focus:border-[#3BC9DB] outline-none placeholder-[#334155] w-40 transition-colors py-0.5"
-                                    style={{ color: "#E2E8F0" }}
-                                    placeholder="-"
-                                  />
+                          {openSections.layout && (
+                            <div className="flex flex-col gap-4 px-4 pb-4 pt-2">
+                              {/* Position */}
+                              <div className="flex flex-col gap-1.5">
+                                <span className="text-[11px] text-[#8a8a8a]">Position</span>
+                                <div className="flex gap-2">
+                                  <div className="flex-1 flex items-center bg-[#222222] rounded-md px-2.5 py-1.5 border border-transparent focus-within:border-[#333]">
+                                    <span className="text-[11px] text-[#555] mr-2">X</span>
+                                    <input className="bg-transparent text-[12px] text-[#eaeaea] w-full outline-none text-right font-mono" value={Math.round(selectedNode.x || 0)} readOnly/>
+                                  </div>
+                                  <div className="flex-1 flex items-center bg-[#222222] rounded-md px-2.5 py-1.5 border border-transparent focus-within:border-[#333]">
+                                    <span className="text-[11px] text-[#555] mr-2">Y</span>
+                                    <input className="bg-transparent text-[12px] text-[#eaeaea] w-full outline-none text-right font-mono" value={Math.round(selectedNode.y || 0)} readOnly/>
+                                  </div>
                                 </div>
-                              ))}
-                              
-                              <div className="mt-3">
-                                 <span className="text-[10px] font-medium text-[#64748B] mb-1.5 block" style={{ }}>Tags</span>
-                                 <input 
-                                    type="text"
-                                    value={(selectedNode.tags || []).join(", ")}
-                                    onChange={(e) => updateSelectedNode({ tags: e.target.value.split(",").map(t => t.trim()).filter(Boolean) })}
-                                    placeholder="Add tags separated by commas..."
-                                    className="text-[11px] bg-[rgba(255,255,255,0.02)] border border-[#1f1f1f] rounded-[6px] px-3 py-2 outline-none focus:border-[#3BC9DB] w-full transition-colors"
-                                    style={{ color: "#E2E8F0" }}
-                                  />
                               </div>
+                              
+                              {/* Alignment */}
+                              <div className="flex flex-col gap-1.5">
+                                <span className="text-[11px] text-[#8a8a8a]">Alignment</span>
+                                <div className="flex gap-2">
+                                  <div className="flex-1 flex items-center justify-between bg-[#222222] rounded-md px-2 py-1.5 border border-transparent">
+                                    <AlignStartVertical size={14} className="text-[#555] hover:text-[#eaeaea] cursor-pointer" onClick={() => handleAlign('left')} />
+                                    <AlignCenterHorizontal size={14} className="text-[#555] hover:text-[#eaeaea] cursor-pointer" onClick={() => handleAlign('centerHorizontal')} />
+                                    <AlignEndVertical size={14} className="text-[#555] hover:text-[#eaeaea] cursor-pointer" onClick={() => handleAlign('right')} />
+                                  </div>
+                                  <div className="flex-1 flex items-center justify-between bg-[#222222] rounded-md px-2 py-1.5 border border-transparent">
+                                    <AlignStartHorizontal size={14} className="text-[#555] hover:text-[#eaeaea] cursor-pointer" onClick={() => handleAlign('top')} />
+                                    <AlignCenterVertical size={14} className="text-[#555] hover:text-[#eaeaea] cursor-pointer" onClick={() => handleAlign('centerVertical')} />
+                                    <AlignEndHorizontal size={14} className="text-[#555] hover:text-[#eaeaea] cursor-pointer" onClick={() => handleAlign('bottom')} />
+                                  </div>
+                                </div>
+                              </div>
+
+                              {/* Size / Rotation */}
+                              <div className="flex flex-col gap-1.5">
+                                <span className="text-[11px] text-[#8a8a8a]">Size</span>
+                                <div className="flex gap-2">
+                                  <div className="flex-1 flex items-center bg-[#222222] rounded-md px-2.5 py-1.5 border border-transparent focus-within:border-[#333]">
+                                    <span className="text-[11px] text-[#555] mr-2">W</span>
+                                    <input type="text" value={selectedNode.width || "Auto"} onChange={(e) => updateSelectedNode({ width: parseInt(e.target.value) || undefined })} className="bg-transparent text-[12px] text-[#eaeaea] w-full outline-none text-right font-mono" />
+                                  </div>
+                                  <div className="flex-1 flex items-center bg-[#222222] rounded-md px-2.5 py-1.5 border border-transparent focus-within:border-[#333]">
+                                    <span className="text-[11px] text-[#555] mr-2">H</span>
+                                    <input type="text" value={selectedNode.height || "Auto"} onChange={(e) => updateSelectedNode({ height: parseInt(e.target.value) || undefined })} className="bg-transparent text-[12px] text-[#eaeaea] w-full outline-none text-right font-mono" />
+                                  </div>
+                                </div>
+                              </div>
+
                             </div>
                           )}
                         </div>
-                      )}
 
-                      {/* --- NOTES SECTION --- */}
-                      <div className="flex flex-col border-b border-[#1f1f1f]">
-                        <button onClick={() => toggleSection('notes')} className="flex items-center justify-between px-5 py-3 hover:bg-[rgba(255,255,255,0.02)] transition-colors w-full text-left">
-                          <span className="text-[11px] font-bold uppercase tracking-wider text-[#94A3B8]" style={{ }}>Notes</span>
-                          <ChevronDown size={14} className={`text-[#64748B] transition-transform duration-200 ${openSections.notes ? 'rotate-180' : ''}`} />
-                        </button>
-                        {openSections.notes && (
-                          <div className="flex flex-col gap-2 px-5 pb-5 pt-1">
-                             <textarea
-                               value={selectedNode.note || ""}
-                               onChange={(e) => updateSelectedNode({ note: e.target.value })}
-                               className="text-[12px] leading-relaxed rounded-[8px] bg-[rgba(255,255,255,0.02)] border border-[#1f1f1f] px-3 py-2.5 outline-none resize-y placeholder-[#475569] w-full focus:border-[#3BC9DB] transition-colors"
-                               style={{ color: "#E2E8F0", minHeight: "100px" }}
-                               placeholder="Supports Markdown..."
-                             />
-                          </div>
-                        )}
-                      </div>
-
-                      {/* --- CONNECTIONS SECTION --- */}
-                      <div className="flex flex-col border-b border-[#1f1f1f]">
-                        <button onClick={() => toggleSection('connections')} className="flex items-center justify-between px-5 py-3 hover:bg-[rgba(255,255,255,0.02)] transition-colors w-full text-left">
-                          <span className="text-[11px] font-bold uppercase tracking-wider text-[#94A3B8]" style={{ }}>Connections</span>
-                          <ChevronDown size={14} className={`text-[#64748B] transition-transform duration-200 ${openSections.connections ? 'rotate-180' : ''}`} />
-                        </button>
-                        {openSections.connections && (
-                          <div className="flex flex-col gap-1.5 px-5 pb-5 pt-1">
-                            {edges.filter(e => {
-                              const srcId = typeof e.source === "string" ? e.source : e.source.id;
-                              const tgtId = typeof e.target === "string" ? e.target : e.target.id;
-                              return srcId === selectedNode.id || tgtId === selectedNode.id;
-                            }).length === 0 ? (
-                               <span className="text-[11px] text-[#475569] py-2" style={{ }}>No active connections.</span>
-                            ) : (
-                              edges.filter(e => {
-                                const srcId = typeof e.source === "string" ? e.source : e.source.id;
-                                const tgtId = typeof e.target === "string" ? e.target : e.target.id;
-                                return srcId === selectedNode.id || tgtId === selectedNode.id;
-                              }).map((e, i) => {
-                                const srcId = typeof e.source === "string" ? e.source : e.source.id;
-                                const tgtId = typeof e.target === "string" ? e.target : e.target.id;
-                                const isSource = srcId === selectedNode.id;
-                                const otherId = isSource ? tgtId : srcId;
-                                const otherNode = nodes.find(n => n.id === otherId);
-                                return (
-                                  <div key={i} className="flex justify-between items-center bg-[rgba(255,255,255,0.02)] px-3 py-2 rounded-[6px] border border-[#1f1f1f] hover:border-[#334155] transition-colors cursor-pointer group">
-                                    <span className="text-[11px] text-[#E2E8F0] font-medium truncate w-[130px]" style={{ }}>{otherNode?.title || String(otherId)}</span>
-                                    <span className="text-[9px] font-bold uppercase py-0.5 px-1.5 rounded-[4px]" style={{ color: EDGE_COLOR[e.type], background: `${EDGE_COLOR[e.type]}22`}}>{e.label || e.type}</span>
+                        {/* --- DETAILS SECTION --- */}
+                        <div className="flex flex-col">
+                          <button onClick={() => toggleSection('general')} className="flex items-center justify-between px-4 py-2 hover:bg-white/[0.02] transition-colors w-full text-left group">
+                            <span className="text-[12px] font-semibold text-[#eaeaea]">Details</span>
+                            <ChevronDown size={14} className={`text-[#8a8a8a] transition-transform duration-200 group-hover:text-[#eaeaea] ${openSections.general ? 'rotate-180' : ''}`} />
+                          </button>
+                          {openSections.general && (
+                            <div className="flex flex-col gap-3 px-4 pb-4 pt-2">
+                              <div className="flex flex-col gap-1.5">
+                                <span className="text-[11px] text-[#8a8a8a]">Prompt / Title</span>
+                                <textarea
+                                  value={selectedNode.description || selectedNode.title}
+                                  onChange={(e) => updateSelectedNode({ description: e.target.value })}
+                                  className="text-[11px] leading-relaxed bg-transparent border-none outline-none resize-none transition-all w-full text-[#a1a1aa]"
+                                  style={{ minHeight: "80px" }}
+                                  placeholder="Description..."
+                                />
+                              </div>
+                              
+                              {/* Key Values */}
+                              <div className="flex flex-col gap-2.5 mt-2">
+                                <div className="flex justify-between items-center">
+                                  <span className="text-[11px] text-[#555]">Type</span>
+                                  <span className="text-[11px] font-medium text-[#eaeaea] capitalize">{selectedNode.type}</span>
+                                </div>
+                                <div className="flex justify-between items-center">
+                                  <span className="text-[11px] text-[#555]">Color</span>
+                                  <div className="flex items-center gap-1">
+                                     <div className="w-3 h-3 rounded-full shadow-inner" style={{ background: selectedNode.customColor || TYPE_COLOR[selectedNode.type] || '#ffffff' }} />
+                                     <span className="text-[11px] font-medium text-[#eaeaea] uppercase">{selectedNode.customColor || 'Auto'}</span>
                                   </div>
-                                );
-                              })
-                            )}
-                          </div>
-                        )}
-                      </div>
+                                </div>
+                                <div className="flex justify-between items-center">
+                                  <span className="text-[11px] text-[#555]">Dimensions</span>
+                                  <span className="text-[11px] font-medium text-[#eaeaea]">{selectedNode.width || 'Auto'} × {selectedNode.height || 'Auto'}</span>
+                                </div>
+                                {selectedNode.author && (
+                                  <div className="flex justify-between items-center">
+                                    <span className="text-[11px] text-[#555]">Author</span>
+                                    <span className="text-[11px] font-medium text-[#eaeaea] truncate max-w-[120px]">{selectedNode.author}</span>
+                                  </div>
+                                )}
+                                {selectedNode.year && (
+                                  <div className="flex justify-between items-center">
+                                    <span className="text-[11px] text-[#555]">Year</span>
+                                    <span className="text-[11px] font-medium text-[#eaeaea]">{selectedNode.year}</span>
+                                  </div>
+                                )}
+                              </div>
+                              
+                              <button className="w-full mt-4 py-2 rounded-lg bg-[#262626] hover:bg-[#333333] transition-colors text-[11px] font-semibold text-[#eaeaea] border border-[#333]">
+                                 Regenerate
+                              </button>
+                              
+                              {selectedNode.type === 'paper' && (
+                                 <button onClick={() => { window.location.href = `/paper/${selectedNode.id}`; }} className="w-full mt-1 py-2 rounded-lg bg-[#262626] hover:bg-[#333333] transition-colors text-[11px] font-semibold text-[#eaeaea] border border-[#333]">
+                                    Open Details
+                                 </button>
+                              )}
+                              <button onClick={() => {
+                                const newNodes = nodes.filter(n => n.id !== selectedNode!.id);
+                                const newEdges = edges.filter(e => {
+                                  const srcId = typeof e.source === "string" ? e.source : e.source.id;
+                                  const tgtId = typeof e.target === "string" ? e.target : e.target.id;
+                                  return srcId !== selectedNode!.id && tgtId !== selectedNode!.id;
+                                });
+                                pushHistory(newNodes, newEdges);
+                                setSelectedNodeIds([]);
+                              }} className="w-full mt-1 py-2 rounded-lg bg-[rgba(239,68,68,0.05)] hover:bg-[rgba(239,68,68,0.1)] transition-colors text-[11px] font-semibold text-[#F87171] border border-[rgba(239,68,68,0.2)]">
+                                 Delete Node
+                              </button>
+                            </div>
+                          )}
+                        </div>
 
-                      {/* --- ACTIONS & DANGER ZONE --- */}
-                      <div className="flex flex-col px-5 py-6 gap-2.5">
-                        {selectedNode.type === "paper" && (
-                          <div className="flex gap-2">
-                            <button onClick={() => { window.location.href = `/paper/${selectedNode.id}`; }}
-                              className="flex-1 flex items-center justify-center gap-1.5 py-2 rounded-[8px] text-[11px] font-semibold transition-all hover:bg-[rgba(255,255,255,0.08)] bg-[rgba(255,255,255,0.04)]"
-                              style={{ color: "#E2E8F0" }}>
-                              <BookOpen size={14} /> View
-                            </button>
-                            <button onClick={() => { window.location.href = `/map/${selectedNode.id}`; }}
-                              className="flex-1 flex items-center justify-center gap-1.5 py-2 rounded-[8px] text-[11px] font-semibold transition-all hover:bg-[rgba(255,255,255,0.08)] bg-[rgba(255,255,255,0.04)]"
-                              style={{ color: "#E2E8F0" }}>
-                              <Map size={14} /> Map
-                            </button>
-                          </div>
-                        )}
-                        {selectedNode.url && (
-                          <a href={selectedNode.url} target="_blank" rel="noopener noreferrer"
-                            className="w-full flex items-center justify-center gap-1.5 py-2 rounded-[8px] text-[11px] font-semibold transition-all hover:bg-[rgba(255,255,255,0.08)] bg-[rgba(255,255,255,0.04)]"
-                            style={{ color: "#E2E8F0" }}>
-                            <ExternalLink size={14} /> Source Link
-                          </a>
-                        )}
+                        {/* --- NOTES SECTION (Collapsible) --- */}
+                        <div className="flex flex-col">
+                          <button onClick={() => toggleSection('notes')} className="flex items-center justify-between px-4 py-2 hover:bg-white/[0.02] transition-colors w-full text-left group">
+                            <span className="text-[12px] font-semibold text-[#eaeaea]">Notes</span>
+                            <ChevronDown size={14} className={`text-[#8a8a8a] transition-transform duration-200 group-hover:text-[#eaeaea] ${openSections.notes ? 'rotate-180' : ''}`} />
+                          </button>
+                          {openSections.notes && (
+                            <div className="px-4 pb-4 pt-1">
+                               <textarea
+                                 value={selectedNode.note || ""}
+                                 onChange={(e) => updateSelectedNode({ note: e.target.value })}
+                                 className="text-[11px] leading-relaxed rounded-[6px] bg-[#222222] border border-[#333] px-3 py-2 outline-none resize-y w-full text-[#eaeaea]"
+                                 style={{ minHeight: "60px" }}
+                                 placeholder="Add notes..."
+                               />
+                            </div>
+                          )}
+                        </div>
                         
-                        <div className="h-4"></div>
+                        {/* --- CONNECTIONS SECTION (Collapsible) --- */}
+                        <div className="flex flex-col">
+                          <button onClick={() => toggleSection('connections')} className="flex items-center justify-between px-4 py-2 hover:bg-white/[0.02] transition-colors w-full text-left group">
+                            <span className="text-[12px] font-semibold text-[#eaeaea]">Connections</span>
+                            <ChevronDown size={14} className={`text-[#8a8a8a] transition-transform duration-200 group-hover:text-[#eaeaea] ${openSections.connections ? 'rotate-180' : ''}`} />
+                          </button>
+                          {openSections.connections && (
+                            <div className="px-4 pb-4 pt-1">
+                               <span className="text-[11px] text-[#555]">No connections configured.</span>
+                            </div>
+                          )}
+                        </div>
                         
-                        <button
-                          onClick={() => {
-                            const newNodes = nodes.filter(n => n.id !== selectedNode!.id);
-                            const newEdges = edges.filter(e => {
-                              const srcId = typeof e.source === "string" ? e.source : e.source.id;
-                              const tgtId = typeof e.target === "string" ? e.target : e.target.id;
-                              return srcId !== selectedNode!.id && tgtId !== selectedNode!.id;
-                            });
-                            pushHistory(newNodes, newEdges);
-                            setSelectedNodeIds([]);
-                          }}
-                          className="w-full flex items-center justify-center gap-2 py-2 rounded-[8px] text-[12px] font-semibold transition-all hover:bg-[rgba(239,68,68,0.15)] bg-[rgba(239,68,68,0.05)] border border-[rgba(239,68,68,0.2)]"
-                          style={{ color: "#F87171" }}>
-                          <Trash2 size={14} /> Delete Node
-                        </button>
+                        {/* --- APPEARANCE SECTION (Collapsible) --- */}
+                        <div className="flex flex-col">
+                          <button onClick={() => toggleSection('appearance')} className="flex items-center justify-between px-4 py-2 hover:bg-white/[0.02] transition-colors w-full text-left group">
+                            <span className="text-[12px] font-semibold text-[#eaeaea]">Appearance</span>
+                            <ChevronDown size={14} className={`text-[#8a8a8a] transition-transform duration-200 group-hover:text-[#eaeaea] ${openSections.appearance ? 'rotate-180' : ''}`} />
+                          </button>
+                          {openSections.appearance && (
+                             <div className="px-4 pb-4 pt-1 flex flex-wrap gap-1.5">
+                               {["", "#ef4444", "#f59e0b", "#10b981", "#3bc9db", "#6366f1", "#a855f7", "#ec4899", "#ffffff", "#444444"].map((c) => (
+                                 <button key={c || "default"} onClick={() => updateSelectedNode({ customColor: c || undefined })}
+                                   className="w-5 h-5 rounded-full border border-[#333] flex items-center justify-center transition-transform hover:scale-110 shadow-sm"
+                                   style={{
+                                     background: c || "#222",
+                                     borderColor: selectedNode.customColor === c || (!selectedNode.customColor && !c) ? "#eaeaea" : "#333",
+                                   }}>
+                                   {!c && <X size={10} color="#555" />}
+                                 </button>
+                               ))}
+                             </div>
+                          )}
+                        </div>
+
                       </div>
-                    </>
+                    </div>
                   )}
 
                   {/* === EDGE INSPECTOR === */}
@@ -1990,130 +2030,10 @@ export default function MapPage() {
               )}
             </div>
           )}
-
-          {/* ── COPILOT TAB ── */}
-          {activeSidebarTab === "copilot" && (
-            <div className="absolute inset-0 flex flex-col">
-              {/* Chat History */}
-              <div className="flex-1 overflow-y-auto px-4 py-4 flex flex-col gap-6" style={{ WebkitOverflowScrolling: "touch" }}>
-                {chatMessages.length === 0 && !isProcessingAI && (
-                  <div className="text-[#808080] text-[12px] px-1" style={{ }}>
-                    I'll help you create or modify the canvas. Let me know what you need.
-                  </div>
-                )}
-                
-                {chatMessages.map((msg, i) => (
-                  <div key={i} className="flex gap-3">
-                    <div className="shrink-0 mt-0.5">
-                      {msg.role === "user" ? (
-                        <div className="w-5 h-5 rounded-[4px] bg-[#1f1f1f] flex items-center justify-center border border-[#334155]">
-                          <User size={10} className="text-[#E2E8F0]" />
-                        </div>
-                      ) : (
-                        <div className="w-5 h-5 rounded-[4px] flex items-center justify-center bg-[#3bc9db] shadow-[0_0_8px_rgba(59,201,219,0.4)]">
-                          <Sparkles size={10} className="text-white" />
-                        </div>
-                      )}
-                    </div>
-                    <div className="flex-1 text-[12px] leading-relaxed text-[#D1D5DB] whitespace-pre-wrap" style={{ }}>
-                      {msg.text}
-                    </div>
-                  </div>
-                ))}
-                {isProcessingAI && (
-                  <div className="flex gap-3">
-                    <div className="shrink-0 mt-0.5">
-                      <div className="w-5 h-5 rounded-[4px] flex items-center justify-center bg-[#3bc9db] shadow-[0_0_8px_rgba(59,201,219,0.4)]">
-                        <Sparkles size={10} className="text-white" />
-                      </div>
-                    </div>
-                    <div className="flex-1 flex items-center h-5">
-                      <Loader2 size={12} className="animate-spin text-[#808080]" />
-                    </div>
-                  </div>
-                )}
-              </div>
-
-              {/* Input Area */}
-              <div className="p-3 pt-2" style={{ borderTop: "1px solid #1f1f1f" }}>
-                <div className="bg-[#000000] border border-[#1f1f1f] rounded-[8px] overflow-hidden flex flex-col transition-colors focus-within:border-[#3bc9db]">
-                  
-                  {/* Context Pill */}
-                  <div className="px-2 py-1.5 flex items-center" style={{ borderBottom: "1px solid #1f1f1f" }}>
-                    <button 
-                      type="button"
-                      onClick={() => setIsContextAdded(!isContextAdded)}
-                      className={`flex items-center gap-1.5 px-1.5 py-0.5 rounded ${isContextAdded ? 'bg-[rgba(59,201,219,0.15)] text-[#3bc9db] border border-[rgba(59,201,219,0.3)]' : 'bg-[#1f1f1f] hover:bg-[#334155] text-[#A0A0A0] hover:text-[#E2E8F0]'} transition-colors text-[10px] font-medium`} 
-                      style={{ }}
-                    >
-                      <Paperclip size={10} /> {isContextAdded ? "Context Added" : "Add Context"}
-                    </button>
-                  </div>
-
-                  {/* Textarea */}
-                  <form onSubmit={handleAIChatSubmit} className="flex flex-col relative">
-                    <textarea
-                      value={aiCommand}
-                      onChange={(e) => setAiCommand(e.target.value)}
-                      onKeyDown={(e) => {
-                        if (e.key === 'Enter' && !e.shiftKey) {
-                          e.preventDefault();
-                          handleAIChatSubmit(e as any);
-                        }
-                      }}
-                      disabled={isProcessingAI}
-                      placeholder="Ask Nagi..."
-                      className="w-full bg-transparent resize-none outline-none px-3 py-2.5 text-[12px] text-[#E2E8F0] placeholder-[#666] min-h-[50px]"
-                      style={{ }}
-                    />
-                    
-                    {/* Bottom Row Controls */}
-                    <div className="flex items-center justify-between px-2 py-1.5 border-t border-[#1f1f1f] relative">
-                      <div className="flex items-center gap-0.5 relative">
-                        <button type="button" className="p-1.5 rounded hover:bg-[#1f1f1f] text-[#808080] hover:text-[#D1D5DB] transition-colors">
-                          <Mic size={12} />
-                        </button>
-                        
-                        <div className="relative">
-                          <button 
-                            type="button" 
-                            onClick={() => setShowModelDropdown(!showModelDropdown)}
-                            className="flex items-center gap-1 px-1.5 py-1 rounded hover:bg-[#1f1f1f] text-[#808080] hover:text-[#D1D5DB] transition-colors text-[10px] font-medium" 
-                            style={{ }}
-                          >
-                            {selectedModel} <ChevronDown size={10} />
-                          </button>
-                          
-                          {showModelDropdown && (
-                            <div className="absolute bottom-full left-0 mb-1 w-32 bg-[#111111] border border-[#1f1f1f] rounded-md shadow-lg overflow-hidden z-50">
-                              {['Llama 3.1 8B (Groq)', 'Gemma 2 9B (Fireworks)'].map(model => (
-                                <button
-                                  key={model}
-                                  type="button"
-                                  onClick={() => {
-                                    setSelectedModel(model);
-                                    setShowModelDropdown(false);
-                                  }}
-                                  className={`w-full text-left px-3 py-1.5 text-[10px] ${selectedModel === model ? 'bg-[rgba(59,201,219,0.1)] text-[#3bc9db]' : 'text-[#A0A0A0] hover:bg-[#1f1f1f] hover:text-[#E2E8F0]'} transition-colors`}
-                                >
-                                  {model}
-                                </button>
-                              ))}
-                            </div>
-                          )}
-                        </div>
-                      </div>
-                      <button type="submit" disabled={isProcessingAI || !aiCommand.trim()} className="p-1.5 rounded hover:bg-[#1f1f1f] text-[#808080] hover:text-white transition-colors disabled:opacity-50 disabled:hover:bg-transparent disabled:hover:text-[#666]">
-                        <Send size={12} />
-                      </button>
-                    </div>
-                  </form>
-                </div>
-              </div>
-            </div>
-          )}
         </div>
       </aside>
+
+      </div>
 
       {/* ── Add paper modal ── */}
       {showAdd && (
