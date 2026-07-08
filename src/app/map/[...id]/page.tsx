@@ -1988,7 +1988,8 @@ export default function MapPage() {
                             onChange={(e) => {
                               const newType = e.target.value as EdgeType;
                               const newEdges = edges.map(ed => ed.id === selectedEdge.id ? { ...ed, type: newType, label: EDGE_LABEL[newType] } : ed);
-                              pushHistory(nodes, newEdges);
+                              setEdges(newEdges); // Update React state synchronously
+                              pushHistory(nodes, newEdges); // Commit to history
                               setSelectedEdge({ ...selectedEdge, type: newType, label: EDGE_LABEL[newType] });
                             }}
                             className="w-full text-[12px] font-medium bg-[rgba(255,255,255,0.03)] border border-[#1f1f1f] rounded-[6px] px-3 py-2 outline-none cursor-pointer focus:border-[#3BC9DB] transition-colors"
