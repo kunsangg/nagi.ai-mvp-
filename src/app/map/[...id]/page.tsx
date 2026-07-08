@@ -1584,23 +1584,34 @@ export default function MapPage() {
 
           {/* Bottom Row: Controls */}
           <div className="flex items-center justify-between px-1">
-            <div className="flex items-center gap-4">
-              {/* Toggle Pill */}
-              <div className="flex items-center bg-[#0a0a0a] rounded-full p-1 border border-[rgba(255,255,255,0.05)]">
-                <button className="px-4 py-1.5 bg-[#333] text-white text-[12px] font-semibold rounded-full transition-colors shadow-sm tracking-wide">Image</button>
-                <button className="px-4 py-1.5 text-[#888] hover:text-white text-[12px] font-semibold rounded-full transition-colors tracking-wide">Video</button>
-              </div>
-
-              {/* Action Icons */}
-              <div className="flex items-center gap-3 ml-2">
-                <button className="text-[#888] hover:text-[#ccc] transition-colors"><Sparkles size={16} strokeWidth={2} /></button>
-                <button className="text-[#888] hover:text-[#ccc] transition-colors"><Brain size={16} strokeWidth={2} /></button>
-                <button className="text-[#888] hover:text-[#ccc] transition-colors"><SlidersHorizontal size={16} strokeWidth={2} /></button>
-              </div>
+            <div className="flex items-center relative">
+              <button 
+                type="button" 
+                onClick={() => setShowModelDropdown(!showModelDropdown)}
+                className="flex items-center gap-1.5 px-2 py-1 rounded-[6px] hover:bg-[rgba(255,255,255,0.05)] text-[#888] hover:text-[#eaeaea] transition-colors text-[11px] font-medium" 
+              >
+                {selectedModel} <ChevronDown size={12} />
+              </button>
+              {showModelDropdown && (
+                <div className="absolute bottom-full left-0 mb-1 w-48 bg-[#111111] border border-white/10 rounded-md shadow-xl overflow-hidden z-50">
+                  {['Llama 3.1 8B (Groq)', 'Gemma 2 9B (Fireworks)'].map(model => (
+                    <button
+                      key={model}
+                      type="button"
+                      onClick={() => {
+                        setSelectedModel(model);
+                        setShowModelDropdown(false);
+                      }}
+                      className={`w-full text-left px-3 py-2 text-[11px] transition-colors ${selectedModel === model ? 'bg-[#3bc9db]/10 text-[#3bc9db]' : 'text-white/60 hover:bg-white/10 hover:text-white'}`}
+                    >
+                      {model}
+                    </button>
+                  ))}
+                </div>
+              )}
             </div>
 
             <div className="flex items-center gap-3 pr-1">
-              <button className="text-[#888] hover:text-[#ccc] transition-colors"><Maximize2 size={16} strokeWidth={2} /></button>
               <button 
                 onClick={(e) => handleAIChatSubmit(e as any)}
                 disabled={isProcessingAI || !aiCommand.trim()}
