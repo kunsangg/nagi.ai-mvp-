@@ -882,20 +882,20 @@ export default function MapPage() {
       .attr("width", (d: MapNode) => getNodeW(d))
       .attr("height", (d: MapNode) => getNodeH(d))
       .attr("rx", (d: MapNode) => getNodeRx(d))
-      .attr("fill", (d: MapNode) => (d.customColor || "#475569") + "18")
+      .attr("fill", "#161616")
       .attr("stroke", (d: MapNode) => {
         if (stateRef.current.selectedNodeIds.includes(d.id)) return "#3BC9DB";
-        return (d.customColor || "#475569") + "70";
+        return "rgba(255,255,255,0.12)";
       })
-      .attr("stroke-width", (d: MapNode) => stateRef.current.selectedNodeIds.includes(d.id) ? 2.5 : 1.5)
+      .attr("stroke-width", (d: MapNode) => stateRef.current.selectedNodeIds.includes(d.id) ? 2.5 : 1)
       .style("backdrop-filter", "blur(24px)")
       .on("mouseover", function(_ev, d: MapNode) {
         if (stateRef.current.selectedNodeIds.includes(d.id)) return;
-        d3.select(this).transition().duration(200).attr("stroke", d.customColor || "#475569");
+        d3.select(this).transition().duration(200).attr("stroke", d.customColor || "rgba(255,255,255,0.4)");
       })
       .on("mouseout", function(_ev, d: MapNode) {
         if (stateRef.current.selectedNodeIds.includes(d.id)) return;
-        d3.select(this).transition().duration(200).attr("stroke", (d.customColor || "#475569") + "70");
+        d3.select(this).transition().duration(200).attr("stroke", "rgba(255,255,255,0.12)");
       });
 
     // Glow ring for newly generated nodes
@@ -912,39 +912,64 @@ export default function MapPage() {
       .attr("stroke-width", 3)
       .attr("filter", "url(#glow)");
 
-    // Coloured left-accent strip
-    standardNodes.append("rect")
-      .attr("class", "card-accent")
-      .attr("x", (d: MapNode) => -getNodeW(d) / 2)
-      .attr("y", (d: MapNode) => -getNodeH(d) / 2 + getNodeRx(d))
-      .attr("width", 3)
-      .attr("height", (d: MapNode) => getNodeH(d) - getNodeRx(d) * 2)
-      .attr("rx", 1.5)
-      .attr("fill", (d: MapNode) => d.customColor || "#475569")
-      .attr("opacity", 0.9);
-
     // HTML ForeignObject
     standardNodes.append("foreignObject")
       .attr("x", (d: MapNode) => -getNodeW(d) / 2)
       .attr("y", (d: MapNode) => -getNodeH(d) / 2)
       .attr("width", (d: MapNode) => getNodeW(d))
       .attr("height", (d: MapNode) => getNodeH(d))
-      .html((d: MapNode) => `
-        <div xmlns="http://www.w3.org/1999/xhtml" style="width:100%; height:100%; padding:18px 22px 18px 28px; box-sizing:border-box; display:flex; flex-direction:column; gap:10px; font-family:-apple-system,BlinkMacSystemFont,'Inter',sans-serif;">
-          <!-- Badge row -->
-          <div style="display:flex; align-items:center; justify-content:space-between;">
-            <span style="font-size:12px; font-weight:700; letter-spacing:0.09em; color:${d.customColor || "#475569"}; text-transform:uppercase;">${d.type === "citing" ? "CITES THIS" : d.type === "reference" ? "REFERENCED" : d.type === "center" ? "FOCUS PAPER" : d.type === "related" ? "RELATED" : d.type.toUpperCase()}</span>
-            ${d.citations ? `<span style="font-size:12px; color:#475569; font-weight:500;">${d.citations >= 1000 ? (d.citations/1000).toFixed(1)+"k" : d.citations} cit.</span>` : ""}
+      .html((d: MapNode) => {
+        const cColor = d.customColor || "#475569";
+        return `
+        <div xmlns="http://www.w3.org/1999/xhtml" style="width:100%; height:100%; padding:20px 24px; box-sizing:border-box; display:flex; flex-direction:column; gap:16px; font-family:-apple-system,BlinkMacSystemFont,'Inter',sans-serif;">
+          
+          <!-- Header -->
+          <div style="display:flex; gap:14px; align-items:flex-start;">
+            <!-- Icon Box -->
+            <div style="width:40px; height:40px; border-radius:10px; background:${cColor}25; display:flex; align-items:center; justify-content:center; flex-shrink:0; border:1px solid ${cColor}40;">
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="${cColor}" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                <rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect>
+              </svg>
+            </div>
+            
+            <!-- Title & Subtitle -->
+            <div style="display:flex; flex-direction:column; gap:4px; overflow:hidden;">
+              <span style="font-size:16px; font-weight:600; color:#fff; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">
+                ${d.title || "Untitled Node"}
+              </span>
+              <span style="font-size:12px; font-weight:500; color:#8e8e93; line-height:1.4; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">
+                ${d.type === "citing" ? "Cites this paper" : d.type === "reference" ? "Referenced by this paper" : d.type === "center" ? "Focus Paper" : d.type.charAt(0).toUpperCase() + d.type.slice(1) + " Node"}
+              </span>
+            </div>
           </div>
+
+          ${getNodeH(d) > 160 ? `
           <!-- Divider -->
-          <div style="height:1px; background:rgba(255,255,255,0.05); flex-shrink:0;"></div>
-          <!-- Title -->
-          <div style="flex:1; overflow:hidden;">
-            <p style="margin:0; font-size:16px; font-weight:500; color:#E2E8F0; line-height:1.5; display:-webkit-box; -webkit-line-clamp:${getNodeH(d) <= 150 ? 3 : 4}; -webkit-box-orient:vertical; overflow:hidden;">${d.title}</p>
+          <div style="height:1px; background:rgba(255,255,255,0.08); width:100%;"></div>
+          
+          <!-- Content Area -->
+          <div style="flex:1; overflow:hidden; display:flex; flex-direction:column; gap:10px;">
+            ${d.author || d.year ? `
+              <div style="display:flex; flex-direction:column; gap:4px;">
+                <span style="font-size:10px; font-weight:700; color:#8e8e93; text-transform:uppercase; letter-spacing:0.5px;">Authors / Year</span>
+                <span style="font-size:13px; font-weight:500; color:#d1d1d6; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">
+                  ${[d.author ? d.author.split(",")[0].trim() : "", d.year ? String(d.year) : ""].filter(Boolean).join(" · ")}
+                </span>
+              </div>
+            ` : ""}
+            
+            ${d.metadata?.abstract || d.properties?.content ? `
+              <div style="display:flex; flex-direction:column; gap:4px; flex:1; overflow:hidden;">
+                <span style="font-size:10px; font-weight:700; color:#8e8e93; text-transform:uppercase; letter-spacing:0.5px;">Details</span>
+                <span style="font-size:13px; font-weight:400; color:#a1a1aa; line-height:1.6; display:-webkit-box; -webkit-line-clamp:3; -webkit-box-orient:vertical; overflow:hidden;">
+                  ${d.metadata?.abstract || d.properties?.content}
+                </span>
+              </div>
+            ` : ""}
           </div>
-          ${d.author || d.year ? `<p style="margin:0; font-size:13px; color:#64748B; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">${[d.author ? d.author.split(",")[0].trim() : "", d.year ? String(d.year) : ""].filter(Boolean).join(" · ")}</p>` : ""}
+          ` : ""}
         </div>
-      `);
+      `});
 
 
     // --- INLINE QUICK ACTIONS ---
