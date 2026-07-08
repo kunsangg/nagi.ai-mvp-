@@ -1573,64 +1573,80 @@ export default function MapPage() {
 
       {/* ── Floating AI Chat Window (Bottom Prompt Bar) ── */}
       {showAIChat && (
-        <div className="absolute bottom-8 left-1/2 -translate-x-1/2 z-50 w-[640px] flex flex-col bg-[#1c1c1c]/95 backdrop-blur-2xl rounded-[28px] border border-[rgba(255,255,255,0.08)] shadow-[0_20px_40px_rgba(0,0,0,0.4)] p-2.5 gap-2"
+        <div className="absolute bottom-8 left-1/2 -translate-x-1/2 z-50 w-[640px] flex flex-col gap-2"
              onClick={(e) => e.stopPropagation()}>
              
-          {/* Top Row: Input */}
-          <div className="flex items-center gap-3 px-3 pt-2">
-            <button className="text-[#888] hover:text-[#ccc] transition-colors shrink-0">
-              <Paperclip size={18} />
-            </button>
-            <form onSubmit={handleAIChatSubmit} className="flex-1 flex">
-              <input 
-                type="text"
-                value={aiCommand}
-                onChange={(e) => setAiCommand(e.target.value)}
-                disabled={isProcessingAI}
-                placeholder="Ask Nagi to make edits..."
-                className="w-full bg-transparent outline-none text-[#eaeaea] placeholder-[#666] text-[15px] font-medium"
-                autoFocus
-              />
-            </form>
-          </div>
-
-          {/* Bottom Row: Controls */}
-          <div className="flex items-center justify-between px-1">
-            <div className="flex items-center relative">
-              <button 
-                type="button" 
-                onClick={() => setShowModelDropdown(!showModelDropdown)}
-                className="flex items-center gap-1.5 px-2 py-1 rounded-[6px] hover:bg-[rgba(255,255,255,0.05)] text-[#888] hover:text-[#eaeaea] transition-colors text-[11px] font-medium" 
-              >
-                {selectedModel} <ChevronDown size={12} />
-              </button>
-              {showModelDropdown && (
-                <div className="absolute bottom-full left-0 mb-1 w-48 bg-[#111111] border border-white/10 rounded-md shadow-xl overflow-hidden z-50">
-                  {['Llama 3.1 8B (Groq)', 'Gemma 2 9B (Fireworks)'].map(model => (
-                    <button
-                      key={model}
-                      type="button"
-                      onClick={() => {
-                        setSelectedModel(model);
-                        setShowModelDropdown(false);
-                      }}
-                      className={`w-full text-left px-3 py-2 text-[11px] transition-colors ${selectedModel === model ? 'bg-[#3bc9db]/10 text-[#3bc9db]' : 'text-white/60 hover:bg-white/10 hover:text-white'}`}
-                    >
-                      {model}
-                    </button>
-                  ))}
+          {/* Chat Messages */}
+          {chatMessages.length > 0 && (
+            <div className="bg-[#1c1c1c]/95 backdrop-blur-2xl rounded-[24px] border border-[rgba(255,255,255,0.08)] shadow-[0_20px_40px_rgba(0,0,0,0.4)] p-4 max-h-[300px] overflow-y-auto flex flex-col gap-3 scrollbar-hide">
+              {chatMessages.map((msg, idx) => (
+                <div key={idx} className={`flex ${msg.role === 'user' ? 'justify-end' : 'justify-start'}`}>
+                  <div className={`px-4 py-2 rounded-[16px] max-w-[85%] text-[13px] ${msg.role === 'user' ? 'bg-[#1877F2] text-white' : 'bg-white/5 text-[#eaeaea]'}`}>
+                    {msg.text}
+                  </div>
                 </div>
-              )}
+              ))}
+            </div>
+          )}
+
+          {/* Prompt Bar */}
+          <div className="flex flex-col bg-[#1c1c1c]/95 backdrop-blur-2xl rounded-[28px] border border-[rgba(255,255,255,0.08)] shadow-[0_20px_40px_rgba(0,0,0,0.4)] p-2.5 gap-2">
+            {/* Top Row: Input */}
+            <div className="flex items-center gap-3 px-3 pt-2">
+              <button className="text-[#888] hover:text-[#ccc] transition-colors shrink-0">
+                <Paperclip size={18} />
+              </button>
+              <form onSubmit={handleAIChatSubmit} className="flex-1 flex">
+                <input 
+                  type="text"
+                  value={aiCommand}
+                  onChange={(e) => setAiCommand(e.target.value)}
+                  disabled={isProcessingAI}
+                  placeholder="Ask Nagi to make edits..."
+                  className="w-full bg-transparent outline-none text-[#eaeaea] placeholder-[#666] text-[15px] font-medium"
+                  autoFocus
+                />
+              </form>
             </div>
 
-            <div className="flex items-center gap-3 pr-1">
-              <button 
-                onClick={(e) => handleAIChatSubmit(e as any)}
-                disabled={isProcessingAI || !aiCommand.trim()}
-                className="w-8 h-8 rounded-full bg-[#1877F2] hover:bg-[#1864ff] flex items-center justify-center text-white transition-colors disabled:opacity-50 shadow-md"
-              >
-                {isProcessingAI ? <Loader2 size={16} className="animate-spin" /> : <ArrowUp size={18} strokeWidth={2.5} />}
-              </button>
+            {/* Bottom Row: Controls */}
+            <div className="flex items-center justify-between px-1">
+              <div className="flex items-center relative">
+                <button 
+                  type="button" 
+                  onClick={() => setShowModelDropdown(!showModelDropdown)}
+                  className="flex items-center gap-1.5 px-2 py-1 rounded-[6px] hover:bg-[rgba(255,255,255,0.05)] text-[#888] hover:text-[#eaeaea] transition-colors text-[11px] font-medium" 
+                >
+                  {selectedModel} <ChevronDown size={12} />
+                </button>
+                {showModelDropdown && (
+                  <div className="absolute bottom-full left-0 mb-1 w-48 bg-[#111111] border border-white/10 rounded-md shadow-xl overflow-hidden z-50">
+                    {['Llama 3.1 8B (Groq)', 'Gemma 2 9B (Fireworks)'].map(model => (
+                      <button
+                        key={model}
+                        type="button"
+                        onClick={() => {
+                          setSelectedModel(model);
+                          setShowModelDropdown(false);
+                        }}
+                        className={`w-full text-left px-3 py-2 text-[11px] transition-colors ${selectedModel === model ? 'bg-[#3bc9db]/10 text-[#3bc9db]' : 'text-white/60 hover:bg-white/10 hover:text-white'}`}
+                      >
+                        {model}
+                      </button>
+                    ))}
+                  </div>
+                )}
+              </div>
+
+              <div className="flex items-center gap-3 pr-1">
+                <button 
+                  onClick={(e) => handleAIChatSubmit(e as any)}
+                  disabled={isProcessingAI || !aiCommand.trim()}
+                  className="w-8 h-8 rounded-full bg-[#1877F2] hover:bg-[#1864ff] flex items-center justify-center text-white transition-colors disabled:opacity-50 shadow-md"
+                >
+                  {isProcessingAI ? <Loader2 size={16} className="animate-spin" /> : <ArrowUp size={18} strokeWidth={2.5} />}
+                </button>
+              </div>
             </div>
           </div>
         </div>
