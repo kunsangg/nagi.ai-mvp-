@@ -288,6 +288,7 @@ export default function MapPage() {
   const [noteInput,      setNoteInput]      = useState("");
   const [urlInput,       setUrlInput]       = useState("");
   const [aiCommand,      setAiCommand]      = useState("");
+  const [isAIFocused,    setIsAIFocused]    = useState(false);
   const [isProcessingAI, setIsProcessingAI] = useState(false);
   const [selectedModel, setSelectedModel] = useState("Llama 3.1 8B (Groq)");
   const [isContextAdded, setIsContextAdded] = useState(false);
@@ -1579,21 +1580,12 @@ export default function MapPage() {
         <div className="absolute bottom-8 left-1/2 -translate-x-1/2 z-50 w-[640px] flex flex-col gap-2"
              onClick={(e) => e.stopPropagation()}>
              
-          {/* Chat Messages */}
-          {chatMessages.length > 0 && (
-            <div className="bg-[#1c1c1c]/95 backdrop-blur-2xl rounded-[24px] border border-[rgba(255,255,255,0.08)] shadow-[0_20px_40px_rgba(0,0,0,0.4)] p-4 max-h-[300px] overflow-y-auto flex flex-col gap-3 scrollbar-hide">
-              {chatMessages.map((msg, idx) => (
-                <div key={idx} className={`flex ${msg.role === 'user' ? 'justify-end' : 'justify-start'}`}>
-                  <div className={`px-4 py-2 rounded-[16px] max-w-[85%] text-[13px] ${msg.role === 'user' ? 'bg-[#1877F2] text-white' : 'bg-white/5 text-[#eaeaea]'}`}>
-                    {msg.text}
-                  </div>
-                </div>
-              ))}
-            </div>
-          )}
-
           {/* Prompt Bar */}
-          <div className="flex flex-col bg-[#1c1c1c]/95 backdrop-blur-2xl rounded-[28px] border border-[rgba(255,255,255,0.08)] shadow-[0_20px_40px_rgba(0,0,0,0.4)] p-2.5 gap-2">
+          <div className={`flex flex-col bg-[#1c1c1c]/95 backdrop-blur-2xl rounded-[28px] border transition-all duration-300 p-2.5 gap-2 ${
+            isProcessingAI || isAIFocused 
+              ? "border-[#3bc9db]/80 shadow-[0_0_60px_rgba(59,201,219,0.3)]" 
+              : "border-[rgba(255,255,255,0.08)] shadow-[0_20px_40px_rgba(0,0,0,0.4)]"
+          }`}>
             {/* Top Row: Input */}
             <div className="flex items-center gap-3 px-3 pt-2">
               <button className="text-[#888] hover:text-[#ccc] transition-colors shrink-0">
@@ -1604,6 +1596,8 @@ export default function MapPage() {
                   type="text"
                   value={aiCommand}
                   onChange={(e) => setAiCommand(e.target.value)}
+                  onFocus={() => setIsAIFocused(true)}
+                  onBlur={() => setIsAIFocused(false)}
                   disabled={isProcessingAI}
                   placeholder="Ask Nagi to make edits..."
                   className="w-full bg-transparent outline-none text-[#eaeaea] placeholder-[#666] text-[15px] font-medium"
