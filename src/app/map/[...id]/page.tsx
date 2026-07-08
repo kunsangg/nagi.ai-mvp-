@@ -277,6 +277,7 @@ export default function MapPage() {
   const [addResults,     setAddResults]     = useState<any[]>([]);
   const [isSearching,    setIsSearching]    = useState(false);
   const [edgeLabelInput, setEdgeLabelInput] = useState("");
+  const [noteTitleInput, setNoteTitleInput] = useState("");
   const [noteInput,      setNoteInput]      = useState("");
   const [urlInput,       setUrlInput]       = useState("");
   const [aiCommand,      setAiCommand]      = useState("");
@@ -954,11 +955,11 @@ export default function MapPage() {
               </div>
             ` : ""}
             
-            ${d.metadata?.abstract || d.properties?.content ? `
+            ${d.metadata?.abstract || d.properties?.content || d.note ? `
               <div style="display:flex; flex-direction:column; gap:4px; flex:1; overflow:hidden;">
                 <span style="font-size:10px; font-weight:700; color:#8e8e93; text-transform:uppercase; letter-spacing:0.5px;">Details</span>
                 <span style="font-size:13px; font-weight:400; color:#a1a1aa; line-height:1.6; display:-webkit-box; -webkit-line-clamp:3; -webkit-box-orient:vertical; overflow:hidden;">
-                  ${d.metadata?.abstract || d.properties?.content}
+                  ${d.metadata?.abstract || d.properties?.content || d.note}
                 </span>
               </div>
             ` : ""}
@@ -1126,6 +1127,7 @@ export default function MapPage() {
     const { activeTool } = stateRef.current;
     if (activeTool === "note") {
       setSelectedNodeIds([d.id]);
+      setNoteTitleInput(d.title || "");
       setNoteInput(d.note || "");
       setShowNoteModal(true); return;
     }
@@ -2134,17 +2136,21 @@ export default function MapPage() {
               <span className="text-[13px] font-semibold" style={{ color: "#e2e8f0" }}>Add Note</span>
               <button onClick={() => setShowNoteModal(false)} style={{ color: "#334155" }}><X size={14} /></button>
             </div>
-            <div className="px-5 py-4">
+            <div className="px-5 py-4 flex flex-col gap-3">
+              <input value={noteTitleInput} onChange={e => setNoteTitleInput(e.target.value)}
+                placeholder="Note Title..."
+                className="w-full bg-transparent text-[14px] font-medium text-white focus:outline-none p-3 rounded-xl"
+                style={{ border: "1px solid #1f1f1f" }} />
               <textarea value={noteInput} onChange={e => setNoteInput(e.target.value)}
-                placeholder="Write a note about this paper…"
+                placeholder="Write a description or note…"
                 rows={4}
                 className="w-full bg-transparent text-[13px] text-white focus:outline-none resize-none p-3 rounded-xl"
                 style={{ border: "1px solid #1f1f1f", color: "#94a3b8" }} />
-              <div className="flex gap-2 mt-3">
+              <div className="flex gap-2 mt-1">
                 <button
                   onClick={() => {
                     if (selectedNode) {
-                      const newNodes = nodes.map(n => n.id === selectedNode.id ? { ...n, note: noteInput || undefined } : n);
+                      const newNodes = nodes.map(n => n.id === selectedNode.id ? { ...n, title: noteTitleInput || n.title, note: noteInput || undefined } : n);
                       pushHistory(newNodes, edges);
                     }
                     setShowNoteModal(false);
