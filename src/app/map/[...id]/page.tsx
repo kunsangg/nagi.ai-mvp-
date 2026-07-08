@@ -51,6 +51,7 @@ interface MapNode {
   width?: number;
   height?: number;
   borderRadius?: number;
+  isGenerated?: boolean;
 }
 
 interface EdgeMetadata {
@@ -291,6 +292,9 @@ export default function MapPage() {
   const [chatMessages, setChatMessages] = useState<{role: "user" | "ai", text: string}[]>([
     { role: "ai", text: "Hi! I'm your AI Research Assistant. How can I help you build your map?" }
   ]);
+  const [showCanvasPrompt, setShowCanvasPrompt] = useState(false);
+  const [canvasPromptText, setCanvasPromptText] = useState("");
+  const inputRef = useRef<HTMLInputElement>(null);
 
   const idParam = params?.id;
   const id = Array.isArray(idParam)
@@ -366,14 +370,12 @@ export default function MapPage() {
     pushHistory(currentNodes, currentEdges);
   };
 
-  const handleAIChatSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!aiCommand.trim() || isProcessingAI) return;
+  const executeAICommand = async (userMsg: string) => {
+    if (!userMsg.trim() || isProcessingAI) return;
     
-    const userMsg = aiCommand;
     setChatMessages(prev => [...prev, { role: "user", text: userMsg }]);
-    setAiCommand("");
     setIsProcessingAI(true);
+    const oldNodeIds = new Set(stateRef.current.nodes.map(n => n.id));
     
     try {
       const provider = selectedModel.includes('Fireworks') ? 'fireworks' : 'groq';
@@ -392,6 +394,14 @@ export default function MapPage() {
       if (data.error) throw new Error(data.error);
       
       applyCanvasOperations(data.operations);
+      
+      // Mark newly added nodes as generated
+      setNodes(prev => prev.map(n => oldNodeIds.has(n.id) ? n : { ...n, isGenerated: true }));
+      // Clear generated flag after 3s
+      setTimeout(() => {
+        setNodes(p => p.map(n => ({...n, isGenerated: false})));
+      }, 3000);
+
       setChatMessages(prev => [...prev, { role: "ai", text: data.message || "I've updated the canvas based on your request!" }]);
     } catch (err: any) {
       console.error(err);
@@ -400,6 +410,22 @@ export default function MapPage() {
       setIsProcessingAI(false);
     }
   };
+
+  const handleAIChatSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    const cmd = aiCommand;
+    setAiCommand("");
+    await executeAICommand(cmd);
+  };
+
+  useEffect(() => {
+    (window as any).dispatchAICommand = (cmd: string) => {
+      executeAICommand(cmd);
+    };
+    return () => {
+      delete (window as any).dispatchAICommand;
+    };
+  });
 
   // Measure canvas
   useEffect(() => {
@@ -449,6 +475,17 @@ export default function MapPage() {
   // Keyboard Shortcuts
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === "k" && (e.metaKey || e.ctrlKey)) {
+        e.preventDefault();
+        setShowCanvasPrompt(p => !p);
+        setTimeout(() => inputRef.current?.focus(), 50);
+        return;
+      }
+      if (e.key === "Escape") {
+        setShowCanvasPrompt(false);
+        setContextMenu(null);
+      }
+
       // Don't trigger if user is typing in an input or textarea
       if (e.target instanceof HTMLInputElement || e.target instanceof HTMLTextAreaElement) return;
 
@@ -857,6 +894,20 @@ export default function MapPage() {
         d3.select(this).transition().duration(200).attr("stroke", (d.customColor || "#475569") + "70");
       });
 
+    // Glow ring for newly generated nodes
+    standardNodes.filter((d: MapNode) => !!d.isGenerated)
+      .append("rect")
+      .attr("class", "animate-pulse pointer-events-none")
+      .attr("x", (d: MapNode) => -getNodeW(d) / 2)
+      .attr("y", (d: MapNode) => -getNodeH(d) / 2)
+      .attr("width", (d: MapNode) => getNodeW(d))
+      .attr("height", (d: MapNode) => getNodeH(d))
+      .attr("rx", (d: MapNode) => getNodeRx(d))
+      .attr("fill", "transparent")
+      .attr("stroke", "#3BC9DB")
+      .attr("stroke-width", 3)
+      .attr("filter", "url(#glow)");
+
     // Coloured left-accent strip
     standardNodes.append("rect")
       .attr("class", "card-accent")
@@ -892,6 +943,27 @@ export default function MapPage() {
       `);
 
 
+    // --- INLINE QUICK ACTIONS ---
+    const selectedStandardNodes = standardNodes.filter((d: MapNode) => stateRef.current.selectedNodeIds.includes(d.id) && stateRef.current.selectedNodeIds.length === 1);
+    
+    selectedStandardNodes.append("foreignObject")
+      .attr("x", (d: MapNode) => -getNodeW(d) / 2)
+      .attr("y", (d: MapNode) => -getNodeH(d) / 2 - 50)
+      .attr("width", (d: MapNode) => getNodeW(d))
+      .attr("height", 50)
+      .attr("class", "pointer-events-none")
+      .html((d: MapNode) => `
+        <div xmlns="http://www.w3.org/1999/xhtml" style="width:100%; height:100%; display:flex; justify-content:center; align-items:flex-end; padding-bottom:8px; pointer-events:none;">
+          <div style="background:rgba(10,10,10,0.85); backdrop-filter:blur(12px); border:1px solid rgba(255,255,255,0.1); border-radius:8px; padding:4px; display:flex; gap:4px; pointer-events:auto; box-shadow:0 8px 16px rgba(0,0,0,0.4);">
+            <button onclick="window.dispatchAICommand('Summarize this')" style="background:transparent; border:none; color:#e2e8f0; font-size:11px; font-weight:600; padding:4px 8px; border-radius:4px; cursor:pointer; transition:background 0.2s;" onmouseover="this.style.background='rgba(255,255,255,0.1)'" onmouseout="this.style.background='transparent'">✨ Summarize</button>
+            <div style="width:1px; background:rgba(255,255,255,0.1); margin:4px 0;"></div>
+            <button onclick="window.dispatchAICommand('Find related concepts')" style="background:transparent; border:none; color:#e2e8f0; font-size:11px; font-weight:600; padding:4px 8px; border-radius:4px; cursor:pointer; transition:background 0.2s;" onmouseover="this.style.background='rgba(255,255,255,0.1)'" onmouseout="this.style.background='transparent'">🔍 Find Related</button>
+            <div style="width:1px; background:rgba(255,255,255,0.1); margin:4px 0;"></div>
+            <button onclick="window.dispatchAICommand('Expand details')" style="background:transparent; border:none; color:#e2e8f0; font-size:11px; font-weight:600; padding:4px 8px; border-radius:4px; cursor:pointer; transition:background 0.2s;" onmouseover="this.style.background='rgba(255,255,255,0.1)'" onmouseout="this.style.background='transparent'">➕ Expand</button>
+          </div>
+        </div>
+      `);
+
     // --- RENDER SHAPES ---
     // Shadow
     shapeNodes.each(function(d: MapNode) {
@@ -924,6 +996,15 @@ export default function MapPage() {
         .attr("stroke-width", isSelected ? 2 : 1)
         .attr("filter", "url(#shadow)")
         .style("backdrop-filter", "blur(24px)");
+        
+      if (d.isGenerated) {
+        shapeEl.clone(true)
+          .attr("class", "animate-pulse pointer-events-none")
+          .attr("fill", "transparent")
+          .attr("stroke", "#3BC9DB")
+          .attr("stroke-width", 3)
+          .attr("filter", "url(#glow)");
+      }
         
       if (d.title && d.title !== "New Shape") {
          g.append("text")
@@ -1310,6 +1391,40 @@ export default function MapPage() {
           )}
           {!isLoading && !error && <svg ref={svgRef} className="w-full h-full" />}
         </div>
+
+        {/* ── Floating AI Canvas Prompt (Cmd+K) ── */}
+        {showCanvasPrompt && (
+          <div className="absolute inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-sm pointer-events-auto transition-opacity" onClick={() => setShowCanvasPrompt(false)}>
+            <div className="bg-[#0a0a0a]/90 backdrop-blur-3xl border border-white/10 rounded-2xl shadow-[0_20px_50px_rgba(0,0,0,0.5),0_0_0_1px_rgba(59,201,219,0.2)] w-[600px] overflow-hidden flex flex-col" onClick={e => e.stopPropagation()}>
+              <div className="px-4 py-3 border-b border-white/5 flex items-center gap-3">
+                <Sparkles size={16} className="text-[#3bc9db]" />
+                <span className="text-[12px] font-medium text-white tracking-wide">Generate on Canvas</span>
+              </div>
+              <form onSubmit={async (e) => {
+                e.preventDefault();
+                setShowCanvasPrompt(false);
+                const cmd = canvasPromptText;
+                setCanvasPromptText("");
+                await executeAICommand(cmd);
+              }} className="p-4">
+                <input
+                  ref={inputRef}
+                  value={canvasPromptText}
+                  onChange={(e) => setCanvasPromptText(e.target.value)}
+                  placeholder="Ask Nagi to generate nodes, summarize papers, or connect concepts..."
+                  className="w-full bg-transparent text-[15px] text-white placeholder-[#8b949e] outline-none"
+                  autoFocus
+                />
+                <div className="flex justify-between items-center mt-6">
+                  <span className="text-[10px] text-[#64748b] bg-white/5 px-2 py-1 rounded">esc to close</span>
+                  <button type="submit" disabled={!canvasPromptText.trim() || isProcessingAI} className="bg-white/10 hover:bg-[#3bc9db]/20 text-[#3bc9db] border border-transparent hover:border-[#3bc9db]/30 transition-colors px-3 py-1.5 rounded-lg text-[12px] font-medium disabled:opacity-50 flex items-center gap-2">
+                     {isProcessingAI ? <Loader2 size={14} className="animate-spin" /> : <Send size={14} />} Generate
+                  </button>
+                </div>
+              </form>
+            </div>
+          </div>
+        )}
 
         {/* ── Floating Top Left ── */}
         <div className="absolute top-5 left-5 z-30 flex flex-col gap-3 pointer-events-none">
