@@ -1561,7 +1561,7 @@ export default function MapPage() {
 
       {/* ── Floating AI Chat Window (Bottom Prompt Bar) ── */}
       {showAIChat && (
-        <div className="absolute bottom-28 left-1/2 -translate-x-1/2 z-50 w-[640px] flex flex-col bg-[#1c1c1c]/95 backdrop-blur-2xl rounded-[28px] border border-[rgba(255,255,255,0.08)] shadow-[0_20px_40px_rgba(0,0,0,0.4)] overflow-hidden p-2.5 gap-2"
+        <div className="absolute bottom-8 left-1/2 -translate-x-1/2 z-50 w-[640px] flex flex-col bg-[#1c1c1c]/95 backdrop-blur-2xl rounded-[28px] border border-[rgba(255,255,255,0.08)] shadow-[0_20px_40px_rgba(0,0,0,0.4)] overflow-hidden p-2.5 gap-2"
              onClick={(e) => e.stopPropagation()}>
              
           {/* Top Row: Input */}
