@@ -1507,8 +1507,8 @@ export default function MapPage() {
 
 
 
-      {/* ── Floating Bottom Center Toolbar ── */}
-      <div className="absolute bottom-8 left-1/2 -translate-x-1/2 z-40 flex items-center gap-1 px-3 py-1.5 rounded-[14px] shadow-2xl backdrop-blur-xl transition-all"
+      {/* ── Floating Top Center Toolbar ── */}
+      <div className="absolute top-6 left-1/2 -translate-x-1/2 z-40 flex items-center gap-1 px-3 py-1.5 rounded-[14px] shadow-2xl backdrop-blur-xl transition-all"
            style={{ 
              background: "rgba(22, 22, 22, 0.9)",
              border: "1px solid rgba(255, 255, 255, 0.08)",
