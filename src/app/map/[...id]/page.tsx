@@ -452,7 +452,9 @@ export default function MapPage() {
       .then(r => r.json())
       .then(data => {
         if (data.error) { setError(data.error); setIsLoading(false); return; }
-        const positioned = assignPositions(data.nodes, data.center, dims.w, dims.h);
+        const actualW = dims.w || (typeof window !== 'undefined' ? window.innerWidth : 1200);
+        const actualH = dims.h || (typeof window !== 'undefined' ? window.innerHeight : 800);
+        const positioned = assignPositions(data.nodes, data.center, actualW, actualH);
         setNodes(positioned);
         setEdges(data.edges);
         setCenterId(data.center);
@@ -464,10 +466,11 @@ export default function MapPage() {
           const ys = positioned.map(n => n.y);
           const minX = Math.min(...xs) - 240, maxX = Math.max(...xs) + 240;
           const minY = Math.min(...ys) - 140, maxY = Math.max(...ys) + 140;
-          const W = dims.w || 1200, H = dims.h || 800;
-          const scale = Math.min(0.72, Math.min(W / (maxX - minX), H / (maxY - minY)));
-          const tx = W / 2 - scale * (minX + maxX) / 2;
-          const ty = H / 2 - scale * (minY + maxY) / 2;
+          const currentW = containerRef.current?.clientWidth || actualW;
+          const currentH = containerRef.current?.clientHeight || actualH;
+          const scale = Math.min(0.72, Math.min(currentW / (maxX - minX), currentH / (maxY - minY)));
+          const tx = currentW / 2 - scale * (minX + maxX) / 2;
+          const ty = currentH / 2 - scale * (minY + maxY) / 2;
           d3.select(svgRef.current!).transition().duration(600)
             .call(zoomRef.current!.transform, d3.zoomIdentity.translate(tx, ty).scale(scale));
         }, 300);
