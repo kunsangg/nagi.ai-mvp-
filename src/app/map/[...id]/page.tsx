@@ -1987,7 +1987,8 @@ export default function MapPage() {
                             value={selectedEdge.type}
                             onChange={(e) => {
                               const newType = e.target.value as EdgeType;
-                              setEdges(edges.map(ed => ed.id === selectedEdge.id ? { ...ed, type: newType, label: EDGE_LABEL[newType] } : ed));
+                              const newEdges = edges.map(ed => ed.id === selectedEdge.id ? { ...ed, type: newType, label: EDGE_LABEL[newType] } : ed);
+                              pushHistory(nodes, newEdges);
                               setSelectedEdge({ ...selectedEdge, type: newType, label: EDGE_LABEL[newType] });
                             }}
                             className="w-full text-[12px] font-medium bg-[rgba(255,255,255,0.03)] border border-[#1f1f1f] rounded-[6px] px-3 py-2 outline-none cursor-pointer focus:border-[#3BC9DB] transition-colors"
@@ -2004,7 +2005,8 @@ export default function MapPage() {
                             type="text"
                             value={selectedEdge.label || EDGE_LABEL[selectedEdge.type]}
                             onChange={(e) => {
-                              setEdges(edges.map(ed => ed.id === selectedEdge.id ? { ...ed, label: e.target.value } : ed));
+                              const newEdges = edges.map(ed => ed.id === selectedEdge.id ? { ...ed, label: e.target.value } : ed);
+                              pushHistory(nodes, newEdges);
                               setSelectedEdge({ ...selectedEdge, label: e.target.value });
                             }}
                             className="w-full text-[12px] font-medium bg-[rgba(255,255,255,0.03)] border border-[#1f1f1f] rounded-[6px] px-3 py-2 outline-none focus:border-[#3BC9DB] transition-colors"
