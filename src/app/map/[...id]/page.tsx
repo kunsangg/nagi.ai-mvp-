@@ -211,33 +211,60 @@ function assignPositions(nodes: any[], centerId: string, W: number, H: number): 
     result.push({ ...n, shape: "card", ...ap, x: cx, y: cy });
   });
 
-  // Group all children
-  const children = [...byType.reference, ...byType.citing, ...byType.related, ...byType.custom];
+  // Group all children by type so we can segregate them visually
+  const groups = [
+    { type: "reference", nodes: byType.reference },
+    { type: "citing", nodes: byType.citing },
+    { type: "related", nodes: byType.related },
+    { type: "custom", nodes: byType.custom }
+  ].filter(g => g.nodes.length > 0);
 
-  if (children.length > 0) {
+  if (groups.length > 0) {
     const COL_WIDTH = 550;
     const VERT_GAP = 240;
+    const GROUP_GAP = 300; // Extra spacing between different connection types
     
-    // Distribute into columns (max 5 nodes per column to prevent excessive vertical scrolling)
-    const numCols = Math.max(1, Math.ceil(children.length / 5));
-    const cols: any[][] = Array.from({ length: numCols }, () => []);
-    
-    children.forEach((n, i) => {
-      cols[i % numCols].push(n);
+    // Pre-calculate heights for each segregated group
+    const groupLayouts = groups.map(g => {
+      // Distribute into columns (max 5 nodes per column to prevent excessive vertical scrolling)
+      const numCols = Math.max(1, Math.ceil(g.nodes.length / 5));
+      const cols: any[][] = Array.from({ length: numCols }, () => []);
+      
+      g.nodes.forEach((n, i) => {
+        cols[i % numCols].push(n);
+      });
+      
+      const maxNodesInCol = Math.max(...cols.map(c => c.length));
+      const height = Math.max(1, maxNodesInCol) * VERT_GAP;
+      
+      return { ...g, cols, height };
     });
 
-    cols.forEach((colNodes, colIndex) => {
-      const startY = cy - ((colNodes.length - 1) * VERT_GAP) / 2;
-      colNodes.forEach((n, i) => {
-        const ap = autoPriority(n);
-        result.push({
-          ...n,
-          shape: "card",
-          ...ap,
-          x: cx + COL_WIDTH + colIndex * COL_WIDTH,
-          y: startY + i * VERT_GAP
+    // Calculate total height of all segregated groups combined
+    const totalHeight = groupLayouts.reduce((acc, g) => acc + g.height, 0) + (groupLayouts.length - 1) * GROUP_GAP;
+    
+    // Start Y so the entire block is vertically centered relative to the center node
+    let currentY = cy - totalHeight / 2;
+
+    groupLayouts.forEach(g => {
+      g.cols.forEach((colNodes, colIndex) => {
+        const colHeight = colNodes.length * VERT_GAP;
+        // Center this specific column vertically within its group's allocated height
+        const startY = currentY + (g.height - colHeight) / 2 + VERT_GAP / 2;
+        
+        colNodes.forEach((n, i) => {
+          const ap = autoPriority(n);
+          result.push({
+            ...n,
+            shape: "card",
+            ...ap,
+            x: cx + COL_WIDTH + colIndex * COL_WIDTH,
+            y: startY + i * VERT_GAP
+          });
         });
       });
+      // Move Y down for the next segregated connection type
+      currentY += g.height + GROUP_GAP;
     });
   }
 
