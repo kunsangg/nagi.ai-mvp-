@@ -195,12 +195,13 @@ function autoPriority(n: any): { priority: Priority; customColor: string } {
 
 function assignPositions(nodes: any[], centerId: string, W: number, H: number): MapNode[] {
 
-  const cx = W / 2;
+  const cx = W / 2 - 300; // Shift center slightly left
   const cy = H / 2;
   const result: MapNode[] = [];
   const byType: Record<string, any[]> = { center: [], reference: [], citing: [], related: [], custom: [] };
   nodes.forEach(n => {
-    if (byType[n.type]) byType[n.type].push(n);
+    if (n.id === centerId) byType.center.push(n);
+    else if (byType[n.type]) byType[n.type].push(n);
     else byType.custom.push(n);
   });
 
@@ -210,44 +211,35 @@ function assignPositions(nodes: any[], centerId: string, W: number, H: number): 
     result.push({ ...n, shape: "card", ...ap, x: cx, y: cy });
   });
 
-  // Node dimensions for gap calculation
-  const NODE_W = 360;
-  const NODE_H = 170;
-  const MIN_GAP = 40; // minimum gap between node edges
+  // Group all children
+  const children = [...byType.reference, ...byType.citing, ...byType.related, ...byType.custom];
 
-  // Place a ring of nodes with dynamic angular spacing to prevent overlap
-  const placeRing = (arr: any[], baseAngle: number, r: number) => {
-    if (arr.length === 0) return;
-    // Angular space needed per node: arc length = NODE_W + MIN_GAP at radius r
-    const angularStep = Math.max(
-      (NODE_W + MIN_GAP) / r,     // minimum arc gap
-      Math.PI * 1.8 / arr.length  // or evenly divide 324° if few nodes
-    );
-    const totalSpan = angularStep * (arr.length - 1);
-    const startAngle = baseAngle - totalSpan / 2;
-
-    arr.forEach((n, i) => {
-      const angle = arr.length === 1 ? baseAngle : startAngle + i * angularStep;
-      const ap = autoPriority(n);
-      result.push({ ...n, shape: "card", ...ap, x: cx + Math.cos(angle) * r, y: cy + Math.sin(angle) * r });
+  if (children.length > 0) {
+    const COL_WIDTH = 550;
+    const VERT_GAP = 240;
+    
+    // Distribute into columns (max 5 nodes per column to prevent excessive vertical scrolling)
+    const numCols = Math.max(1, Math.ceil(children.length / 5));
+    const cols: any[][] = Array.from({ length: numCols }, () => []);
+    
+    children.forEach((n, i) => {
+      cols[i % numCols].push(n);
     });
-  };
 
-  // References fan out to the LEFT  at radius 700
-  placeRing(byType.reference, Math.PI,          700);
-  // Citing papers fan out to the RIGHT at radius 700
-  placeRing(byType.citing,    0,                700);
-  // Related papers spread BELOW at radius 550
-  placeRing(byType.related,   Math.PI * 0.5,    550);
-  // Custom nodes spread below further
-  byType.custom?.forEach((n, i, a) => {
-    const ap = autoPriority(n);
-    const spread = (NODE_W + MIN_GAP) * a.length;
-    result.push({ ...n, shape: "card", ...ap,
-      x: cx - spread / 2 + i * (NODE_W + MIN_GAP) + NODE_W / 2,
-      y: cy + 820
+    cols.forEach((colNodes, colIndex) => {
+      const startY = cy - ((colNodes.length - 1) * VERT_GAP) / 2;
+      colNodes.forEach((n, i) => {
+        const ap = autoPriority(n);
+        result.push({
+          ...n,
+          shape: "card",
+          ...ap,
+          x: cx + COL_WIDTH + colIndex * COL_WIDTH,
+          y: startY + i * VERT_GAP
+        });
+      });
     });
-  });
+  }
 
   return result;
 }
