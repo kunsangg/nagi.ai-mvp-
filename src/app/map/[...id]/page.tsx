@@ -1686,11 +1686,11 @@ export default function MapPage() {
       {/* ── Floating Right Sidebar (Figma Properties Panel) ── */}
       <aside className="absolute top-20 right-6 w-[280px] max-h-[calc(100vh-140px)] flex flex-col z-40 transition-all duration-300 bg-[#161616] rounded-[16px] border border-[#2a2a2a] shadow-2xl overflow-hidden"
              onClick={(e) => e.stopPropagation()}>
-        <div className="flex-1 overflow-hidden relative">
+        <div className="flex flex-col w-full max-h-full overflow-hidden">
           
           {/* ── DESIGN TAB ── */}
           {true && (
-            <div className="absolute inset-0 overflow-y-auto flex flex-col custom-scrollbar" style={{ WebkitOverflowScrolling: "touch" }}>
+            <div className="flex-1 overflow-y-auto flex flex-col custom-scrollbar" style={{ WebkitOverflowScrolling: "touch" }}>
               
               <style>{`
                 .custom-scrollbar::-webkit-scrollbar { width: 4px; }
