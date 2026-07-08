@@ -1,22 +1,15 @@
 import { NextResponse } from "next/server";
+import { callAI } from "@/lib/ai/providers";
+import { AIProvider } from "@/lib/ai/types";
 
 export async function POST(req: Request) {
-  const { paper } = await req.json() as { paper: { id: string; title: string; abstract?: string; authors?: string[]; year?: number } };
+  const { paper, provider = 'groq' } = await req.json() as { 
+    paper: { id: string; title: string; abstract?: string; authors?: string[]; year?: number };
+    provider?: string;
+  };
 
   if (!paper) {
     return NextResponse.json({ error: "Paper is required for gap analysis" }, { status: 400 });
-  }
-
-  const apiKey = process.env.GROQ_API_KEY;
-  if (!apiKey) {
-    return NextResponse.json({
-      gaps: {
-        summary: "AI Gap Analysis is disabled. Please add a GROQ_API_KEY to your environment variables.",
-        limitations: [],
-        unexploredAreas: [],
-        futureQuestions: []
-      }
-    });
   }
 
   const paperContext = `
@@ -53,16 +46,8 @@ Return a JSON object with this EXACT structure (no markdown, no preamble):
 
 Provide 2-3 items for limitations and unexplored areas, and exactly 3 future questions. Be highly analytical, precise, and academic. Do not invent facts, base the gaps entirely on what is logically missing from or constrained by the provided abstract.`;
 
-  const response = await fetch("https://api.groq.com/openai/v1/chat/completions", {
-    method: "POST",
-    headers: {
-      "Content-Type": "application/json",
-      Authorization: `Bearer ${apiKey}`,
-    },
-    body: JSON.stringify({
-      model: "llama-3.1-8b-instant",
-      max_tokens: 2000,
-      response_format: { type: "json_object" },
+  try {
+    const aiResponse = await callAI(provider as AIProvider, {
       messages: [
         {
           role: "system",
@@ -70,24 +55,25 @@ Provide 2-3 items for limitations and unexplored areas, and exactly 3 future que
         },
         { role: "user", content: prompt },
       ],
-    }),
-  });
+      maxTokens: 2000,
+      jsonMode: true,
+    });
 
-  const data = await response.json();
-
-  if (!response.ok) {
-    return NextResponse.json(
-      { error: data.error?.message || "Groq API error" },
-      { status: 500 }
-    );
-  }
-
-  const text = data.choices?.[0]?.message?.content || "{}";
-
-  try {
-    const parsed = JSON.parse(text);
-    return NextResponse.json({ gaps: parsed });
-  } catch {
-    return NextResponse.json({ error: "Failed to parse AI response" }, { status: 500 });
+    let jsonText = aiResponse.content.replace(/```json/gi, '').replace(/```/g, '').trim();
+    try {
+      const parsed = JSON.parse(jsonText);
+      return NextResponse.json({ gaps: parsed });
+    } catch {
+      return NextResponse.json({ error: "Failed to parse AI response" }, { status: 500 });
+    }
+  } catch (error: any) {
+    return NextResponse.json({
+      gaps: {
+        summary: `AI Gap Analysis Error: ${error?.message || 'Unknown error'}`,
+        limitations: [],
+        unexploredAreas: [],
+        futureQuestions: []
+      }
+    });
   }
 }

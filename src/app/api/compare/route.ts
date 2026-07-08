@@ -1,20 +1,15 @@
 import { NextResponse } from "next/server";
+import { callAI } from "@/lib/ai/providers";
+import { AIProvider } from "@/lib/ai/types";
 
 export async function POST(req: Request) {
-  const { papers } = await req.json() as { papers: { id: string; title: string; abstract?: string; authors?: string[]; year?: number }[] };
+  const { papers, provider = 'groq' } = await req.json() as { 
+    papers: { id: string; title: string; abstract?: string; authors?: string[]; year?: number }[];
+    provider?: string;
+  };
 
   if (!papers || papers.length < 2) {
     return NextResponse.json({ error: "At least two papers are required for comparison" }, { status: 400 });
-  }
-
-  const apiKey = process.env.GROQ_API_KEY;
-  if (!apiKey) {
-    return NextResponse.json({
-      comparison: {
-        summary: "AI Comparison is disabled. Please add a GROQ_API_KEY to your environment variables.",
-        dimensions: []
-      }
-    });
   }
 
   const papersContext = papers.map((p, i) => `
@@ -70,16 +65,8 @@ Return a JSON object with this EXACT structure (no markdown, no preamble):
 Ensure that the keys inside 'papers' in the matrix and 'paperDetails' in the dimensions EXACTLY match the IDs provided: ${papers.map(p => `"${p.id}"`).join(", ")}.
 If a paper doesn't explicitly state something, say "Not explicitly stated" or infer reasonably from the abstract. Be highly analytical, precise, and academic.`;
 
-  const response = await fetch("https://api.groq.com/openai/v1/chat/completions", {
-    method: "POST",
-    headers: {
-      "Content-Type": "application/json",
-      Authorization: `Bearer ${apiKey}`,
-    },
-    body: JSON.stringify({
-      model: "llama-3.1-8b-instant",
-      max_tokens: 3000,
-      response_format: { type: "json_object" },
+  try {
+    const aiResponse = await callAI(provider as AIProvider, {
       messages: [
         {
           role: "system",
@@ -87,24 +74,23 @@ If a paper doesn't explicitly state something, say "Not explicitly stated" or in
         },
         { role: "user", content: prompt },
       ],
-    }),
-  });
+      maxTokens: 3000,
+      jsonMode: true,
+    });
 
-  const data = await response.json();
-
-  if (!response.ok) {
-    return NextResponse.json(
-      { error: data.error?.message || "Groq API error" },
-      { status: 500 }
-    );
-  }
-
-  const text = data.choices?.[0]?.message?.content || "{}";
-
-  try {
-    const parsed = JSON.parse(text);
-    return NextResponse.json({ comparison: parsed });
-  } catch {
-    return NextResponse.json({ error: "Failed to parse AI response" }, { status: 500 });
+    let jsonText = aiResponse.content.replace(/```json/gi, '').replace(/```/g, '').trim();
+    try {
+      const parsed = JSON.parse(jsonText);
+      return NextResponse.json({ comparison: parsed });
+    } catch {
+      return NextResponse.json({ error: "Failed to parse AI response" }, { status: 500 });
+    }
+  } catch (error: any) {
+    return NextResponse.json({
+      comparison: {
+        summary: `AI Comparison Error: ${error?.message || 'Unknown error'}`,
+        dimensions: []
+      }
+    });
   }
 }

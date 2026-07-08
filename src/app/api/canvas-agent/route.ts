@@ -1,18 +1,13 @@
 import { NextResponse } from 'next/server';
+import { callAI } from '@/lib/ai/providers';
+import { AIProvider } from '@/lib/ai/types';
 
 export async function POST(req: Request) {
   try {
-    const { command, nodes, edges, selectedIds } = await req.json();
+    const { command, nodes, edges, selectedIds, provider = 'groq' } = await req.json();
 
     if (!command || typeof command !== 'string') {
       return NextResponse.json({ error: 'Valid command string is required' }, { status: 400 });
-    }
-
-    const groqKey = process.env.GROQ_API_KEY;
-    if (!groqKey) {
-      return NextResponse.json({ 
-        error: 'GROQ_API_KEY is not configured in .env.local. Please add it to your environment variables.'
-      }, { status: 500 });
     }
 
     const selectedNodes = nodes.filter((n: any) => selectedIds.includes(n.id));
@@ -29,10 +24,14 @@ Your job is to understand the user's request and output a JSON object containing
 2. "operations": An array of canvas mutation operations.
 
 Allowed operation types:
-- "add_nodes": { type: "add_nodes", nodes: [{ id, title, type, shape, x, y }] }
-  - Allowed node types: "paper", "timeline", "frame", "note", "question"
-- "add_edges": { type: "add_edges", edges: [{ source, target, type, label }] }
-- "update_nodes": { type: "update_nodes", updates: [{ id, changes: { x, y } }] }
+- "add_nodes": { type: "add_nodes", nodes: [{ id, title, type, shape, priority, x, y }] }
+  - Allowed node types: "paper", "timeline", "frame", "note", "question", "center", "comment"
+  - priority MUST be "high", "medium", or "low"
+- "add_edges": { type: "add_edges", edges: [{ id, source, target, type, label }] }
+  - Allowed edge types: "solid", "dashed", "dotted"
+- "update_nodes": { type: "update_nodes", updates: [{ id, changes: { x, y, title, type, width, height } }] }
+- "remove_nodes": { type: "remove_nodes", nodeIds: ["id1", "id2"] }
+- "remove_edges": { type: "remove_edges", edgeIds: ["id1", "id2"] }
 
 Current canvas state:
 - Nodes: ${JSON.stringify(nodes.map((n: any) => ({ id: n.id, title: n.title, type: n.type })))}
@@ -46,7 +45,13 @@ Example JSON Output:
     {
       "type": "add_nodes",
       "nodes": [
-        { "id": "paper-1", "title": "Quantum Batteries: A Review", "type": "paper", "shape": "card", "x": ${centerX}, "y": ${centerY - 150} }
+        { "id": "paper-1", "title": "Quantum Batteries: A Review", "type": "paper", "shape": "card", "priority": "high", "x": ${centerX}, "y": ${centerY - 150} }
+      ]
+    },
+    {
+      "type": "add_edges",
+      "edges": [
+        { "id": "edge-1", "source": "paper-1", "target": "existing-node-id", "type": "dashed", "label": "references" }
       ]
     }
   ]
@@ -54,32 +59,45 @@ Example JSON Output:
 
 Only return valid JSON matching this schema. Never return markdown blocks.`;
 
-    const response = await fetch("https://api.groq.com/openai/v1/chat/completions", {
-      method: "POST",
-      headers: {
-        "Authorization": `Bearer ${groqKey}`,
-        "Content-Type": "application/json"
-      },
-      body: JSON.stringify({
-        model: "llama-3.3-70b-versatile",
-        messages: [
-          { role: "system", content: systemPrompt },
-          { role: "user", content: command }
-        ],
-        response_format: { type: "json_object" },
-        temperature: 0.2
-      })
+    const aiResponse = await callAI(provider as AIProvider, {
+      messages: [
+        { role: "system", content: systemPrompt },
+        { role: "user", content: command }
+      ],
+      jsonMode: true,
     });
 
-    if (!response.ok) {
-      const text = await response.text();
-      console.error("Groq API Error:", text);
-      return NextResponse.json({ error: "Failed to communicate with Groq API" }, { status: 500 });
+    // Robust JSON parsing to handle markdown blocks sometimes returned by LLMs
+    let jsonText = aiResponse.content;
+    jsonText = jsonText.replace(/```json/gi, '').replace(/```/g, '').trim();
+
+    let parsed;
+    try {
+      parsed = JSON.parse(jsonText);
+    } catch (e) {
+      console.error("Failed to parse AI JSON:", jsonText);
+      return NextResponse.json({ error: 'AI returned invalid JSON format' }, { status: 500 });
     }
 
-    const data = await response.json();
-    const content = data.choices[0].message.content;
-    const parsed = JSON.parse(content);
+    // Ensure generated nodes and edges have all required fields (like IDs)
+    if (parsed.operations && Array.isArray(parsed.operations)) {
+      parsed.operations.forEach((op: any) => {
+        if (op.type === 'add_edges' && Array.isArray(op.edges)) {
+          op.edges.forEach((edge: any) => {
+            if (!edge.id) edge.id = 'edge-' + Math.random().toString(36).substr(2, 9);
+            if (!edge.type) edge.type = 'solid';
+          });
+        }
+        if (op.type === 'add_nodes' && Array.isArray(op.nodes)) {
+          op.nodes.forEach((node: any) => {
+            if (!node.id) node.id = 'node-' + Math.random().toString(36).substr(2, 9);
+            if (!node.priority) node.priority = 'medium';
+            if (!node.shape) node.shape = 'card';
+            if (!node.type) node.type = 'note';
+          });
+        }
+      });
+    }
 
     return NextResponse.json({
       message: parsed.message || "Canvas updated.",

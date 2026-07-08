@@ -7,8 +7,8 @@
   --color-text-primary: #e2e8f0;
   --color-text-secondary: #64748b;
   --color-accent: #3bc9db;        /* teal accent */
-  --font-sans: 'Inter', system-ui, sans-serif;
-  --font-mono: 'Roboto Mono', ui-monospace, monospace;
+  --font-sans: -apple-system, BlinkMacSystemFont, "SF Pro", "SF Pro Text", "SF Pro Display", "Segoe UI", Roboto, Helvetica, Arial, sans-serif, "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol";
+  --font-mono: "SF Mono", SFMono-Regular, ui-monospace, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
 }
 
 /* Reset */

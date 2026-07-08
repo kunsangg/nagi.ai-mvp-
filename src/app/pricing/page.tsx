@@ -54,7 +54,7 @@ const plans = [
     limits: {
       searches: "Unlimited",
       maps: "Unlimited",
-      ai: "GPT-4 powered",
+      ai: "Groq & Fireworks",
     },
   },
   {
@@ -80,7 +80,7 @@ const plans = [
     limits: {
       searches: "Unlimited",
       maps: "Unlimited shared",
-      ai: "GPT-4 + Claude",
+      ai: "Groq (Llama) & Fireworks (Gemma)",
     },
   },
   {
@@ -122,7 +122,7 @@ const faqs = [
   },
   {
     q: "What AI models power Nagi?",
-    a: "Nagi uses a combination of GPT-4, Claude, and our own fine-tuned models trained specifically on academic literature to ensure accuracy and citation integrity.",
+    a: "Nagi uses fast open-weight models (Llama via Groq, Gemma via Fireworks AI on AMD infrastructure) for real-time analysis.",
   },
   {
     q: "Does Nagi access full-text papers?",

@@ -1,18 +1,13 @@
 import { NextResponse } from 'next/server';
+import { callAI } from '@/lib/ai/providers';
+import { AIProvider } from '@/lib/ai/types';
 
 export async function POST(req: Request) {
   try {
-    const { command, currentText } = await req.json();
+    const { command, currentText, provider = 'groq' } = await req.json();
 
     if (!command || typeof command !== 'string') {
       return NextResponse.json({ error: 'Valid command string is required' }, { status: 400 });
-    }
-
-    const groqKey = process.env.GROQ_API_KEY;
-    if (!groqKey) {
-      return NextResponse.json({ 
-        error: 'GROQ_API_KEY is not configured in .env.local. Please add it to your environment variables.'
-      }, { status: 500 });
     }
 
     const systemPrompt = `You are Nagi Research Assistant, an advanced AI integrated into a document writer.
@@ -36,32 +31,16 @@ Only return valid JSON matching this schema. Never return markdown blocks enclos
 
     const userMessage = `Current Text:\n"""\n${currentText || "(empty)"}\n"""\n\nCommand:\n${command}`;
 
-    const response = await fetch("https://api.groq.com/openai/v1/chat/completions", {
-      method: "POST",
-      headers: {
-        "Authorization": `Bearer ${groqKey}`,
-        "Content-Type": "application/json"
-      },
-      body: JSON.stringify({
-        model: "llama-3.3-70b-versatile",
-        messages: [
-          { role: "system", content: systemPrompt },
-          { role: "user", content: userMessage }
-        ],
-        response_format: { type: "json_object" },
-        temperature: 0.5
-      })
+    const aiResponse = await callAI(provider as AIProvider, {
+      messages: [
+        { role: "system", content: systemPrompt },
+        { role: "user", content: userMessage }
+      ],
+      jsonMode: true,
     });
 
-    if (!response.ok) {
-      const text = await response.text();
-      console.error("Groq API Error:", text);
-      return NextResponse.json({ error: "Failed to communicate with Groq API" }, { status: 500 });
-    }
-
-    const data = await response.json();
-    const content = data.choices[0].message.content;
-    const parsed = JSON.parse(content);
+    let jsonText = aiResponse.content.replace(/```json/gi, '').replace(/```/g, '').trim();
+    const parsed = JSON.parse(jsonText);
 
     return NextResponse.json({
       updatedText: parsed.updatedText || currentText,

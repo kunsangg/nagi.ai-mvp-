@@ -1,23 +1,15 @@
 import { NextResponse } from "next/server";
+import { callAI } from "@/lib/ai/providers";
+import { AIProvider } from "@/lib/ai/types";
 
 export async function POST(req: Request) {
-  const { papers } = await req.json() as { papers: { title: string; abstract?: string; authors?: string[]; year?: number; journal?: string; citationCount?: number }[] };
+  const { papers, provider = 'groq' } = await req.json() as { 
+    papers: { title: string; abstract?: string; authors?: string[]; year?: number; journal?: string; citationCount?: number }[];
+    provider?: string;
+  };
 
   if (!papers?.length) {
     return NextResponse.json({ error: "No papers provided" }, { status: 400 });
-  }
-
-  const apiKey = process.env.GROQ_API_KEY;
-  if (!apiKey) {
-    return NextResponse.json({
-      review: {
-        introduction: "AI Literature Review is disabled. Please add a GROQ_API_KEY to your environment variables.",
-        themes: [],
-        keyFindings: [],
-        researchGaps: [],
-        conclusion: "",
-      },
-    });
   }
 
   const papersList = papers
@@ -45,16 +37,8 @@ Return a JSON object with this EXACT shape (no markdown, no backticks, just vali
 
 Use 2-4 themes. Always cite papers by number in square brackets. Write in formal academic prose.`;
 
-  const response = await fetch("https://api.groq.com/openai/v1/chat/completions", {
-    method: "POST",
-    headers: {
-      "Content-Type": "application/json",
-      Authorization: `Bearer ${apiKey}`,
-    },
-    body: JSON.stringify({
-      model: "llama-3.1-8b-instant",
-      max_tokens: 2500,
-      response_format: { type: "json_object" },
+  try {
+    const aiResponse = await callAI(provider as AIProvider, {
       messages: [
         {
           role: "system",
@@ -62,24 +46,26 @@ Use 2-4 themes. Always cite papers by number in square brackets. Write in formal
         },
         { role: "user", content: prompt },
       ],
-    }),
-  });
+      maxTokens: 2500,
+      jsonMode: true,
+    });
 
-  const data = await response.json();
-
-  if (!response.ok) {
-    return NextResponse.json(
-      { error: data.error?.message || "Groq API error" },
-      { status: 500 }
-    );
-  }
-
-  const text = data.choices?.[0]?.message?.content || "{}";
-
-  try {
-    const parsed = JSON.parse(text);
-    return NextResponse.json({ review: parsed });
-  } catch {
-    return NextResponse.json({ error: "Failed to parse AI response" }, { status: 500 });
+    let jsonText = aiResponse.content.replace(/```json/gi, '').replace(/```/g, '').trim();
+    try {
+      const parsed = JSON.parse(jsonText);
+      return NextResponse.json({ review: parsed });
+    } catch {
+      return NextResponse.json({ error: "Failed to parse AI response" }, { status: 500 });
+    }
+  } catch (error: any) {
+    return NextResponse.json({
+      review: {
+        introduction: `AI Literature Review Error: ${error?.message || 'Unknown error'}`,
+        themes: [],
+        keyFindings: [],
+        researchGaps: [],
+        conclusion: "",
+      },
+    });
   }
 }

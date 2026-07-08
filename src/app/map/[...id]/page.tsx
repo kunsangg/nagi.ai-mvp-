@@ -285,7 +285,7 @@ export default function MapPage() {
   const [urlInput,       setUrlInput]       = useState("");
   const [aiCommand,      setAiCommand]      = useState("");
   const [isProcessingAI, setIsProcessingAI] = useState(false);
-  const [selectedModel, setSelectedModel] = useState("Claude 3.7");
+  const [selectedModel, setSelectedModel] = useState("Llama 3.1 8B (Groq)");
   const [isContextAdded, setIsContextAdded] = useState(false);
   const [showModelDropdown, setShowModelDropdown] = useState(false);
   const [chatMessages, setChatMessages] = useState<{role: "user" | "ai", text: string}[]>([
@@ -348,6 +348,18 @@ export default function MapPage() {
           const update = op.updates.find((u: any) => u.id === n.id);
           return update ? { ...n, ...update.changes } : n;
         });
+      } else if (op.type === "remove_nodes") {
+        const idsToRemove = new Set(op.nodeIds || []);
+        currentNodes = currentNodes.filter(n => !idsToRemove.has(n.id));
+        // cascade delete connected edges
+        currentEdges = currentEdges.filter(e => {
+          const sId = typeof e.source === "string" ? e.source : e.source.id;
+          const tId = typeof e.target === "string" ? e.target : e.target.id;
+          return !idsToRemove.has(sId) && !idsToRemove.has(tId);
+        });
+      } else if (op.type === "remove_edges") {
+        const idsToRemove = new Set(op.edgeIds || []);
+        currentEdges = currentEdges.filter(e => !idsToRemove.has(e.id));
       }
     });
     
@@ -364,6 +376,7 @@ export default function MapPage() {
     setIsProcessingAI(true);
     
     try {
+      const provider = selectedModel.includes('Fireworks') ? 'fireworks' : 'groq';
       const res = await fetch('/api/canvas-agent', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -371,7 +384,8 @@ export default function MapPage() {
           command: userMsg,
           nodes: stateRef.current.nodes,
           edges: stateRef.current.edges,
-          selectedIds: stateRef.current.selectedNodeIds
+          selectedIds: stateRef.current.selectedNodeIds,
+          provider
         })
       });
       const data = await res.json();
@@ -1960,7 +1974,7 @@ export default function MapPage() {
                           
                           {showModelDropdown && (
                             <div className="absolute bottom-full left-0 mb-1 w-32 bg-[#111111] border border-[#1f1f1f] rounded-md shadow-lg overflow-hidden z-50">
-                              {['Claude 3.7', 'GPT-4o', 'Gemini 1.5 Pro', 'Llama 3 70B'].map(model => (
+                              {['Llama 3.1 8B (Groq)', 'Gemma 2 9B (Fireworks)'].map(model => (
                                 <button
                                   key={model}
                                   type="button"

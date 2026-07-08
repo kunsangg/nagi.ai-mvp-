@@ -28,7 +28,7 @@ export default function Sidebar() {
 
   return (
     <aside 
-      className={`${isCollapsed ? "w-[68px]" : "w-[260px]"} flex-shrink-0 h-full bg-[#0a0a0a] flex flex-col pt-5 pb-4 px-3 border-r border-[#1f1f1f] transition-all duration-300 ease-in-out`}
+      className={`${isCollapsed ? "w-[72px]" : "w-[260px]"} flex-shrink-0 h-[calc(100vh-24px)] my-3 mx-3 bg-[#0a0a0a]/80 backdrop-blur-2xl flex flex-col pt-5 pb-4 px-3 rounded-2xl border border-white/5 shadow-2xl shadow-black/50 transition-all duration-300 ease-in-out z-50`}
     >
       {/* Logo Area */}
       <div className={`flex items-center mb-8 ${isCollapsed ? "justify-center px-0" : "justify-between px-2"}`}>
@@ -112,7 +112,7 @@ export default function Sidebar() {
       {/* New Research Button */}
       <div className="mb-6 flex justify-center">
         <button 
-          className={`${isCollapsed ? "w-9 h-9 px-0 justify-center" : "w-full h-[36px] px-4 justify-start"} bg-[#111111] hover:bg-[#1f1f1f] text-[#e2e8f0] rounded-md flex items-center transition-all duration-200 text-sm font-semibold border border-[#1f1f1f] shadow-sm overflow-hidden`}
+          className={`${isCollapsed ? "w-10 h-10 px-0 justify-center" : "w-full h-[38px] px-4 justify-start"} bg-gradient-to-b from-[#1a1a1a] to-[#111111] hover:from-[#222222] hover:to-[#1a1a1a] text-[#e2e8f0] rounded-xl flex items-center transition-all duration-200 text-[13px] font-semibold border border-white/5 shadow-sm shadow-black/20 overflow-hidden group`}
         >
           <div className={`flex items-center ${isCollapsed ? "gap-0 justify-center" : "gap-3 whitespace-nowrap min-w-0"}`}>
             <Plus size={15} className="text-[#e2e8f0] flex-shrink-0" />
@@ -178,10 +178,10 @@ function NavItem({ icon, label, active = false, className = "", isCollapsed, onR
     <a
       href={href ?? "#"}
       title={isCollapsed ? label : undefined}
-      className={`group relative flex items-center ${isCollapsed ? "justify-center px-0 h-9 w-9 mx-auto" : "gap-3 px-3 py-2"} rounded-md text-[14px] font-[450] transition-all duration-300 ${
+      className={`group relative flex items-center ${isCollapsed ? "justify-center px-0 h-10 w-10 mx-auto" : "gap-3 px-3 py-2"} rounded-xl text-[13px] font-[500] tracking-wide transition-all duration-300 ${
         active 
-          ? "bg-[#202222] text-[#e2e8f0] shadow-sm" 
-          : "text-[#64748b] hover:bg-[#111111] hover:text-[#e2e8f0]"
+          ? "bg-white/10 text-white shadow-sm ring-1 ring-white/5" 
+          : "text-[#8b949e] hover:bg-white/5 hover:text-[#e2e8f0]"
       } ${className}`}
     >
       {icon && <span className={`${active ? "opacity-100" : "opacity-70"} flex-shrink-0 transition-opacity`}>{icon}</span>}
