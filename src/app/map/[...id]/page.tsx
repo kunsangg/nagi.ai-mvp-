@@ -1693,7 +1693,7 @@ export default function MapPage() {
       )}
 
       {/* ── Floating Right Sidebar (Figma Properties Panel) ── */}
-      <aside className={`absolute top-20 right-6 w-[280px] h-[calc(100vh-140px)] flex flex-col z-40 transition-all duration-300 bg-[#161616] rounded-[16px] border border-[#2a2a2a] shadow-2xl overflow-hidden ${isRightSidebarOpen ? 'opacity-100 translate-x-0' : 'opacity-0 translate-x-12 pointer-events-none'}`}
+      <aside className={`absolute top-20 right-6 w-[280px] max-h-[calc(100vh-140px)] flex flex-col z-40 transition-all duration-300 bg-[#161616] rounded-[16px] border border-[#2a2a2a] shadow-2xl overflow-hidden ${isRightSidebarOpen ? 'opacity-100 translate-x-0' : 'opacity-0 translate-x-12 pointer-events-none'}`}
              onClick={(e) => e.stopPropagation()}>
         <div className="flex flex-col w-full max-h-full overflow-hidden">
           
@@ -1713,7 +1713,7 @@ export default function MapPage() {
               `}</style>
 
               {!selectedNode && !selectedEdge ? (
-                <div className="flex-1 flex flex-col relative">
+                <div className="flex-1 flex flex-col relative min-h-[240px]">
                   <div className="absolute top-3 right-4">
                     <button onClick={() => setIsRightSidebarOpen(false)} className="text-[#8a8a8a] hover:text-[#eaeaea] transition-colors"><PanelRightClose size={14}/></button>
                   </div>
