@@ -2006,8 +2006,12 @@ export default function MapPage() {
                             value={selectedEdge.label || EDGE_LABEL[selectedEdge.type]}
                             onChange={(e) => {
                               const newEdges = edges.map(ed => ed.id === selectedEdge.id ? { ...ed, label: e.target.value } : ed);
-                              pushHistory(nodes, newEdges);
+                              setEdges(newEdges); // Update visually immediately
                               setSelectedEdge({ ...selectedEdge, label: e.target.value });
+                            }}
+                            onBlur={(e) => {
+                              const newEdges = edges.map(ed => ed.id === selectedEdge.id ? { ...ed, label: e.target.value } : ed);
+                              pushHistory(nodes, newEdges); // Commit to history only when done typing
                             }}
                             className="w-full text-[12px] font-medium bg-[rgba(255,255,255,0.03)] border border-[#1f1f1f] rounded-[6px] px-3 py-2 outline-none focus:border-[#3BC9DB] transition-colors"
                             style={{ color: "#E2E8F0" }}
