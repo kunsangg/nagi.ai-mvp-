@@ -1434,21 +1434,19 @@ export default function MapPage() {
 
       </div>
       {/* ── Fixed Right Sidebar (Unified) ── */}
-      <aside className="w-[320px] flex-shrink-0 h-full flex flex-col z-40 transition-all duration-300" style={{ background: "#111111", borderLeft: "1px solid #1f1f1f" }}>
+      <aside className="w-[280px] flex-shrink-0 h-[calc(100vh-24px)] my-3 mr-3 flex flex-col z-40 transition-all duration-300 bg-[#0a0a0a]/80 backdrop-blur-2xl rounded-2xl border border-white/5 shadow-2xl shadow-black/50 overflow-hidden">
         
         {/* Tab Header */}
-        <div className="flex items-center px-4 pt-4 gap-4" style={{ borderBottom: "1px solid #1f1f1f" }}>
+        <div className="flex items-center px-2 py-2 gap-1 border-b border-white/5 bg-white/[0.02]">
           <button 
             onClick={() => setActiveSidebarTab("design")}
-            className={`pb-2.5 text-[11px] font-bold uppercase tracking-wider transition-colors ${activeSidebarTab === "design" ? "text-[#E2E8F0] border-b-2 border-[#3bc9db]" : "text-[#808080] hover:text-[#B0B0B0] border-b-2 border-transparent"}`}
-            style={{ }}
+            className={`flex-1 py-1.5 rounded-lg text-[11px] font-semibold tracking-wide transition-all ${activeSidebarTab === "design" ? "bg-white/10 text-white shadow-sm ring-1 ring-white/5" : "text-[#808080] hover:text-[#e2e8f0] hover:bg-white/5"}`}
           >
             Design
           </button>
           <button 
             onClick={() => setActiveSidebarTab("copilot")}
-            className={`pb-2.5 text-[11px] font-bold uppercase tracking-wider transition-colors ${activeSidebarTab === "copilot" ? "text-[#E2E8F0] border-b-2 border-[#3bc9db]" : "text-[#808080] hover:text-[#B0B0B0] border-b-2 border-transparent"}`}
-            style={{ }}
+            className={`flex-1 py-1.5 rounded-lg text-[11px] font-semibold tracking-wide transition-all ${activeSidebarTab === "copilot" ? "bg-white/10 text-white shadow-sm ring-1 ring-white/5" : "text-[#808080] hover:text-[#e2e8f0] hover:bg-white/5"}`}
           >
             Assistant
           </button>
@@ -1547,25 +1545,24 @@ export default function MapPage() {
                       </div>
 
                       {/* --- GENERAL SECTION --- */}
-                      <div className="flex flex-col border-b border-[#1f1f1f]">
-                        <button onClick={() => toggleSection('general')} className="flex items-center justify-between px-5 py-3 hover:bg-[rgba(255,255,255,0.02)] transition-colors w-full text-left">
-                          <span className="text-[11px] font-bold uppercase tracking-wider text-[#94A3B8]" style={{ }}>General</span>
+                      <div className="flex flex-col border-b border-white/5">
+                        <button onClick={() => toggleSection('general')} className="flex items-center justify-between px-4 py-2.5 hover:bg-white/[0.03] transition-colors w-full text-left">
+                          <span className="text-[11px] font-semibold text-[#8b949e]">General</span>
                           <ChevronDown size={14} className={`text-[#64748B] transition-transform duration-200 ${openSections.general ? 'rotate-180' : ''}`} />
                         </button>
                         {openSections.general && (
-                          <div className="flex flex-col gap-3 px-5 pb-4 pt-1">
+                          <div className="flex flex-col gap-3 px-4 pb-4 pt-1">
                             <input
                               value={selectedNode.title}
                               onChange={(e) => updateSelectedNode({ title: e.target.value })}
-                              className="text-[14px] font-semibold leading-snug bg-transparent border border-transparent hover:border-[#1f1f1f] focus:border-[#3BC9DB] focus:bg-[rgba(255,255,255,0.02)] rounded-[6px] outline-none px-2 py-1 -mx-2 transition-all w-[calc(100%+16px)]"
-                              style={{ color: "#F8FAFC" }}
+                              className="text-[13px] font-semibold leading-snug bg-transparent border border-transparent hover:border-white/10 focus:border-[#3BC9DB] focus:bg-white/[0.03] rounded-md outline-none px-2 py-1 -mx-2 transition-all w-[calc(100%+16px)] text-white"
                               placeholder="Title..."
                             />
                             <textarea
                               value={selectedNode.description || ""}
                               onChange={(e) => updateSelectedNode({ description: e.target.value })}
-                              className="text-[12px] leading-relaxed bg-transparent border border-transparent hover:border-[#1f1f1f] focus:border-[#3BC9DB] focus:bg-[rgba(255,255,255,0.02)] rounded-[6px] outline-none resize-none px-2 py-1 -mx-2 transition-all w-[calc(100%+16px)]"
-                              style={{ color: "#94A3B8", minHeight: "60px" }}
+                              className="text-[12px] leading-relaxed bg-transparent border border-transparent hover:border-white/10 focus:border-[#3BC9DB] focus:bg-white/[0.03] rounded-md outline-none resize-none px-2 py-1 -mx-2 transition-all w-[calc(100%+16px)] text-[#8b949e]"
+                              style={{ minHeight: "60px" }}
                               placeholder="Add a description..."
                             />
                           </div>
@@ -1573,9 +1570,9 @@ export default function MapPage() {
                       </div>
 
                       {/* --- APPEARANCE SECTION --- */}
-                      <div className="flex flex-col border-b border-[#1f1f1f]">
-                        <button onClick={() => toggleSection('appearance')} className="flex items-center justify-between px-5 py-3 hover:bg-[rgba(255,255,255,0.02)] transition-colors w-full text-left">
-                          <span className="text-[11px] font-bold uppercase tracking-wider text-[#94A3B8]" style={{ }}>Appearance</span>
+                      <div className="flex flex-col border-b border-white/5">
+                        <button onClick={() => toggleSection('appearance')} className="flex items-center justify-between px-4 py-2.5 hover:bg-white/[0.03] transition-colors w-full text-left">
+                          <span className="text-[11px] font-semibold text-[#8b949e]">Appearance</span>
                           <ChevronDown size={14} className={`text-[#64748B] transition-transform duration-200 ${openSections.appearance ? 'rotate-180' : ''}`} />
                         </button>
                         {openSections.appearance && (
@@ -1612,16 +1609,16 @@ export default function MapPage() {
                       </div>
 
                       {/* --- SIZE & LAYOUT SECTION --- */}
-                      <div className="flex flex-col border-b border-[#1f1f1f]">
-                        <button onClick={() => toggleSection('layout')} className="flex items-center justify-between px-5 py-3 hover:bg-[rgba(255,255,255,0.02)] transition-colors w-full text-left">
-                          <span className="text-[11px] font-bold uppercase tracking-wider text-[#94A3B8]" style={{ }}>Layout</span>
+                      <div className="flex flex-col border-b border-white/5">
+                        <button onClick={() => toggleSection('layout')} className="flex items-center justify-between px-4 py-2.5 hover:bg-white/[0.03] transition-colors w-full text-left">
+                          <span className="text-[11px] font-semibold text-[#8b949e]">Layout</span>
                           <ChevronDown size={14} className={`text-[#64748B] transition-transform duration-200 ${openSections.layout ? 'rotate-180' : ''}`} />
                         </button>
                         {openSections.layout && (
-                          <div className="flex flex-col gap-4 px-5 pb-5 pt-1">
-                            <div className="flex items-center gap-3">
-                              <div className="flex-1 flex flex-col gap-1.5">
-                                <span className="text-[10px] font-medium text-[#64748B]" style={{ }}>W</span>
+                          <div className="flex flex-col gap-4 px-4 pb-4 pt-1">
+                            <div className="flex items-center gap-2">
+                              <div className="flex-1 flex items-center gap-2 bg-white/[0.03] border border-transparent hover:border-white/10 focus-within:border-[#3bc9db] rounded-md px-2 py-1 transition-colors">
+                                <span className="text-[10px] font-medium text-[#64748B]">W</span>
                                 <input 
                                   type="text" 
                                   value={selectedNode.width || "Auto"} 
@@ -1629,12 +1626,12 @@ export default function MapPage() {
                                     const val = parseInt(e.target.value);
                                     updateSelectedNode({ width: isNaN(val) ? undefined : val });
                                   }}
-                                  className="w-full bg-[rgba(255,255,255,0.03)] border border-[#1f1f1f] focus:border-[#3BC9DB] outline-none rounded-[6px] px-2 py-1.5 text-[11px] text-[#E2E8F0] font-mono transition-colors" 
+                                  className="w-full bg-transparent outline-none text-[11px] text-[#E2E8F0] font-mono" 
                                 />
                               </div>
-                              <div className="w-4 flex justify-center text-[#475569]"><Link2 size={12}/></div>
-                              <div className="flex-1 flex flex-col gap-1.5">
-                                <span className="text-[10px] font-medium text-[#64748B]" style={{ }}>H</span>
+                              <div className="w-3 flex justify-center text-[#475569]"><Link2 size={12}/></div>
+                              <div className="flex-1 flex items-center gap-2 bg-white/[0.03] border border-transparent hover:border-white/10 focus-within:border-[#3bc9db] rounded-md px-2 py-1 transition-colors">
+                                <span className="text-[10px] font-medium text-[#64748B]">H</span>
                                 <input 
                                   type="text" 
                                   value={selectedNode.height || "Auto"} 
@@ -1642,12 +1639,12 @@ export default function MapPage() {
                                     const val = parseInt(e.target.value);
                                     updateSelectedNode({ height: isNaN(val) ? undefined : val });
                                   }}
-                                  className="w-full bg-[rgba(255,255,255,0.03)] border border-[#1f1f1f] focus:border-[#3BC9DB] outline-none rounded-[6px] px-2 py-1.5 text-[11px] text-[#E2E8F0] font-mono transition-colors" 
+                                  className="w-full bg-transparent outline-none text-[11px] text-[#E2E8F0] font-mono" 
                                 />
                               </div>
                             </div>
                             
-                            <div className="flex flex-col gap-2 mt-2">
+                            <div className="flex flex-col gap-2 mt-1">
                                <span className="text-[10px] font-medium text-[#64748B]" style={{ }}>Corner Radius</span>
                                <div className="flex items-center bg-[rgba(255,255,255,0.03)] border border-[#1f1f1f] p-0.5 rounded-[8px]">
                                   {[0, 8, 16, 24].map((r) => {
