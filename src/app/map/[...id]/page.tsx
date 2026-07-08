@@ -28,7 +28,7 @@ type NodeType    = "center" | "reference" | "citing" | "related" | "custom" | "p
 type NodeShape   = "card" | "diamond" | "circle" | "pill" | "rect";
 type Priority    = "normal" | "high" | "critical";
 type EdgeType    = "supports" | "contradicts" | "extends" | "references" | "inspired_by" | "uses_dataset" | "uses_methodology" | "replicates" | "improves" | "limitation" | "future_work" | "open_question" | "literature_review" | "custom";
-type Tool        = "select" | "hand" | "comment" | "note" | "ai" | "paper" | "dataset" | "prompt" | "question" | "timeline" | "connect" | "play" | "export" | "settings" | "frame" | "shape";
+type Tool        = "select" | "hand" | "comment" | "note" | "ai" | "paper" | "dataset" | "prompt" | "question" | "timeline" | "connect" | "play" | "export" | "settings" | "frame" | "shape" | "image" | "line";
 
 interface MapNode {
   id: string;
@@ -1341,11 +1341,11 @@ export default function MapPage() {
           { icon: <Plus size={18} strokeWidth={1.5} />, tip: "Add Node", onClick: () => setShowAdd(true) },
           { divider: true },
           { tool: "select", icon: <MousePointer size={18} strokeWidth={1.5} />, tip: "Select" },
-          { tool: "pan",    icon: <Hand size={18} strokeWidth={1.5} />, tip: "Pan" },
-          { tool: "line",   icon: <Minus size={18} strokeWidth={1.5} />, tip: "Line" },
-          { tool: "text",   icon: <Type size={18} strokeWidth={1.5} />, tip: "Text" },
-          { tool: "shape",  icon: <Square size={18} strokeWidth={1.5} />, tip: "Shape" },
-          { tool: "image",  icon: <ImageIcon size={18} strokeWidth={1.5} />, tip: "Image" },
+          { tool: "hand",   icon: <Hand size={18} strokeWidth={1.5} />, tip: "Pan" },
+          { tool: "connect",icon: <Minus size={18} strokeWidth={1.5} />, tip: "Connect Nodes" },
+          { tool: "note",   icon: <Type size={18} strokeWidth={1.5} />, tip: "Add Text Note" },
+          { tool: "shape",  icon: <Square size={18} strokeWidth={1.5} />, tip: "Add Shape" },
+          { tool: "image",  icon: <ImageIcon size={18} strokeWidth={1.5} />, tip: "Add Image", onClick: () => window.alert("Image upload coming soon!") },
           { divider: true },
           { tool: "ai", icon: <Sparkles size={18} strokeWidth={1.5} />, tip: "Toggle AI Chat", color: showAIChat ? "text-[#3bc9db]" : "", onClick: () => setShowAIChat(!showAIChat) },
           { icon: <Settings2 size={18} strokeWidth={1.5} />, tip: "Settings", onClick: () => window.alert("Settings panel coming soon!") }
