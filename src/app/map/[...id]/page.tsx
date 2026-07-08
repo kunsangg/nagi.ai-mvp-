@@ -1413,10 +1413,7 @@ export default function MapPage() {
             <ArrowLeft size={16} />
           </button>
           
-          <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-[#3bc9db] to-blue-600 flex items-center justify-center shadow-[0_0_10px_rgba(59,201,219,0.3)] text-[14px] font-bold text-white shrink-0">
-            {centerPaper?.title?.charAt(0) || "M"}
-          </div>
-          
+
           <div className="flex flex-col justify-center">
             <div className="flex items-center gap-2">
               <span className="text-[14px] font-semibold text-white tracking-wide max-w-[600px]" style={{ lineHeight: "1.2" }}>
@@ -1435,14 +1432,7 @@ export default function MapPage() {
 
         {/* Right: Actions */}
         <div className="flex items-center gap-2.5 pointer-events-auto">
-          <button className="w-8 h-8 rounded-full bg-[#262626] flex items-center justify-center text-[#8a8a8a] hover:text-[#eaeaea] hover:bg-[#333] transition-colors border border-[#333]">
-            <Plus size={16} />
-          </button>
-          
-          <button className="w-8 h-8 rounded-full border-2 border-[#161616] overflow-hidden shadow-sm">
-            <img src="https://i.pravatar.cc/100?img=1" alt="User Avatar" className="w-full h-full object-cover" />
-          </button>
-          
+
           <button className="px-4 py-1.5 rounded-[8px] bg-[#1a73e8] hover:bg-[#1557b0] text-white text-[13px] font-semibold transition-colors">
             Share
           </button>
