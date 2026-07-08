@@ -17,7 +17,7 @@ import {
   History, MoreHorizontal, Paperclip, Mic, ChevronDown, User, Send,
   AlignStartVertical, AlignCenterHorizontal, AlignEndVertical,
   AlignStartHorizontal, AlignCenterVertical, AlignEndHorizontal,
-  AlignHorizontalSpaceBetween, AlignVerticalSpaceBetween, PanelRightClose
+  AlignHorizontalSpaceBetween, AlignVerticalSpaceBetween, PanelRightClose, PanelRightOpen
 } from "lucide-react";
 
 const SF   = "-apple-system, BlinkMacSystemFont, 'SF Pro Text', 'Helvetica Neue', sans-serif";
@@ -307,7 +307,7 @@ export default function MapPage() {
 
 
   const [showAIChat, setShowAIChat] = useState(true);
-
+  const [isRightSidebarOpen, setIsRightSidebarOpen] = useState(true);
   const [openSections, setOpenSections] = useState<Record<string, boolean>>({
     general: true,
     appearance: true,
@@ -1682,9 +1682,18 @@ export default function MapPage() {
         </div>
       </div>
       )}
+      {/* ── Floating Right Sidebar Toggle (When Closed) ── */}
+      {!isRightSidebarOpen && (
+        <button 
+          onClick={() => setIsRightSidebarOpen(true)}
+          className="absolute top-20 right-0 w-8 h-10 bg-[#161616] border-y border-l border-[#2a2a2a] rounded-l-[8px] flex items-center justify-center text-[#8a8a8a] hover:text-[#eaeaea] hover:bg-[#222] transition-colors shadow-2xl z-40"
+        >
+          <PanelRightOpen size={16} />
+        </button>
+      )}
 
       {/* ── Floating Right Sidebar (Figma Properties Panel) ── */}
-      <aside className="absolute top-20 right-6 w-[280px] max-h-[calc(100vh-140px)] flex flex-col z-40 transition-all duration-300 bg-[#161616] rounded-[16px] border border-[#2a2a2a] shadow-2xl overflow-hidden"
+      <aside className={`absolute top-20 right-6 w-[280px] max-h-[calc(100vh-140px)] flex flex-col z-40 transition-all duration-300 bg-[#161616] rounded-[16px] border border-[#2a2a2a] shadow-2xl overflow-hidden ${isRightSidebarOpen ? 'opacity-100 translate-x-0' : 'opacity-0 translate-x-12 pointer-events-none'}`}
              onClick={(e) => e.stopPropagation()}>
         <div className="flex flex-col w-full max-h-full overflow-hidden">
           
@@ -1704,11 +1713,16 @@ export default function MapPage() {
               `}</style>
 
               {!selectedNode && !selectedEdge ? (
-                <div className="flex-1 flex flex-col items-center justify-center text-[#64748B] text-[12px] gap-4" style={{ }}>
-                  <div className="w-16 h-16 rounded-2xl flex items-center justify-center border border-dashed border-[#1f1f1f] bg-[rgba(255,255,255,0.02)]">
-                    <MousePointer size={20} className="opacity-50" />
+                <div className="flex-1 flex flex-col relative">
+                  <div className="absolute top-3 right-4">
+                    <button onClick={() => setIsRightSidebarOpen(false)} className="text-[#8a8a8a] hover:text-[#eaeaea] transition-colors"><PanelRightClose size={14}/></button>
                   </div>
-                  <span className="font-medium">Select an object to inspect</span>
+                  <div className="flex-1 flex flex-col items-center justify-center text-[#64748B] text-[12px] gap-4" style={{ }}>
+                    <div className="w-16 h-16 rounded-2xl flex items-center justify-center border border-dashed border-[#1f1f1f] bg-[rgba(255,255,255,0.02)]">
+                      <MousePointer size={20} className="opacity-50" />
+                    </div>
+                    <span className="font-medium">Select an object to inspect</span>
+                  </div>
                 </div>
               ) : (
                 <div className="flex flex-col pb-8">
@@ -1770,7 +1784,7 @@ export default function MapPage() {
                       {/* Asset / Header */}
                       <div className="flex items-center justify-between px-4 py-3 shrink-0 border-b border-[#2a2a2a]">
                         <span className="text-[13px] font-semibold text-[#eaeaea]">Asset</span>
-                        <button className="text-[#8a8a8a] hover:text-[#eaeaea] transition-colors"><PanelRightClose size={14}/></button>
+                        <button onClick={() => setIsRightSidebarOpen(false)} className="text-[#8a8a8a] hover:text-[#eaeaea] transition-colors"><PanelRightClose size={14}/></button>
                       </div>
 
                       <div className="flex flex-col mt-2">
