@@ -1335,7 +1335,10 @@ export default function MapPage() {
            }}>
         {([
           { icon: <Compass size={18} strokeWidth={1.5} />, tip: "Home", isLink: true, href: "/" },
-          { icon: <Folder size={18} strokeWidth={1.5} />, tip: "Projects" },
+          { icon: <Folder size={18} strokeWidth={1.5} />, tip: "Projects", onClick: () => window.alert("Projects view coming soon!") },
+          { divider: true },
+          { icon: <Network size={18} strokeWidth={1.5} />, tip: "Map", active: true, onClick: () => doZoom("fit") },
+          { icon: <Plus size={18} strokeWidth={1.5} />, tip: "Add Node", onClick: () => setShowAdd(true) },
           { divider: true },
           { tool: "select", icon: <MousePointer size={18} strokeWidth={1.5} />, tip: "Select" },
           { tool: "pan",    icon: <Hand size={18} strokeWidth={1.5} />, tip: "Pan" },
@@ -1345,7 +1348,7 @@ export default function MapPage() {
           { tool: "image",  icon: <ImageIcon size={18} strokeWidth={1.5} />, tip: "Image" },
           { divider: true },
           { tool: "ai", icon: <Sparkles size={18} strokeWidth={1.5} />, tip: "Toggle AI Chat", color: showAIChat ? "text-[#3bc9db]" : "", onClick: () => setShowAIChat(!showAIChat) },
-          { icon: <Settings2 size={18} strokeWidth={1.5} />, tip: "Settings" }
+          { icon: <Settings2 size={18} strokeWidth={1.5} />, tip: "Settings", onClick: () => window.alert("Settings panel coming soon!") }
         ]).map((item, i) => {
           if (item.divider) {
             return <div key={i} className="w-8 h-[1px] bg-white/10 my-2"></div>;
