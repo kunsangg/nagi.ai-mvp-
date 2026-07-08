@@ -74,8 +74,8 @@ interface MapEdge {
   metadata?: EdgeMetadata;
 }
 
-export const getNodeW = (n: MapNode) => n.width !== undefined ? n.width : (n.type === "frame" ? 900 : n.type === "center" ? 360 : n.type === "timeline" ? 420 : n.type === "question" ? 340 : n.type === "note" ? 300 : n.type === "comment" ? 320 : ["paper", "reference", "citing", "related", "custom", "shape"].includes(n.type) ? 340 : 270);
-export const getNodeH = (n: MapNode) => n.height !== undefined ? n.height : (n.type === "frame" ? 700 : n.type === "center" ? 120 : n.type === "timeline" ? 100 : n.type === "question" ? 120 : n.type === "note" ? 200 : n.type === "comment" ? 160 : ["paper", "reference", "citing", "related", "custom", "shape"].includes(n.type) ? 160 : 100);
+export const getNodeW = (n: MapNode) => n.width !== undefined ? n.width : (n.type === "frame" ? 1100 : n.type === "center" ? 440 : n.type === "timeline" ? 500 : n.type === "question" ? 420 : n.type === "note" ? 380 : n.type === "comment" ? 400 : ["paper", "reference", "citing", "related", "custom", "shape"].includes(n.type) ? 420 : 340);
+export const getNodeH = (n: MapNode) => n.height !== undefined ? n.height : (n.type === "frame" ? 800 : n.type === "center" ? 150 : n.type === "timeline" ? 130 : n.type === "question" ? 150 : n.type === "note" ? 250 : n.type === "comment" ? 200 : ["paper", "reference", "citing", "related", "custom", "shape"].includes(n.type) ? 200 : 130);
 export const getNodeRx = (n: MapNode) => n.borderRadius !== undefined ? n.borderRadius : (n.type === "frame" ? 0 : 12);
 
 const NODE_W = 240;
@@ -930,19 +930,19 @@ export default function MapPage() {
       .attr("width", (d: MapNode) => getNodeW(d))
       .attr("height", (d: MapNode) => getNodeH(d))
       .html((d: MapNode) => `
-        <div xmlns="http://www.w3.org/1999/xhtml" style="width:100%; height:100%; padding:13px 16px 13px 22px; box-sizing:border-box; display:flex; flex-direction:column; gap:7px; font-family:-apple-system,BlinkMacSystemFont,'Inter',sans-serif;">
+        <div xmlns="http://www.w3.org/1999/xhtml" style="width:100%; height:100%; padding:18px 22px 18px 28px; box-sizing:border-box; display:flex; flex-direction:column; gap:10px; font-family:-apple-system,BlinkMacSystemFont,'Inter',sans-serif;">
           <!-- Badge row -->
           <div style="display:flex; align-items:center; justify-content:space-between;">
-            <span style="font-size:9px; font-weight:700; letter-spacing:0.09em; color:${d.customColor || "#475569"}; text-transform:uppercase;">${d.type === "citing" ? "CITES THIS" : d.type === "reference" ? "REFERENCED" : d.type === "center" ? "FOCUS PAPER" : d.type === "related" ? "RELATED" : d.type.toUpperCase()}</span>
-            ${d.citations ? `<span style="font-size:9px; color:#475569; font-weight:500;">${d.citations >= 1000 ? (d.citations/1000).toFixed(1)+"k" : d.citations} cit.</span>` : ""}
+            <span style="font-size:12px; font-weight:700; letter-spacing:0.09em; color:${d.customColor || "#475569"}; text-transform:uppercase;">${d.type === "citing" ? "CITES THIS" : d.type === "reference" ? "REFERENCED" : d.type === "center" ? "FOCUS PAPER" : d.type === "related" ? "RELATED" : d.type.toUpperCase()}</span>
+            ${d.citations ? `<span style="font-size:12px; color:#475569; font-weight:500;">${d.citations >= 1000 ? (d.citations/1000).toFixed(1)+"k" : d.citations} cit.</span>` : ""}
           </div>
           <!-- Divider -->
           <div style="height:1px; background:rgba(255,255,255,0.05); flex-shrink:0;"></div>
           <!-- Title -->
           <div style="flex:1; overflow:hidden;">
-            <p style="margin:0; font-size:12.5px; font-weight:500; color:#E2E8F0; line-height:1.5; display:-webkit-box; -webkit-line-clamp:${getNodeH(d) <= 120 ? 3 : 4}; -webkit-box-orient:vertical; overflow:hidden;">${d.title}</p>
+            <p style="margin:0; font-size:16px; font-weight:500; color:#E2E8F0; line-height:1.5; display:-webkit-box; -webkit-line-clamp:${getNodeH(d) <= 150 ? 3 : 4}; -webkit-box-orient:vertical; overflow:hidden;">${d.title}</p>
           </div>
-          ${d.author || d.year ? `<p style="margin:0; font-size:10px; color:#64748B; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">${[d.author ? d.author.split(",")[0].trim() : "", d.year ? String(d.year) : ""].filter(Boolean).join(" · ")}</p>` : ""}
+          ${d.author || d.year ? `<p style="margin:0; font-size:13px; color:#64748B; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">${[d.author ? d.author.split(",")[0].trim() : "", d.year ? String(d.year) : ""].filter(Boolean).join(" · ")}</p>` : ""}
         </div>
       `);
 
