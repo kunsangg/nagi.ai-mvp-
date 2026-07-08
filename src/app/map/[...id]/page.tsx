@@ -1326,30 +1326,53 @@ export default function MapPage() {
     {/* ── Main Canvas Area ── */}
     <div className="flex-1 relative overflow-hidden">
     
-      {/* ── Floating Mini Dock (Left) ── */}
-      <div className="absolute left-6 top-1/2 -translate-y-1/2 z-40 flex flex-col items-center gap-3 py-4 px-2 rounded-full shadow-2xl backdrop-blur-2xl"
+      {/* ── Unified Floating Left Toolbar ── */}
+      <div className="absolute left-6 top-1/2 -translate-y-1/2 z-40 flex flex-col items-center py-4 px-2 rounded-full shadow-2xl backdrop-blur-2xl pointer-events-auto"
            style={{ 
-             background: "rgba(255, 255, 255, 0.06)",
-             border: "1px solid rgba(255, 255, 255, 0.12)",
-             boxShadow: "0 20px 40px rgba(0,0,0,0.6), inset 0 1px 0 rgba(255,255,255,0.15)"
+             background: "rgba(22, 22, 22, 0.8)",
+             border: "1px solid rgba(255, 255, 255, 0.08)",
+             boxShadow: "0 20px 40px rgba(0,0,0,0.6), inset 0 1px 0 rgba(255,255,255,0.05)"
            }}>
-        <NextLink href="/" className="p-2.5 text-white/60 hover:text-white hover:bg-white/10 rounded-full transition-all duration-200" title="Home">
-          <Compass size={20} strokeWidth={1.5} />
-        </NextLink>
-        <button className="p-2.5 text-white/60 hover:text-white hover:bg-white/10 rounded-full transition-all duration-200" title="Projects">
-          <Folder size={20} strokeWidth={1.5} />
-        </button>
-        <div className="w-8 h-[1px] bg-white/10 my-1"></div>
-        <button className="p-2.5 text-white bg-white/15 rounded-full transition-all shadow-[0_4px_15px_rgba(0,0,0,0.3)]" title="Map">
-          <Network size={20} strokeWidth={1.5} />
-        </button>
-        <button className="p-2.5 text-white/60 hover:text-white hover:bg-white/10 rounded-full transition-all duration-200" title="Add Node">
-          <Plus size={20} strokeWidth={1.5} />
-        </button>
-        <div className="w-8 h-[1px] bg-white/10 my-1"></div>
-        <button className="p-2.5 text-white/60 hover:text-white hover:bg-white/10 rounded-full transition-all duration-200" title="Settings">
-          <Settings2 size={20} strokeWidth={1.5} />
-        </button>
+        {([
+          { icon: <Compass size={18} strokeWidth={1.5} />, tip: "Home", isLink: true, href: "/" },
+          { icon: <Folder size={18} strokeWidth={1.5} />, tip: "Projects" },
+          { divider: true },
+          { icon: <Network size={18} strokeWidth={1.5} />, tip: "Map", active: true },
+          { icon: <Plus size={18} strokeWidth={1.5} />, tip: "Add Node" },
+          { divider: true },
+          { tool: "select", icon: <MousePointer size={18} strokeWidth={1.5} />, tip: "Select" },
+          { tool: "pan",    icon: <Hand size={18} strokeWidth={1.5} />, tip: "Pan" },
+          { tool: "line",   icon: <Minus size={18} strokeWidth={1.5} />, tip: "Line" },
+          { tool: "text",   icon: <Type size={18} strokeWidth={1.5} />, tip: "Text" },
+          { tool: "shape",  icon: <Square size={18} strokeWidth={1.5} />, tip: "Shape" },
+          { tool: "image",  icon: <ImageIcon size={18} strokeWidth={1.5} />, tip: "Image" },
+          { divider: true },
+          { tool: "ai", icon: <Sparkles size={18} strokeWidth={1.5} />, tip: "Toggle AI Chat", color: showAIChat ? "text-[#3bc9db]" : "", onClick: () => setShowAIChat(!showAIChat) },
+          { icon: <Settings2 size={18} strokeWidth={1.5} />, tip: "Settings" }
+        ]).map((item, i) => {
+          if (item.divider) {
+            return <div key={i} className="w-8 h-[1px] bg-white/10 my-2"></div>;
+          }
+          const isActive = item.active || (item.tool && activeTool === item.tool && item.tool !== "ai");
+          const btnClass = `p-2.5 my-0.5 rounded-full transition-all duration-200 ${isActive ? 'bg-white/15 text-white shadow-[0_4px_15px_rgba(0,0,0,0.3)]' : 'text-white/60 hover:text-white hover:bg-white/10'} ${item.color || ''}`;
+          
+          if (item.isLink) {
+            return (
+              <NextLink key={i} href={item.href!} className={btnClass} title={item.tip}>
+                {item.icon}
+              </NextLink>
+            );
+          }
+          return (
+            <button key={i} title={item.tip} className={btnClass}
+              onClick={() => {
+                if (item.onClick) item.onClick();
+                else if (item.tool && item.tool !== "ai") setActiveTool(item.tool as any);
+              }}>
+              {item.icon}
+            </button>
+          );
+        })}
       </div>
       
       {/* ── Floating Top Nav (Left: Title, Right: Actions) ── */}
@@ -1532,43 +1555,7 @@ export default function MapPage() {
 
 
 
-      {/* ── Floating Top Center Toolbar ── */}
-      <div className="absolute top-6 left-1/2 -translate-x-1/2 z-40 flex items-center gap-1 px-3 py-1.5 rounded-[14px] shadow-2xl backdrop-blur-xl transition-all"
-           style={{ 
-             background: "rgba(22, 22, 22, 0.9)",
-             border: "1px solid rgba(255, 255, 255, 0.08)",
-             boxShadow: "0 10px 40px rgba(0,0,0,0.8), inset 0 1px 0 rgba(255,255,255,0.05)"
-           }}>
-        {([
-          { tool: "line",   icon: <Minus size={16} strokeWidth={1.5} />, tip: "Line" },
-          { tool: "text",   icon: <Type size={16} strokeWidth={1.5} />, tip: "Text" },
-          { tool: "shape",  icon: <Square size={16} strokeWidth={1.5} />, tip: "Shape" },
-          { tool: "eraser", icon: <X size={16} strokeWidth={1.5} />, tip: "Eraser" }, // placeholder for eraser
-          { divider: true },
-          { tool: "select", icon: <MousePointer size={16} strokeWidth={1.5} />, tip: "Select" },
-          { tool: "pan",    icon: <Hand size={16} strokeWidth={1.5} />, tip: "Pan" },
-          { tool: "image",  icon: <ImageIcon size={16} strokeWidth={1.5} />, tip: "Image" },
-          { divider: true },
-          { tool: "ai", icon: <Sparkles size={16} strokeWidth={1.5} />, tip: "Toggle AI Chat", color: showAIChat ? "text-[#3bc9db]" : "text-white/60", onClick: () => setShowAIChat(!showAIChat) },
-          { tool: "menu", icon: <MoreHorizontal size={16} strokeWidth={1.5} />, tip: "More" },
-        ]).map((item, i) => (
-          item.divider ? (
-            <div key={i} className="w-[1px] h-4 bg-white/10 mx-1"></div>
-          ) : (
-            <button key={i} title={item.tip}
-              onClick={() => {
-                if (item.onClick) {
-                  item.onClick();
-                } else if (item.tool && item.tool !== "menu" && item.tool !== "eraser") {
-                  setActiveTool(item.tool as any);
-                }
-              }}
-              className={`p-2 rounded-[10px] transition-all duration-200 ${activeTool === item.tool && !item.onClick ? "bg-white/10 text-white" : "text-white/60 hover:text-white hover:bg-white/5"} ${item.color || ""}`}>
-              {item.icon}
-            </button>
-          )
-        ))}
-      </div>
+
 
       {/* ── Floating Zoom Controls ── */}
       <div className="absolute bottom-6 right-[350px] z-30 flex items-center gap-1.5 pointer-events-auto nagi-glass-toolbar px-3 py-2">
