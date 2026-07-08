@@ -211,60 +211,47 @@ function assignPositions(nodes: any[], centerId: string, W: number, H: number): 
     result.push({ ...n, shape: "card", ...ap, x: cx, y: cy });
   });
 
-  // Group all children by type so we can segregate them visually
-  const groups = [
-    { type: "reference", nodes: byType.reference },
-    { type: "citing", nodes: byType.citing },
-    { type: "related", nodes: byType.related },
-    { type: "custom", nodes: byType.custom }
-  ].filter(g => g.nodes.length > 0);
-
-  if (groups.length > 0) {
-    const COL_WIDTH = 550;
-    const VERT_GAP = 240;
-    const GROUP_GAP = 300; // Extra spacing between different connection types
+  // Group all children to form an expanding right-facing fan layout as requested
+  const children = [...byType.reference, ...byType.citing, ...byType.related, ...byType.custom];
+  
+  if (children.length > 0) {
+    const layerCapacity = [2, 2, 4, 4, 6, 6, 8, 8, 10, 10]; // Exponential capacity to form a fan
+    const COL_WIDTH = 350; // X distance between columns
+    const FIRST_COL_OFFSET = 450; // X distance from center node to first column
     
-    // Pre-calculate heights for each segregated group
-    const groupLayouts = groups.map(g => {
-      // Distribute into columns (max 5 nodes per column to prevent excessive vertical scrolling)
-      const numCols = Math.max(1, Math.ceil(g.nodes.length / 5));
-      const cols: any[][] = Array.from({ length: numCols }, () => []);
+    let currentLayer = 0;
+    let nodesInCurrentLayer = 0;
+    const layers: any[][] = [];
+
+    children.forEach((n) => {
+      if (layers.length <= currentLayer) layers.push([]);
       
-      g.nodes.forEach((n, i) => {
-        cols[i % numCols].push(n);
-      });
+      layers[currentLayer].push(n);
+      nodesInCurrentLayer++;
       
-      const maxNodesInCol = Math.max(...cols.map(c => c.length));
-      const height = Math.max(1, maxNodesInCol) * VERT_GAP;
-      
-      return { ...g, cols, height };
+      if (nodesInCurrentLayer >= layerCapacity[currentLayer]) {
+        currentLayer++;
+        nodesInCurrentLayer = 0;
+      }
     });
 
-    // Calculate total height of all segregated groups combined
-    const totalHeight = groupLayouts.reduce((acc, g) => acc + g.height, 0) + (groupLayouts.length - 1) * GROUP_GAP;
-    
-    // Start Y so the entire block is vertically centered relative to the center node
-    let currentY = cy - totalHeight / 2;
-
-    groupLayouts.forEach(g => {
-      g.cols.forEach((colNodes, colIndex) => {
-        const colHeight = colNodes.length * VERT_GAP;
-        // Center this specific column vertically within its group's allocated height
-        const startY = currentY + (g.height - colHeight) / 2 + VERT_GAP / 2;
-        
-        colNodes.forEach((n, i) => {
-          const ap = autoPriority(n);
-          result.push({
-            ...n,
-            shape: "card",
-            ...ap,
-            x: cx + COL_WIDTH + colIndex * COL_WIDTH,
-            y: startY + i * VERT_GAP
-          });
+    layers.forEach((layerNodes, colIndex) => {
+      // Calculate Y spread dynamically to form the fan shape
+      const spread = colIndex === 0 ? 500 : colIndex === 1 ? 800 : 700 + (colIndex - 2) * 100;
+      
+      const startY = layerNodes.length === 1 ? cy : cy - spread / 2;
+      const stepY = layerNodes.length === 1 ? 0 : spread / (layerNodes.length - 1);
+      
+      layerNodes.forEach((n, i) => {
+        const ap = autoPriority(n);
+        result.push({
+          ...n,
+          shape: "card",
+          ...ap,
+          x: cx + FIRST_COL_OFFSET + colIndex * COL_WIDTH,
+          y: startY + i * stepY
         });
       });
-      // Move Y down for the next segregated connection type
-      currentY += g.height + GROUP_GAP;
     });
   }
 
