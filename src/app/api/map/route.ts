@@ -60,15 +60,22 @@ async function fetchCitingWorks(openAlexId: string) {
 
 function workToNode(work: any, type: string) {
   const primaryTopic = work.topics?.[0];
+  const cleanTitle = work.title ? String(work.title).replace(/<[^>]*>?/gm, '') : 'Untitled';
+  const authorName = work.authorships?.[0]?.author?.display_name || 'Unknown';
+  const lastName = authorName.split(',')[0].trim().split(' ').pop() || 'Unknown';
+  const shortTitle = cleanTitle.split(' ').slice(0, 5).join(' ');
+  const shortName = `${lastName} (${work.publication_year || 'n.d.'}) - ${shortTitle}${cleanTitle.split(' ').length > 5 ? '...' : ''}`;
+
   return {
     id: work.id.replace('https://openalex.org/', ''),
-    title: work.title || 'Untitled',
+    title: shortName,
     year: work.publication_year,
     citations: work.cited_by_count || 0,
-    author: work.authorships?.[0]?.author?.display_name || '',
+    author: authorName,
     domain: primaryTopic?.domain?.display_name || '',
     field: primaryTopic?.field?.display_name || '',
     isOpenAccess: work.open_access?.is_oa || false,
+    note: cleanTitle,
     type, // 'center' | 'reference' | 'citing' | 'related'
   };
 }

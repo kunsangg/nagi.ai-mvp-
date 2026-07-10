@@ -24,7 +24,7 @@ import {
 const SF   = "-apple-system, BlinkMacSystemFont, 'SF Pro Text', 'Helvetica Neue', sans-serif";
 const MONO = "'SF Mono', SFMono-Regular, ui-monospace, Menlo, monospace";
 
-type NodeType    = "center" | "reference" | "citing" | "related" | "custom" | "paper" | "ai" | "dataset" | "prompt" | "note" | "question" | "timeline" | "comment" | "frame" | "shape";
+type NodeType    = "center" | "reference" | "citing" | "related" | "custom" | "paper" | "ai" | "dataset" | "prompt" | "note" | "question" | "timeline" | "comment" | "frame" | "shape" | "image";
 type NodeShape   = "card" | "diamond" | "circle" | "pill" | "rect";
 type Priority    = "normal" | "high" | "critical";
 type EdgeType    = "supports" | "contradicts" | "extends" | "references" | "inspired_by" | "uses_dataset" | "uses_methodology" | "replicates" | "improves" | "limitation" | "future_work" | "open_question" | "literature_review" | "custom";
@@ -44,6 +44,7 @@ interface MapNode {
   priority: Priority;
   note?: string;
   url?: string;
+  imageUrl?: string;
   description?: string;
   tags?: string[];
   customColor?: string;
@@ -74,8 +75,8 @@ interface MapEdge {
   metadata?: EdgeMetadata;
 }
 
-export const getNodeW = (n: MapNode) => n.width !== undefined ? n.width : (n.type === "frame" ? 1100 : n.type === "center" ? 440 : n.type === "timeline" ? 500 : n.type === "question" ? 420 : n.type === "note" ? 380 : n.type === "comment" ? 400 : ["paper", "reference", "citing", "related", "custom", "shape"].includes(n.type) ? 420 : 340);
-export const getNodeH = (n: MapNode) => n.height !== undefined ? n.height : (n.type === "frame" ? 800 : n.type === "center" ? 150 : n.type === "timeline" ? 130 : n.type === "question" ? 150 : n.type === "note" ? 250 : n.type === "comment" ? 200 : ["paper", "reference", "citing", "related", "custom", "shape"].includes(n.type) ? 200 : 130);
+export const getNodeW = (n: MapNode) => n.width !== undefined ? n.width : (n.type === "frame" ? 1100 : n.type === "center" ? 440 : n.type === "timeline" ? 500 : n.type === "question" ? 420 : n.type === "note" ? 380 : n.type === "comment" ? 400 : n.type === "image" ? 320 : ["paper", "reference", "citing", "related", "custom", "shape"].includes(n.type) ? 420 : 340);
+export const getNodeH = (n: MapNode) => n.height !== undefined ? n.height : (n.type === "frame" ? 800 : n.type === "center" ? 150 : n.type === "timeline" ? 130 : n.type === "question" ? 150 : n.type === "note" ? 250 : n.type === "comment" ? 200 : n.type === "image" ? 240 : ["paper", "reference", "citing", "related", "custom", "shape"].includes(n.type) ? 200 : 130);
 export const getNodeRx = (n: MapNode) => n.borderRadius !== undefined ? n.borderRadius : (n.type === "frame" ? 0 : 12);
 
 const NODE_W = 240;
@@ -102,7 +103,8 @@ const TYPE_COLOR: Record<NodeType, string> = {
   timeline:  "#6366f1",
   comment:   "#a855f7",
   frame:     "#ffffff",
-  shape:     "#808080"
+  shape:     "#808080",
+  image:     "#808080"
 };
 
 const EDGE_COLOR: Record<EdgeType, string> = {
@@ -171,7 +173,8 @@ const TYPE_LABEL: Record<NodeType, string> = {
   timeline:  "TIMELINE",
   comment:   "COMMENT",
   frame:     "FRAME",
-  shape:     "SHAPE"
+  shape:     "SHAPE",
+  image:     "IMAGE"
 };
 
 function truncate(s: string, n: number) {
@@ -258,6 +261,13 @@ function assignPositions(nodes: any[], centerId: string, W: number, H: number): 
   return result;
 }
 
+const MODEL_CONFIG: Record<string, { provider: 'groq' | 'fireworks', id: string }> = {
+  'Llama 3.3 70B (Groq)': { provider: 'groq', id: 'llama-3.3-70b-versatile' },
+  'Llama 3.1 70B (Fireworks)': { provider: 'fireworks', id: 'accounts/fireworks/models/llama-v3p1-70b-instruct' },
+  'Mixtral 8x22B (Fireworks)': { provider: 'fireworks', id: 'accounts/fireworks/models/mixtral-8x22b-instruct' },
+  'Gemma 2 9B (Fireworks)': { provider: 'fireworks', id: 'accounts/fireworks/models/gemma2-9b-it' }
+};
+
 export default function MapPage() {
   const params = useParams();
   const router = useRouter();
@@ -287,6 +297,8 @@ export default function MapPage() {
   const [showEdgeLabel,  setShowEdgeLabel]  = useState(false);
   const [showNoteModal,  setShowNoteModal]  = useState(false);
   const [showUrlModal,   setShowUrlModal]   = useState(false);
+  const [showImageModal, setShowImageModal] = useState(false);
+  const [pendingCreation,setPendingCreation] = useState<{type: "note" | "image", x: number, y: number} | null>(null);
   const [addQuery,       setAddQuery]       = useState("");
   const [addResults,     setAddResults]     = useState<any[]>([]);
   const [isSearching,    setIsSearching]    = useState(false);
@@ -294,10 +306,12 @@ export default function MapPage() {
   const [noteTitleInput, setNoteTitleInput] = useState("");
   const [noteInput,      setNoteInput]      = useState("");
   const [urlInput,       setUrlInput]       = useState("");
+  const [imageUrlInput,  setImageUrlInput]  = useState("");
   const [aiCommand,      setAiCommand]      = useState("");
   const [isAIFocused,    setIsAIFocused]    = useState(false);
   const [isProcessingAI, setIsProcessingAI] = useState(false);
-  const [selectedModel, setSelectedModel] = useState("Llama 3.1 8B (Groq)");
+  const [aiStatus,       setAiStatus]       = useState("");
+  const [selectedModel, setSelectedModel] = useState("Llama 3.3 70B (Groq)");
   const [isContextAdded, setIsContextAdded] = useState(false);
   const [showModelDropdown, setShowModelDropdown] = useState(false);
   const [chatMessages, setChatMessages] = useState<{role: "user" | "ai", text: string}[]>([
@@ -385,41 +399,87 @@ export default function MapPage() {
   const executeAICommand = async (userMsg: string) => {
     if (!userMsg.trim() || isProcessingAI) return;
     
-    setChatMessages(prev => [...prev, { role: "user", text: userMsg }]);
     setIsProcessingAI(true);
+    setAiStatus('Initializing...');
     const oldNodeIds = new Set(stateRef.current.nodes.map(n => n.id));
     
     try {
-      const provider = selectedModel.includes('Fireworks') ? 'fireworks' : 'groq';
+      const config = MODEL_CONFIG[selectedModel] || MODEL_CONFIG['Llama 3.3 70B (Groq)'];
+      
+      const chatHistory = chatMessages.slice(-6).map(msg => ({
+        role: msg.role === 'ai' ? 'assistant' : 'user',
+        content: msg.text
+      }));
+
       const res = await fetch('/api/canvas-agent', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           command: userMsg,
-          nodes: stateRef.current.nodes,
+          nodes: stateRef.current.nodes.map(n => ({ ...n, width: getNodeW(n), height: getNodeH(n) })),
           edges: stateRef.current.edges,
           selectedIds: stateRef.current.selectedNodeIds,
-          provider
+          provider: config.provider,
+          model: config.id,
+          chatHistory
         })
       });
-      const data = await res.json();
-      if (data.error) throw new Error(data.error);
-      
-      applyCanvasOperations(data.operations);
-      
-      // Mark newly added nodes as generated
-      setNodes(prev => prev.map(n => oldNodeIds.has(n.id) ? n : { ...n, isGenerated: true }));
-      // Clear generated flag after 3s
-      setTimeout(() => {
-        setNodes(p => p.map(n => ({...n, isGenerated: false})));
-      }, 3000);
 
-      setChatMessages(prev => [...prev, { role: "ai", text: data.message || "I've updated the canvas based on your request!" }]);
+      if (!res.ok) {
+        throw new Error(`Server returned ${res.status}`);
+      }
+
+      const reader = res.body?.getReader();
+      if (!reader) throw new Error("No response body");
+      const decoder = new TextDecoder();
+      
+      let done = false;
+      while (!done) {
+        const { value, done: streamDone } = await reader.read();
+        done = streamDone;
+        if (value) {
+          const chunk = decoder.decode(value);
+          const lines = chunk.split('\n');
+          let currentEvent = '';
+          for (const line of lines) {
+            if (line.startsWith('event: ')) {
+              currentEvent = line.substring(7).trim();
+            } else if (line.startsWith('data: ')) {
+              const dataStr = line.substring(6).trim();
+              if (!dataStr) continue;
+              try {
+                const data = JSON.parse(dataStr);
+                if (currentEvent === 'status') {
+                  setAiStatus(data.message);
+                } else if (currentEvent === 'complete') {
+                  applyCanvasOperations(data.operations);
+                  
+                  // Mark newly added nodes as generated
+                  setNodes(prev => prev.map(n => oldNodeIds.has(n.id) ? n : { ...n, isGenerated: true }));
+                  // Clear generated flag after 3s
+                  setTimeout(() => {
+                    setNodes(p => p.map(n => ({...n, isGenerated: false})));
+                  }, 3000);
+
+                  setAiStatus('Done!');
+                } else if (currentEvent === 'error') {
+                  throw new Error(data.message);
+                }
+              } catch(e) {
+                // Ignore parse errors for incomplete chunks
+              }
+            }
+          }
+        }
+      }
     } catch (err: any) {
       console.error(err);
-      setChatMessages(prev => [...prev, { role: "ai", text: `Sorry, I encountered an error: ${err.message}` }]);
+      setAiStatus(`Error: ${err.message}`);
     } finally {
-      setIsProcessingAI(false);
+      setTimeout(() => {
+        setIsProcessingAI(false);
+        setAiStatus('');
+      }, 2000);
     }
   };
 
@@ -691,10 +751,25 @@ export default function MapPage() {
     svg.on("click", (ev) => {
       if (ev.defaultPrevented) return;
       const { activeTool, nodes, edges } = stateRef.current;
-      if (["paper", "note", "question", "timeline", "comment", "frame", "ai", "shape"].includes(activeTool)) {
+      if (["paper", "note", "image", "question", "timeline", "comment", "frame", "ai", "shape"].includes(activeTool)) {
         const transform = d3.zoomTransform(el);
         const [x, y] = transform.invert(d3.pointer(ev, el));
         
+        if (activeTool === "note") {
+           setPendingCreation({ type: "note", x: Math.round(x / 20) * 20, y: Math.round(y / 20) * 20 });
+           setNoteTitleInput("");
+           setNoteInput("");
+           setShowNoteModal(true);
+           setActiveTool("select");
+           return;
+        } else if (activeTool === "image") {
+           setPendingCreation({ type: "image", x: Math.round(x / 20) * 20, y: Math.round(y / 20) * 20 });
+           setImageUrlInput("");
+           setShowImageModal(true);
+           setActiveTool("select");
+           return;
+        }
+
         const newNode: MapNode = {
           id: `${activeTool}-${Date.now()}`,
           title: `New ${activeTool.charAt(0).toUpperCase() + activeTool.slice(1)}`,
@@ -870,8 +945,10 @@ export default function MapPage() {
       });
 
     // Premium shadow for cards
-    const standardNodes = nodeSel.filter((d: MapNode) => d.type !== "shape");
+    // Premium shadow for cards
+    const standardNodes = nodeSel.filter((d: MapNode) => d.type !== "shape" && d.type !== "image");
     const shapeNodes = nodeSel.filter((d: MapNode) => d.type === "shape");
+    const imageNodes = nodeSel.filter((d: MapNode) => d.type === "image");
 
     // --- RENDER STANDARD CARDS ---
     // Premium shadow for cards
@@ -1055,6 +1132,82 @@ export default function MapPage() {
           .style("font-size", "14px")
           .style("font-weight", "500")
           .text(d.title);
+      }
+    });
+
+    // --- RENDER IMAGES ---
+    imageNodes.each(function(d: MapNode) {
+      const g = d3.select(this);
+      const w = getNodeW(d);
+      const h = getNodeH(d);
+      const isSelected = stateRef.current.selectedNodeIds.includes(d.id);
+      const strokeColor = isSelected ? "#3BC9DB" : "rgba(255,255,255,0.12)";
+      const clipId = `clip-${d.id}`;
+      
+      // Shadow
+      g.append("rect")
+        .attr("x", -w/2).attr("y", -h/2)
+        .attr("width", w).attr("height", h)
+        .attr("rx", getNodeRx(d))
+        .attr("fill", "transparent")
+        .attr("filter", "url(#shadow)");
+
+      // Clip path
+      g.append("clipPath")
+        .attr("id", clipId)
+        .append("rect")
+        .attr("x", -w/2).attr("y", -h/2)
+        .attr("width", w).attr("height", h)
+        .attr("rx", getNodeRx(d));
+        
+      // Border
+      g.append("rect")
+        .attr("x", -w/2).attr("y", -h/2)
+        .attr("width", w).attr("height", h)
+        .attr("rx", getNodeRx(d))
+        .attr("fill", "#161616")
+        .attr("stroke", strokeColor)
+        .attr("stroke-width", isSelected ? 2.5 : 1)
+        .style("backdrop-filter", "blur(24px)")
+        .on("mouseover", function(_ev: any, _d: any) {
+          if (stateRef.current.selectedNodeIds.includes(d.id)) return;
+          d3.select(this).transition().duration(200).attr("stroke", d.customColor || "rgba(255,255,255,0.4)");
+        })
+        .on("mouseout", function(_ev: any, _d: any) {
+          if (stateRef.current.selectedNodeIds.includes(d.id)) return;
+          d3.select(this).transition().duration(200).attr("stroke", "rgba(255,255,255,0.12)");
+        });
+
+      if (d.imageUrl) {
+        // Image
+        g.append("image")
+          .attr("x", -w/2).attr("y", -h/2)
+          .attr("width", w).attr("height", h)
+          .attr("href", d.imageUrl)
+          .attr("preserveAspectRatio", "xMidYMid slice")
+          .attr("clip-path", `url(#${clipId})`)
+          .on("error", function() {
+            // Fallback
+            d3.select(this).remove();
+            g.append("text")
+              .attr("text-anchor", "middle")
+              .attr("dominant-baseline", "central")
+              .attr("fill", "#64748B")
+              .style("font-family", SF)
+              .style("font-size", "14px")
+              .style("font-weight", "500")
+              .text(d.title || "Image Failed to Load");
+          });
+      } else {
+        // Fallback placeholder
+        g.append("text")
+          .attr("text-anchor", "middle")
+          .attr("dominant-baseline", "central")
+          .attr("fill", "#64748B")
+          .style("font-family", SF)
+          .style("font-size", "14px")
+          .style("font-weight", "500")
+          .text(d.title || "No Image URL");
       }
     });
 
@@ -1357,7 +1510,7 @@ export default function MapPage() {
           { tool: "connect",icon: <Minus size={18} strokeWidth={1.5} />, tip: "Connect Nodes" },
           { tool: "note",   icon: <Type size={18} strokeWidth={1.5} />, tip: "Add Text Note" },
           { tool: "shape",  icon: <Square size={18} strokeWidth={1.5} />, tip: "Add Shape" },
-          { tool: "image",  icon: <ImageIcon size={18} strokeWidth={1.5} />, tip: "Add Image", onClick: () => window.alert("Image upload coming soon!") },
+          { tool: "image",  icon: <ImageIcon size={18} strokeWidth={1.5} />, tip: "Add Image" },
           { divider: true },
           { tool: "ai", icon: <Sparkles size={18} strokeWidth={1.5} />, tip: "Toggle AI Chat", color: showAIChat ? "text-[#3bc9db]" : "", onClick: () => setShowAIChat(!showAIChat) },
           { icon: <Settings2 size={18} strokeWidth={1.5} />, tip: "Settings", onClick: () => window.alert("Settings panel coming soon!") }
@@ -1597,7 +1750,7 @@ export default function MapPage() {
                   onFocus={() => setIsAIFocused(true)}
                   onBlur={() => setIsAIFocused(false)}
                   disabled={isProcessingAI}
-                  placeholder="Ask Nagi to make edits..."
+                  placeholder={isProcessingAI && aiStatus ? aiStatus : "Ask Nagi to make edits..."}
                   className="w-full bg-transparent outline-none text-[#eaeaea] placeholder-[#666] text-[15px] font-medium"
                   autoFocus
                 />
@@ -1616,7 +1769,7 @@ export default function MapPage() {
                 </button>
                 {showModelDropdown && (
                   <div className="absolute bottom-full left-0 mb-1 w-48 bg-[#111111] border border-white/10 rounded-md shadow-xl overflow-hidden z-50">
-                    {['Llama 3.1 8B (Groq)', 'Gemma 2 9B (Fireworks)'].map(model => (
+                    {Object.keys(MODEL_CONFIG).map(model => (
                       <button
                         key={model}
                         type="button"
@@ -1921,23 +2074,44 @@ export default function MapPage() {
                         {/* --- APPEARANCE SECTION (Collapsible) --- */}
                         <div className="flex flex-col">
                           <button onClick={() => toggleSection('appearance')} className="flex items-center justify-between px-4 py-2 hover:bg-white/[0.02] transition-colors w-full text-left group">
-                            <span className="text-[12px] font-semibold text-[#eaeaea]">Appearance</span>
-                            <ChevronDown size={14} className={`text-[#8a8a8a] transition-transform duration-200 group-hover:text-[#eaeaea] ${openSections.appearance ? 'rotate-180' : ''}`} />
-                          </button>
-                          {openSections.appearance && (
-                             <div className="px-4 pb-4 pt-1 flex flex-wrap gap-1.5">
-                               {["", "#ef4444", "#f59e0b", "#10b981", "#3bc9db", "#6366f1", "#a855f7", "#ec4899", "#ffffff", "#444444"].map((c) => (
-                                 <button key={c || "default"} onClick={() => updateSelectedNode({ customColor: c || undefined })}
-                                   className="w-5 h-5 rounded-full border border-[#333] flex items-center justify-center transition-transform hover:scale-110 shadow-sm"
-                                   style={{
-                                     background: c || "#222",
-                                     borderColor: selectedNode.customColor === c || (!selectedNode.customColor && !c) ? "#eaeaea" : "#333",
-                                   }}>
-                                   {!c && <X size={10} color="#555" />}
-                                 </button>
-                               ))}
+                             <span className="text-[12px] font-semibold text-[#eaeaea]">Appearance</span>
+                             <ChevronDown size={14} className={`text-[#8a8a8a] transition-transform duration-200 group-hover:text-[#eaeaea] ${openSections.appearance ? 'rotate-180' : ''}`} />
+                           </button>
+                           {openSections.appearance && (
+                             <div className="px-4 pb-4 pt-1 flex flex-col">
+                               <div className="flex flex-wrap gap-1.5">
+                                 {["", "#ef4444", "#f59e0b", "#10b981", "#3bc9db", "#6366f1", "#a855f7", "#ec4899", "#ffffff", "#444444"].map((c) => (
+                                   <button key={c || "default"} onClick={() => updateSelectedNode({ customColor: c || undefined })}
+                                     className="w-5 h-5 rounded-full border border-[#333] flex items-center justify-center transition-transform hover:scale-110 shadow-sm"
+                                     style={{
+                                       background: c || "#222",
+                                       borderColor: selectedNode.customColor === c || (!selectedNode.customColor && !c) ? "#eaeaea" : "#333",
+                                     }}>
+                                     {!c && <X size={10} color="#555" />}
+                                   </button>
+                                 ))}
+                               </div>
+                               <div className="flex flex-wrap gap-1.5 border-t border-[#1f1f1f] mt-3 pt-3">
+                                 {[
+                                   { shape: "card", icon: <div className="w-3 h-2 rounded-[2px] border-2 border-current" /> },
+                                   { shape: "circle", icon: <div className="w-3 h-3 rounded-full border-2 border-current" /> },
+                                   { shape: "diamond", icon: <div className="w-2.5 h-2.5 rotate-45 border-2 border-current" /> },
+                                   { shape: "pill", icon: <div className="w-3.5 h-2 rounded-full border-2 border-current" /> },
+                                   { shape: "rect", icon: <div className="w-3 h-2 border-2 border-current" /> },
+                                 ].map((s) => (
+                                   <button key={s.shape} onClick={() => updateNodeShape(s.shape as NodeShape)}
+                                     className="w-6 h-6 rounded flex items-center justify-center transition-transform hover:scale-110 shadow-sm border"
+                                     style={{
+                                       borderColor: selectedNode.shape === s.shape ? "#eaeaea" : "#333",
+                                       background: selectedNode.shape === s.shape ? "rgba(255,255,255,0.1)" : "transparent",
+                                       color: selectedNode.shape === s.shape ? "#fff" : "#888"
+                                     }}>
+                                     {s.icon}
+                                   </button>
+                                 ))}
+                               </div>
                              </div>
-                          )}
+                           )}
                         </div>
 
                       </div>
@@ -2138,14 +2312,14 @@ export default function MapPage() {
       {showNoteModal && (
         <div className="fixed inset-0 z-50 flex items-center justify-center"
           style={{ background: "rgba(5,8,16,0.85)" }}
-          onClick={() => setShowNoteModal(false)}>
+          onClick={() => { setShowNoteModal(false); setPendingCreation(null); }}>
           <div className="w-[440px] rounded-2xl overflow-hidden shadow-2xl"
             style={{ background: "#111111", border: "1px solid #1f1f1f" }}
             onClick={e => e.stopPropagation()}>
             <div className="flex items-center justify-between px-5 py-3.5"
               style={{ borderBottom: "1px solid #1f1f1f" }}>
-              <span className="text-[13px] font-semibold" style={{ color: "#e2e8f0" }}>Add Note</span>
-              <button onClick={() => setShowNoteModal(false)} style={{ color: "#334155" }}><X size={14} /></button>
+              <span className="text-[13px] font-semibold" style={{ color: "#e2e8f0" }}>{pendingCreation?.type === 'note' ? 'Create Note' : 'Edit Note'}</span>
+              <button onClick={() => { setShowNoteModal(false); setPendingCreation(null); }} style={{ color: "#334155" }}><X size={14} /></button>
             </div>
             <div className="px-5 py-4 flex flex-col gap-3">
               <input value={noteTitleInput} onChange={e => setNoteTitleInput(e.target.value)}
@@ -2160,7 +2334,20 @@ export default function MapPage() {
               <div className="flex gap-2 mt-1">
                 <button
                   onClick={() => {
-                    if (selectedNode) {
+                    if (pendingCreation?.type === "note") {
+                      const newNode: MapNode = {
+                        id: `note-${Date.now()}`,
+                        title: noteTitleInput || "New Note",
+                        note: noteInput || undefined,
+                        type: "note",
+                        shape: "card",
+                        priority: "normal",
+                        x: pendingCreation.x,
+                        y: pendingCreation.y,
+                      };
+                      pushHistory([...nodes, newNode], edges);
+                      setPendingCreation(null);
+                    } else if (selectedNode) {
                       const newNodes = nodes.map(n => n.id === selectedNode.id ? { ...n, title: noteTitleInput || n.title, note: noteInput || undefined } : n);
                       pushHistory(newNodes, edges);
                     }
@@ -2170,7 +2357,7 @@ export default function MapPage() {
                   style={{ background: "rgba(59,201,219,0.08)", border: "1px solid rgba(59,201,219,0.2)", color: "#3bc9db" }}>
                   Save Note
                 </button>
-                <button onClick={() => setShowNoteModal(false)}
+                <button onClick={() => { setShowNoteModal(false); setPendingCreation(null); }}
                   className="py-2 px-4 rounded-xl text-[12px] font-medium transition-opacity hover:opacity-80"
                   style={{ background: "#0a0a0a", border: "1px solid #1f1f1f", color: "#64748b" }}>
                   Cancel
@@ -2213,6 +2400,57 @@ export default function MapPage() {
                   Save Link
                 </button>
                 <button onClick={() => setShowUrlModal(false)}
+                  className="py-2 px-4 rounded-xl text-[12px] font-medium transition-opacity hover:opacity-80"
+                  style={{ background: "#0a0a0a", border: "1px solid #1f1f1f", color: "#64748b" }}>
+                  Cancel
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+      {/* ── Image modal ── */}
+      {showImageModal && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center"
+          style={{ background: "rgba(5,8,16,0.85)" }}
+          onClick={() => { setShowImageModal(false); setPendingCreation(null); }}>
+          <div className="w-[440px] rounded-2xl overflow-hidden shadow-2xl"
+            style={{ background: "#111111", border: "1px solid #1f1f1f" }}
+            onClick={e => e.stopPropagation()}>
+            <div className="flex items-center justify-between px-5 py-3.5"
+              style={{ borderBottom: "1px solid #1f1f1f" }}>
+              <span className="text-[13px] font-semibold" style={{ color: "#e2e8f0" }}>Add Image</span>
+              <button onClick={() => { setShowImageModal(false); setPendingCreation(null); }} style={{ color: "#334155" }}><X size={14} /></button>
+            </div>
+            <div className="px-5 py-4">
+              <input type="url" value={imageUrlInput} onChange={e => setImageUrlInput(e.target.value)}
+                placeholder="https://example.com/image.png"
+                className="w-full bg-transparent text-[13px] text-white focus:outline-none py-2"
+                style={{ borderBottom: "1px solid #1f1f1f" }} />
+              <div className="flex gap-2 mt-4">
+                <button
+                  onClick={() => {
+                    if (pendingCreation?.type === "image") {
+                      const newNode: MapNode = {
+                        id: `image-${Date.now()}`,
+                        title: "Image",
+                        imageUrl: imageUrlInput,
+                        type: "image",
+                        shape: "card",
+                        priority: "normal",
+                        x: pendingCreation.x,
+                        y: pendingCreation.y,
+                      };
+                      pushHistory([...nodes, newNode], edges);
+                      setPendingCreation(null);
+                    }
+                    setShowImageModal(false);
+                  }}
+                  className="flex-1 py-2 rounded-xl text-[12px] font-semibold transition-opacity hover:opacity-80"
+                  style={{ background: "rgba(59,201,219,0.08)", border: "1px solid rgba(59,201,219,0.2)", color: "#3bc9db" }}>
+                  Save Image
+                </button>
+                <button onClick={() => { setShowImageModal(false); setPendingCreation(null); }}
                   className="py-2 px-4 rounded-xl text-[12px] font-medium transition-opacity hover:opacity-80"
                   style={{ background: "#0a0a0a", border: "1px solid #1f1f1f", color: "#64748b" }}>
                   Cancel
