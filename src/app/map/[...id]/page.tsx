@@ -106,7 +106,11 @@ export const getNodeH = (n: MapNode) => {
     // Details / Abstract
     const details = n.metadata?.abstract || n.properties?.content || n.note || "";
     if (details) {
-      const detailLines = Math.ceil((details.length * 7) / textWidth) || 1;
+      const paragraphs = details.split('\n');
+      let detailLines = 0;
+      for (const p of paragraphs) {
+        detailLines += Math.max(1, Math.ceil((p.length * 7.5) / textWidth));
+      }
       baseHeight += 24 + (detailLines * 21); // Heading + text lines
     }
 
@@ -1087,7 +1091,7 @@ export default function MapPage() {
           <div style="height:1px; background:rgba(255,255,255,0.08); width:100%;"></div>
           
           <!-- Content Area -->
-          <div style="flex:1; overflow:hidden; display:flex; flex-direction:column; gap:10px;">
+          <div style="flex:1; display:flex; flex-direction:column; gap:10px;">
             ${d.author || d.year ? `
               <div style="display:flex; flex-direction:column; gap:4px;">
                 <span style="font-size:10px; font-weight:700; color:#8e8e93; text-transform:uppercase; letter-spacing:0.5px;">Authors / Year</span>
@@ -1098,7 +1102,7 @@ export default function MapPage() {
             ` : ""}
             
             ${d.metadata?.abstract || d.properties?.content || d.note ? `
-              <div style="display:flex; flex-direction:column; gap:4px; flex:1; overflow:hidden;">
+              <div style="display:flex; flex-direction:column; gap:4px; flex:1;">
                 <span style="font-size:10px; font-weight:700; color:#8e8e93; text-transform:uppercase; letter-spacing:0.5px;">Details</span>
                 <span style="font-size:13px; font-weight:400; color:#a1a1aa; line-height:1.6;">
                   ${d.metadata?.abstract || d.properties?.content || d.note}
