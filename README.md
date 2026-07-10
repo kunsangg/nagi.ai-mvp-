@@ -5,6 +5,7 @@
   
   [![Main Website](https://img.shields.io/badge/Main_Website-nagi--functionalities.vercel.app-blue?style=for-the-badge&logo=vercel)](https://nagi-functionalities-bmiz.vercel.app)
   [![Waitlist](https://img.shields.io/badge/Waitlist-nagiai.vercel.app-purple?style=for-the-badge&logo=vercel)](https://nagiai.vercel.app)
+  [![Live App](https://img.shields.io/badge/Live_App-nagi--ai--mvp.vercel.app-green?style=for-the-badge&logo=vercel)](https://nagi-ai-mvp.vercel.app)
   
   <p>
     Built for the <b>AMD Developer Hackathon: ACT II (Unicorn Track)</b>
@@ -22,7 +23,7 @@ By abandoning linear chat interfaces in favor of an infinite spatial canvas, Nag
 ### 🔗 Links
 *   **Main Website:** [nagi-functionalities-bmiz.vercel.app](https://nagi-functionalities-bmiz.vercel.app)
 *   **Waitlist Page:** [nagiai.vercel.app](https://nagiai.vercel.app)
-*   **Live App:** *[(Deployment in progress...)*](https://nagi-ai-mvp.vercel.app)
+*   **Live App:** [nagi-ai-mvp.vercel.app](https://nagi-ai-mvp.vercel.app)
 
 ---
 
