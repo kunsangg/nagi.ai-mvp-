@@ -3,8 +3,8 @@
   <h1>Nagi</h1>
   <p><strong>The autonomous AI operating system for academic research.</strong></p>
   
-  [![Demo App](https://img.shields.io/badge/Main_App-nagiai.vercel.app-blue?style=for-the-badge&logo=vercel)](https://nagiai.vercel.app)
-  [![Functionalities](https://img.shields.io/badge/Functionalities-nagi--functionalities.vercel.app-purple?style=for-the-badge&logo=vercel)](https://nagi-functionalities-bmiz.vercel.app)
+  [![Main Website](https://img.shields.io/badge/Main_Website-nagi--functionalities.vercel.app-blue?style=for-the-badge&logo=vercel)](https://nagi-functionalities-bmiz.vercel.app)
+  [![Waitlist](https://img.shields.io/badge/Waitlist-nagiai.vercel.app-purple?style=for-the-badge&logo=vercel)](https://nagiai.vercel.app)
   
   <p>
     Built for the <b>AMD Developer Hackathon: ACT II (Unicorn Track)</b>
@@ -19,9 +19,10 @@
 
 By abandoning linear chat interfaces in favor of an infinite spatial canvas, Nagi allows researchers to visualize connections, extract metadata, and synthesize thousands of papers simultaneously using highly specialized AI agents.
 
-### 🔗 Live Demos
-*   **Main Application:** [nagiai.vercel.app](https://nagiai.vercel.app)
-*   **Functionalities Overview:** [nagi-functionalities-bmiz.vercel.app](https://nagi-functionalities-bmiz.vercel.app)
+### 🔗 Links
+*   **Main Website:** [nagi-functionalities-bmiz.vercel.app](https://nagi-functionalities-bmiz.vercel.app)
+*   **Waitlist Page:** [nagiai.vercel.app](https://nagiai.vercel.app)
+*   **Live App:** *(Deployment in progress...)*
 
 ---
 
