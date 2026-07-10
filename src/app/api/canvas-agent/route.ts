@@ -3,7 +3,7 @@ import { callAI } from '@/lib/ai/providers';
 import { AIProvider } from '@/lib/ai/types';
 import { ActionPlan, CanvasMutationOp } from '@/lib/ai/canvas-actions';
 import { searchPapers } from '@/lib/providers/openalex';
-import { radialExpansion, chronologicalTimeline, cleanupLayout } from '@/lib/utils/layout';
+import { radialExpansion, chronologicalTimeline, cleanupLayout, thematicClustering } from '@/lib/utils/layout';
 
 // Helper for OpenAlex URLs
 function getOpenAlexUrl(basePath: string, queryParams: Record<string, string> = {}) {
@@ -238,6 +238,31 @@ Respond ONLY with a JSON object matching this schema:
               const startY = Math.min(...targetNodes.map((n:any) => n.y));
               const arranged = chronologicalTimeline({x: startX, y: startY}, targetNodes);
               const updates = arranged.map(n => ({ id: n.id, changes: { x: n.x, y: n.y } }));
+              mutations.push({ type: 'update_nodes', updates });
+            }
+          }
+          else if (action.type === 'ORGANIZE_BY_THEME') {
+            sendEvent('status', { message: 'Organizing by theme...' });
+            const targetNodes = action.targetNodeIds?.length ? nodes.filter((n:any) => action.targetNodeIds!.includes(n.id)) : (selectedIds.length ? nodes.filter((n:any) => selectedIds.includes(n.id)) : nodes);
+            if (targetNodes.length > 0) {
+              const groups: Record<string, any[]> = {};
+              targetNodes.forEach((n:any) => {
+                const theme = n.field || n.domain || 'General';
+                if (!groups[theme]) groups[theme] = [];
+                groups[theme].push(n);
+              });
+              
+              const clusters = Object.keys(groups).map(theme => ({
+                theme,
+                nodes: groups[theme]
+              }));
+              
+              const startX = Math.min(...targetNodes.map((n:any) => n.x));
+              const startY = Math.min(...targetNodes.map((n:any) => n.y));
+              
+              thematicClustering({x: startX, y: startY}, clusters);
+              
+              const updates = targetNodes.map((n:any) => ({ id: n.id, changes: { x: n.x, y: n.y } }));
               mutations.push({ type: 'update_nodes', updates });
             }
           }
