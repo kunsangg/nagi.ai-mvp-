@@ -1,20 +1,53 @@
-# Nagi.ai
+<div align="center">
+  <img src="https://raw.githubusercontent.com/kunsangg/nagi.ai-mvp-/main/public/icon.png" alt="Nagi Logo" width="120" height="120" />
+  <h1>Nagi</h1>
+  <p><strong>The autonomous AI operating system for academic research.</strong></p>
+  
+  [![Demo App](https://img.shields.io/badge/Main_App-nagiai.vercel.app-blue?style=for-the-badge&logo=vercel)](https://nagiai.vercel.app)
+  [![Functionalities](https://img.shields.io/badge/Functionalities-nagi--functionalities.vercel.app-purple?style=for-the-badge&logo=vercel)](https://nagi-functionalities-bmiz.vercel.app)
+  
+  <p>
+    Built for the <b>AMD Developer Hackathon: ACT II (Unicorn Track)</b>
+  </p>
+</div>
 
-**Nagi** is an AI-native academic research tool designed to help researchers effortlessly discover, understand, and synthesize scientific papers. By leveraging modern AI models and the OpenAlex catalog, Nagi provides a seamless, high-performance interface for exploring academic knowledge.
+---
 
-## ✨ Features
+## 🌍 Overview
 
-- **Semantic Search**: Discover relevant papers using natural language queries. Nagi automatically expands your query into technical academic terms for better recall.
-- **Research Mapping**: Visualize the academic landscape. Nagi generates interactive, physics-based connection maps of citations, references, and related works so you can instantly spot foundational papers.
-- **AI Synthesis**: Seamlessly integrate LLM summaries of abstracts and key findings directly alongside paper metadata.
-- **Modern UI**: A responsive, card-based interface built for focus. Featuring dot-grid canvas views, deep zoom, and minimal distraction.
+**Nagi** is not just another chatbot—it is a full spatial operating system built to solve the core problem of academic research: **Information Overload**. 
+
+By abandoning linear chat interfaces in favor of an infinite spatial canvas, Nagi allows researchers to visualize connections, extract metadata, and synthesize thousands of papers simultaneously using highly specialized AI agents.
+
+### 🔗 Live Demos
+*   **Main Application:** [nagiai.vercel.app](https://nagiai.vercel.app)
+*   **Functionalities Overview:** [nagi-functionalities-bmiz.vercel.app](https://nagi-functionalities-bmiz.vercel.app)
+
+---
+
+## ✨ Key Features
+
+- 🌌 **The Spatial Canvas**: An infinite, physics-based environment (powered by D3.js) where you can group, connect, and organize academic papers visually.
+- 🤖 **Multi-Agent Architecture**: 
+  - **Compare Agent**: Instantly generates side-by-side methodological matrices from full abstracts.
+  - **Gaps Agent**: Evaluates literature to identify unexplored areas and research gaps.
+  - **Canvas Agent**: A spatial editor that organizes your thoughts and summarizes findings dynamically.
+  - **Writer Agent**: Drafts comprehensive literature reviews based on the spatial context you've gathered.
+- ⚡ **High-Performance Inference**: Powered by Fireworks AI running on **AMD Instinct™ MI300X** accelerators, enabling ultra-low latency serverless LLM calls (Llama 3, Gemma).
+- 📚 **Real-Time Data**: Deep integration with the **OpenAlex API**, dynamically pulling from an open catalog of over 250 million academic works.
+
+---
 
 ## 🛠️ Technology Stack
 
-- **Framework**: [Next.js](https://nextjs.org/) (App Router, React 19)
-- **Styling**: Tailwind CSS & Lucide Icons
+- **Frontend/Framework**: Next.js (App Router, React 19)
+- **Styling**: Tailwind CSS & Framer Motion for micro-interactions and glassmorphism.
 - **Visualization**: D3.js (Force-directed graph physics)
-- **Data Providers**: [OpenAlex](https://openalex.org/) API (Scholarly catalog)
+- **AI Infrastructure**: Fireworks AI & Groq
+- **Hardware Integration**: Optimized for execution on AMD MI300X Infrastructure.
+- **Data Providers**: OpenAlex API
+
+---
 
 ## 🚀 Getting Started
 
@@ -32,17 +65,20 @@ Copy the example environment file and add your keys:
 ```bash
 cp .env.example .env.local
 ```
-Inside `.env.local`, ensure you have your `OPENALEX_API_KEY` configured so you don't hit rate limits.
+Inside `.env.local`, ensure you have configured:
+- `OPENALEX_API_KEY` (Optional, but prevents rate limits)
+- `FIREWORKS_API_KEY` 
+- `GROQ_API_KEY`
 
 ### 3. Run the Development Server
 ```bash
 npm run dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the app.
-
-## 🌐 Deployment
-This project is configured and optimized for deployment on [Vercel](https://vercel.com/). Ensure your environment variables are configured in your project dashboard before deploying.
+Open [http://localhost:3000](http://localhost:3000) with your browser to experience the Nagi environment.
 
 ---
-*Built with precision for the modern researcher.*
+
+<div align="center">
+  <i>Built with precision for the modern researcher.</i>
+</div>
