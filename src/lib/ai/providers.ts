@@ -15,7 +15,7 @@ export const PROVIDER_CONFIG: Record<AIProvider, ProviderConfig> = {
   fireworks: {
     baseUrl: "https://api.fireworks.ai/inference/v1/chat/completions",
     envKey: "FIREWORKS_API_KEY",
-    defaultModel: "accounts/fireworks/models/gemma2-9b-it",
+    defaultModel: "accounts/fireworks/models/deepseek-v4-pro",
   },
 };
 
