@@ -3,7 +3,7 @@ import { callAI } from '@/lib/ai/providers';
 import { AIProvider } from '@/lib/ai/types';
 
 export async function POST(req: Request) {
-  const { title, abstract, provider = 'groq' } = await req.json();
+  const { title, abstract, provider = 'fireworks' } = await req.json();
 
   if (!abstract) return NextResponse.json({ summary: '', keyFindings: [] });
 

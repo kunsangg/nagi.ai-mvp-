@@ -77,7 +77,7 @@ export async function POST(req: Request) {
       }
 
       try {
-        const { command, nodes, edges, selectedIds, provider = 'groq', model, chatHistory = [] } = await req.clone().json();
+        const { command, nodes, edges, selectedIds, provider = 'fireworks', model, chatHistory = [] } = await req.clone().json();
         
         sendEvent('status', { message: 'Understanding request...' });
 

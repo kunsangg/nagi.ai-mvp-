@@ -4,7 +4,7 @@ import { AIProvider } from '@/lib/ai/types';
 
 export async function POST(req: Request) {
   try {
-    const { command, currentText, provider = 'groq' } = await req.json();
+    const { command, currentText, provider = 'fireworks' } = await req.json();
 
     if (!command || typeof command !== 'string') {
       return NextResponse.json({ error: 'Valid command string is required' }, { status: 400 });

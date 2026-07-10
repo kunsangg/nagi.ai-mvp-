@@ -3,7 +3,7 @@ import { callAI } from "@/lib/ai/providers";
 import { AIProvider } from "@/lib/ai/types";
 
 export async function POST(req: Request) {
-  const { papers, provider = 'groq' } = await req.json() as { 
+  const { papers, provider = 'fireworks' } = await req.json() as { 
     papers: { title: string; abstract?: string; authors?: string[]; year?: number; journal?: string; citationCount?: number }[];
     provider?: string;
   };

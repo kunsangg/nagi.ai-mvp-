@@ -356,7 +356,7 @@ export default function MapPage() {
   const [isAIFocused,    setIsAIFocused]    = useState(false);
   const [isProcessingAI, setIsProcessingAI] = useState(false);
   const [aiStatus,       setAiStatus]       = useState("");
-  const [selectedModel, setSelectedModel] = useState("Llama 3.3 70B (Groq)");
+  const [selectedModel, setSelectedModel] = useState("Llama 3.1 70B (Fireworks)");
   const [isContextAdded, setIsContextAdded] = useState(false);
   const [showModelDropdown, setShowModelDropdown] = useState(false);
   const [chatMessages, setChatMessages] = useState<{role: "user" | "ai", text: string}[]>([
