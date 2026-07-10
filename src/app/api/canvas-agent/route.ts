@@ -114,7 +114,7 @@ Available Action Types:
 - ORGANIZE_BY_THEME: Cluster existing nodes.
 - ORGANIZE_BY_YEAR: Timeline layout.
 - CLEANUP_LAYOUT: Run deterministic layout cleanup.
-- REMOVE_NODES: Delete specific nodes. Use ["all"] to delete everything.
+- REMOVE_NODES: Delete specific nodes by putting their IDs in targetNodeIds. To delete ALL nodes, you MUST set "targetNodeIds": ["all"].
 - NO_OP: Do nothing.
 
 Current Canvas State:
@@ -275,8 +275,14 @@ Respond ONLY with a JSON object matching this schema:
           }
           else if (action.type === 'REMOVE_NODES') {
              sendEvent('status', { message: 'Removing nodes...' });
-             let ids = action.targetNodeIds || selectedIds;
-             if (ids && ids.length === 1 && ids[0] === 'all') {
+             let ids = action.targetNodeIds || [];
+             if (ids.length === 0 && selectedIds.length > 0) {
+               ids = selectedIds;
+             }
+             if (ids.length === 1 && ids[0] === 'all') {
+               ids = nodes.map((n:any) => n.id);
+             } else if (ids.length === 0 && command.toLowerCase().includes('all')) {
+               // Fallback: if LLM missed ["all"] but command asked for all nodes
                ids = nodes.map((n:any) => n.id);
              }
              if (ids && ids.length > 0) {
