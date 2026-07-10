@@ -665,7 +665,7 @@ export default function MapPage() {
 
   // D3 render
   useEffect(() => {
-    if (!nodes.length || !svgRef.current) return;
+    if (!svgRef.current) return;
     const { w: W, h: H } = dims;
     const el = svgRef.current;
     d3.select(el).selectAll("*").remove();
@@ -680,6 +680,8 @@ export default function MapPage() {
     pat.append("circle").attr("cx", 2).attr("cy", 2).attr("r", 1.5).attr("fill", "rgba(255,255,255,0.04)");
     svg.append("rect").attr("width", W).attr("height", H).attr("fill", "#050505");
     svg.append("rect").attr("width", W).attr("height", H).attr("fill", "url(#dotgrid)");
+
+    if (!nodes.length) return;
 
     // Arrows - refined and subtle
     (Object.keys(EDGE_COLOR) as EdgeType[]).forEach(t => {
