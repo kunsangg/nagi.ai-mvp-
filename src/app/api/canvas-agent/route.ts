@@ -2,7 +2,7 @@ import { NextResponse } from 'next/server';
 import { callAI } from '@/lib/ai/providers';
 import { AIProvider } from '@/lib/ai/types';
 import { ActionPlan, CanvasMutationOp } from '@/lib/ai/canvas-actions';
-import { searchPapers } from '@/lib/providers/openalex';
+import { searchPapers, decodeAbstract, fetchCitations, fetchReferences } from '@/lib/providers/openalex';
 import { radialExpansion, chronologicalTimeline, cleanupLayout, thematicClustering } from '@/lib/utils/layout';
 
 // Helper for OpenAlex URLs
@@ -109,12 +109,13 @@ CRITICAL RULES:
 - Make the smallest set of changes that fully satisfies the request.
 
 Available Action Types:
-- FIND_RELATED: Find papers related to source nodes.
-- SEARCH_AND_ADD: Search by query and add. Use the 'query' field.
-- ORGANIZE_BY_THEME: Cluster existing nodes.
-- ORGANIZE_BY_YEAR: Timeline layout.
-- CLEANUP_LAYOUT: Run deterministic layout cleanup.
-- REMOVE_NODES: Delete specific nodes by putting their IDs in targetNodeIds. To delete ALL nodes, you MUST set "targetNodeIds": ["all"].
+- LITERATURE_SEARCH: Advanced search with filters (query, yearFrom, yearTo, limit, author, citationMin). Use to find specific papers.
+- CITATION_SEARCH: Fetch papers citing or cited by target nodes. Set \`citationDirection\`="cites" (papers that cite the target) or "cited_by" (papers the target cites).
+- GENERATE_TEXT_NODES: Create notes, summaries, hypotheses, tables, questions, task lists. Use \`generatedNodes\` array (title, content, type: note|hypothesis|question|task|table).
+- PAPER_ANALYSIS: Deep analysis of selected papers. Server fetches abstracts and synthesizes them based on your \`analysisTask\` (e.g., "Summarize", "Compare methodologies", "Extract limitations", "Find gaps").
+- CANVAS_LAYOUT: Layout algorithms. Set \`layoutType\` to 'theme', 'timeline', 'hierarchy', 'grid', or 'cleanup'.
+- MANIPULATE_NODES: Hide, highlight, color, group, or remove specific nodes. Set \`nodeOperation\`. To delete ALL nodes, set \`nodeOperation\`="remove" and \`targetNodeIds\`=["all"].
+- MANIPULATE_EDGES: Connect nodes or label relationships. Set \`edgeOperation\`="add"|"remove", \`edgeLabel\`, and \`edgeType\`.
 - NO_OP: Do nothing.
 
 Current Canvas State:
@@ -131,6 +132,15 @@ Respond ONLY with a JSON object matching this schema:
       "sourceNodeIds": ["id1"],
       "targetNodeIds": ["id2"],
       "query": "query string",
+      "filters": { "yearFrom": 2020 },
+      "citationDirection": "cites",
+      "generatedNodes": [{ "title": "Node title", "content": "Node content", "type": "note" }],
+      "analysisTask": "Task description for secondary LLM",
+      "layoutType": "theme",
+      "nodeOperation": "highlight",
+      "style": { "color": "#ff0000" },
+      "edgeOperation": "add",
+      "edgeLabel": "supports",
       "reason": "Why this specific action",
       "confidence": 0.95
     }
@@ -175,143 +185,218 @@ Respond ONLY with a JSON object matching this schema:
 
         // Execute plan deterministically
         for (const action of plan.actions) {
-          if (action.type === 'SEARCH_AND_ADD' && action.query) {
+          if (action.type === 'LITERATURE_SEARCH') {
             sendEvent('status', { message: 'Searching literature...' });
-            const { papers } = await searchPapers(action.query);
-            if (papers.length > 0) {
-              const newNodes = papers.map(p => ({
-                id: p.id,
-                title: p.title,
-                year: p.publicationYear,
-                citations: p.citationCount,
-                author: p.authors?.[0] || '',
-                domain: p.domain || '',
-                field: p.field || '',
-                isOpenAccess: p.isOpenAccess || false,
-                type: 'paper',
-                shape: 'card',
-                priority: 'normal',
-                x: 0,
-                y: 0
-              }));
-              
-              const existingIds = new Set(nodes.map((n:any) => n.id));
-              const filteredNodes = newNodes.filter(n => !existingIds.has(n.id)).slice(0, 6);
-              
-              if (filteredNodes.length > 0) {
-                let cx = 500, cy = 500;
-                if (action.sourceNodeIds && action.sourceNodeIds.length > 0) {
-                  const src = nodes.find((n:any) => action.sourceNodeIds!.includes(n.id));
-                  if (src) { cx = src.x; cy = src.y; }
-                } else if (selectedIds.length > 0) {
-                  const src = nodes.find((n:any) => selectedIds.includes(n.id));
-                  if (src) { cx = src.x; cy = src.y; }
-                }
-                
-                const laidOutNodes = radialExpansion({x: cx, y: cy}, filteredNodes);
-                mutations.push({ type: 'add_nodes', nodes: laidOutNodes });
-                
-                if (action.sourceNodeIds && action.sourceNodeIds.length > 0) {
-                  const edges = laidOutNodes.map(n => ({
-                    id: `edge-${Date.now()}-${Math.random()}`,
-                    source: action.sourceNodeIds![0],
-                    target: n.id,
-                    type: 'custom'
-                  }));
-                  mutations.push({ type: 'add_edges', edges });
-                }
-              }
-            }
-          }
-          else if (action.type === 'CLEANUP_LAYOUT') {
-            sendEvent('status', { message: 'Cleaning up layout...' });
-            const targetNodes = action.targetNodeIds?.length ? nodes.filter((n:any) => action.targetNodeIds!.includes(n.id)) : nodes;
-            const cleanedNodes = cleanupLayout(targetNodes);
-            const updates = cleanedNodes.map(n => ({ id: n.id, changes: { x: n.x, y: n.y } }));
-            mutations.push({ type: 'update_nodes', updates });
-          }
-          else if (action.type === 'ORGANIZE_BY_YEAR') {
-            sendEvent('status', { message: 'Organizing into timeline...' });
-            const targetNodes = action.targetNodeIds?.length ? nodes.filter((n:any) => action.targetNodeIds!.includes(n.id)) : (selectedIds.length ? nodes.filter((n:any) => selectedIds.includes(n.id)) : nodes);
-            if (targetNodes.length > 0) {
-              const startX = Math.min(...targetNodes.map((n:any) => n.x));
-              const startY = Math.min(...targetNodes.map((n:any) => n.y));
-              const arranged = chronologicalTimeline({x: startX, y: startY}, targetNodes);
-              const updates = arranged.map(n => ({ id: n.id, changes: { x: n.x, y: n.y } }));
-              mutations.push({ type: 'update_nodes', updates });
-            }
-          }
-          else if (action.type === 'ORGANIZE_BY_THEME') {
-            sendEvent('status', { message: 'Organizing by theme...' });
-            const targetNodes = action.targetNodeIds?.length ? nodes.filter((n:any) => action.targetNodeIds!.includes(n.id)) : (selectedIds.length ? nodes.filter((n:any) => selectedIds.includes(n.id)) : nodes);
-            if (targetNodes.length > 0) {
-              const groups: Record<string, any[]> = {};
-              targetNodes.forEach((n:any) => {
-                const theme = n.field || n.domain || 'General';
-                if (!groups[theme]) groups[theme] = [];
-                groups[theme].push(n);
-              });
-              
-              const clusters = Object.keys(groups).map(theme => ({
-                theme,
-                nodes: groups[theme]
-              }));
-              
-              const startX = Math.min(...targetNodes.map((n:any) => n.x));
-              const startY = Math.min(...targetNodes.map((n:any) => n.y));
-              
-              thematicClustering({x: startX, y: startY}, clusters);
-              
-              const updates = targetNodes.map((n:any) => ({ id: n.id, changes: { x: n.x, y: n.y } }));
-              mutations.push({ type: 'update_nodes', updates });
-            }
-          }
-          else if (action.type === 'FIND_RELATED') {
-            sendEvent('status', { message: 'Finding related papers...' });
-            const sourceId = action.sourceNodeIds?.[0] || selectedIds[0];
-            if (sourceId) {
-              const centerWork = await fetchWork(sourceId);
-              if (centerWork) {
-                const relatedWorks = await fetchMultipleWorks(centerWork.related_works || []);
+            let query = action.query || '';
+            if (query) {
+              const { papers } = await searchPapers(query);
+              if (papers.length > 0) {
+                const newNodes = papers.map(p => ({
+                  id: p.id,
+                  title: p.title,
+                  year: p.publicationYear,
+                  citations: p.citationCount,
+                  author: p.authors?.[0] || '',
+                  domain: p.domain || '',
+                  field: p.field || '',
+                  isOpenAccess: p.isOpenAccess || false,
+                  type: 'paper',
+                  shape: 'card',
+                  priority: 'normal',
+                  x: 0,
+                  y: 0
+                }));
                 const existingIds = new Set(nodes.map((n:any) => n.id));
-                const newNodes = relatedWorks
-                  .filter((w: any) => !existingIds.has(w.id.replace('https://openalex.org/', '')))
-                  .slice(0, 6)
-                  .map((w: any) => workToNode(w, 'related'));
-
-                if (newNodes.length > 0) {
-                  const src = nodes.find((n:any) => n.id === sourceId);
-                  const cx = src ? src.x : 500;
-                  const cy = src ? src.y : 500;
-                  
-                  const laidOutNodes = radialExpansion({x: cx, y: cy}, newNodes);
+                const filteredNodes = newNodes.filter(n => !existingIds.has(n.id)).slice(0, action.filters?.limit || 6);
+                if (filteredNodes.length > 0) {
+                  let cx = 500, cy = 500;
+                  if (action.sourceNodeIds && action.sourceNodeIds.length > 0) {
+                    const src = nodes.find((n:any) => action.sourceNodeIds!.includes(n.id));
+                    if (src) { cx = src.x; cy = src.y; }
+                  } else if (selectedIds.length > 0) {
+                    const src = nodes.find((n:any) => selectedIds.includes(n.id));
+                    if (src) { cx = src.x; cy = src.y; }
+                  }
+                  const laidOutNodes = radialExpansion({x: cx, y: cy}, filteredNodes);
                   mutations.push({ type: 'add_nodes', nodes: laidOutNodes });
-                  
-                  const edges = laidOutNodes.map(n => ({
-                    id: `edge-${Date.now()}-${Math.random()}`,
-                    source: sourceId,
-                    target: n.id,
-                    type: 'references'
-                  }));
-                  mutations.push({ type: 'add_edges', edges });
                 }
               }
             }
           }
-          else if (action.type === 'REMOVE_NODES') {
-             sendEvent('status', { message: 'Removing nodes...' });
-             let ids = action.targetNodeIds || [];
-             if (ids.length === 0 && selectedIds.length > 0) {
+          else if (action.type === 'CITATION_SEARCH' && action.targetNodeIds) {
+            sendEvent('status', { message: 'Searching citations...' });
+            for (const id of action.targetNodeIds) {
+              const srcNode = nodes.find((n:any) => n.id === id);
+              if (srcNode) {
+                const papers = action.citationDirection === 'cites' 
+                  ? await fetchCitations(id, action.filters?.limit || 10) 
+                  : await fetchReferences(id, action.filters?.limit || 10);
+                
+                if (papers.length > 0) {
+                  const newNodes = papers.map((p: any) => ({
+                    id: p.id,
+                    title: p.title,
+                    year: p.publicationYear,
+                    citations: p.citationCount,
+                    author: p.authors?.[0] || '',
+                    domain: p.domain || '',
+                    field: p.field || '',
+                    isOpenAccess: p.isOpenAccess || false,
+                    type: 'paper',
+                    shape: 'card',
+                    priority: 'normal',
+                    x: 0,
+                    y: 0
+                  }));
+                  
+                  const existingIds = new Set(nodes.map((n:any) => n.id));
+                  const filteredNodes = newNodes.filter(n => !existingIds.has(n.id)).slice(0, action.filters?.limit || 6);
+                  
+                  if (filteredNodes.length > 0) {
+                    const laidOutNodes = radialExpansion({x: srcNode.x, y: srcNode.y}, filteredNodes);
+                    mutations.push({ type: 'add_nodes', nodes: laidOutNodes });
+                    
+                    const edges = laidOutNodes.map(n => ({
+                      id: `edge-${Date.now()}-${Math.random()}`,
+                      source: action.citationDirection === 'cites' ? n.id : id,
+                      target: action.citationDirection === 'cites' ? id : n.id,
+                      type: 'references'
+                    }));
+                    mutations.push({ type: 'add_edges', edges });
+                  }
+                }
+              }
+            }
+          }
+          else if (action.type === 'GENERATE_TEXT_NODES' && action.generatedNodes) {
+            sendEvent('status', { message: 'Generating nodes...' });
+            let cx = 500, cy = 500;
+            if (action.targetNodeIds && action.targetNodeIds.length > 0) {
+              const src = nodes.find((n:any) => action.targetNodeIds!.includes(n.id));
+              if (src) { cx = src.x; cy = src.y; }
+            } else if (selectedIds.length > 0) {
+              const src = nodes.find((n:any) => selectedIds.includes(n.id));
+              if (src) { cx = src.x; cy = src.y; }
+            }
+            const newNodes = action.generatedNodes.map((n: any) => ({
+              id: `node-${Date.now()}-${Math.random()}`,
+              title: n.title,
+              content: n.content,
+              type: n.type || 'note',
+              shape: 'card',
+              x: cx + (Math.random() - 0.5) * 200,
+              y: cy + (Math.random() - 0.5) * 200
+            }));
+            mutations.push({ type: 'add_nodes', nodes: newNodes });
+          }
+          else if (action.type === 'CANVAS_LAYOUT') {
+            sendEvent('status', { message: 'Applying layout...' });
+            const targetNodes = action.targetNodeIds?.length ? nodes.filter((n:any) => action.targetNodeIds!.includes(n.id)) : (selectedIds.length ? nodes.filter((n:any) => selectedIds.includes(n.id)) : nodes);
+            if (targetNodes.length > 0) {
+              if (action.layoutType === 'cleanup') {
+                const cleanedNodes = cleanupLayout(targetNodes);
+                const updates = cleanedNodes.map((n: any) => ({ id: n.id, changes: { x: n.x, y: n.y } }));
+                mutations.push({ type: 'update_nodes', updates });
+              } else if (action.layoutType === 'timeline') {
+                const startX = Math.min(...targetNodes.map((n:any) => n.x));
+                const startY = Math.min(...targetNodes.map((n:any) => n.y));
+                const arranged = chronologicalTimeline({x: startX, y: startY}, targetNodes);
+                const updates = arranged.map(n => ({ id: n.id, changes: { x: n.x, y: n.y } }));
+                mutations.push({ type: 'update_nodes', updates });
+              } else if (action.layoutType === 'theme') {
+                const groups: Record<string, any[]> = {};
+                targetNodes.forEach((n:any) => {
+                  const theme = n.field || n.domain || 'General';
+                  if (!groups[theme]) groups[theme] = [];
+                  groups[theme].push(n);
+                });
+                const clusters = Object.keys(groups).map(theme => ({ theme, nodes: groups[theme] }));
+                const startX = Math.min(...targetNodes.map((n:any) => n.x));
+                const startY = Math.min(...targetNodes.map((n:any) => n.y));
+                thematicClustering({x: startX, y: startY}, clusters);
+                const updates = targetNodes.map((n:any) => ({ id: n.id, changes: { x: n.x, y: n.y } }));
+                mutations.push({ type: 'update_nodes', updates });
+              }
+            }
+          }
+          else if (action.type === 'MANIPULATE_NODES') {
+            sendEvent('status', { message: 'Updating nodes...' });
+            let ids = action.targetNodeIds || [];
+            if (ids.length === 0 && selectedIds.length > 0) {
                ids = selectedIds;
-             }
-             if (ids.length === 1 && ids[0] === 'all') {
+            }
+            if (ids.length === 1 && ids[0] === 'all') {
                ids = nodes.map((n:any) => n.id);
-             } else if (ids.length === 0 && command.toLowerCase().includes('all')) {
-               // Fallback: if LLM missed ["all"] but command asked for all nodes
-               ids = nodes.map((n:any) => n.id);
+            }
+            if (ids && ids.length > 0) {
+               if (action.nodeOperation === 'remove') {
+                 mutations.push({ type: 'remove_nodes', nodeIds: ids });
+               } else if (action.style) {
+                 const updates = ids.map((id: string) => ({ id, changes: { style: action.style } }));
+                 mutations.push({ type: 'update_nodes', updates });
+               }
+            }
+          }
+          else if (action.type === 'MANIPULATE_EDGES') {
+            sendEvent('status', { message: 'Updating edges...' });
+            if (action.edgeOperation === 'add' && action.sourceNodeIds && action.targetNodeIds) {
+               const edges = [];
+               for (const src of action.sourceNodeIds) {
+                 for (const tgt of action.targetNodeIds) {
+                    edges.push({
+                      id: `edge-${Date.now()}-${Math.random()}`,
+                      source: src,
+                      target: tgt,
+                      type: action.edgeType || 'custom',
+                      label: action.edgeLabel
+                    });
+                 }
+               }
+               mutations.push({ type: 'add_edges', edges });
+            }
+          }
+          else if (action.type === 'PAPER_ANALYSIS' && action.analysisTask) {
+             sendEvent('status', { message: 'Analyzing papers...' });
+             const targetNodes = action.targetNodeIds?.length ? nodes.filter((n:any) => action.targetNodeIds!.includes(n.id)) : (selectedIds.length ? nodes.filter((n:any) => selectedIds.includes(n.id)) : nodes);
+             const abstracts = [];
+             for (const n of targetNodes) {
+               const work = await fetchWork(n.id);
+               if (work && work.abstract_inverted_index) {
+                 abstracts.push({ title: n.title, content: Object.keys(work.abstract_inverted_index).join(' ') }); 
+               }
              }
-             if (ids && ids.length > 0) {
-               mutations.push({ type: 'remove_nodes', nodeIds: ids });
+             if (abstracts.length > 0) {
+               const analysisPrompt = `You are a research assistant. Synthesize the following papers based on this task: "${action.analysisTask}". Return ONLY a JSON object: { "title": "Node title", "content": "Analysis content" }. Papers: ${JSON.stringify(abstracts)}`;
+               const analysisRes = await callAI(provider as AIProvider, { messages: [{ role: "system", content: analysisPrompt }], model, jsonMode: true });
+               try {
+                 const parsed = JSON.parse(analysisRes.content.replace(/```json/gi, '').replace(/```/g, '').trim());
+                 let cx = 500, cy = 500;
+                 if (targetNodes.length > 0) { cx = targetNodes[0].x; cy = targetNodes[0].y; }
+                 mutations.push({
+                   type: 'add_nodes',
+                   nodes: [{
+                     id: `node-${Date.now()}-${Math.random()}`,
+                     title: parsed.title || 'Analysis',
+                     content: parsed.content || 'No content generated.',
+                     type: 'note',
+                     shape: 'card',
+                     x: cx + 150,
+                     y: cy + 150
+                   }]
+                 });
+                 mutations.push({
+                   type: 'add_edges',
+                   edges: targetNodes.map((n:any) => ({
+                     id: `edge-${Date.now()}-${Math.random()}`,
+                     source: n.id,
+                     target: mutations[mutations.length-1].nodes![0].id,
+                     type: 'custom',
+                     label: 'analyzed in'
+                   }))
+                 });
+               } catch (e) {
+                 console.error('Failed to parse paper analysis', e);
+               }
              }
           }
         }

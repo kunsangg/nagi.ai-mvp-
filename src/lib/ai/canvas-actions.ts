@@ -25,26 +25,56 @@ export interface CanvasContext {
 }
 
 export type ActionType = 
-  | 'FIND_RELATED'           // Find papers related to source nodes
-  | 'SEARCH_AND_ADD'         // Search by query and add
-  | 'ORGANIZE_BY_THEME'      // Cluster existing nodes
-  | 'ORGANIZE_BY_YEAR'       // Timeline layout
-  | 'ADD_MISSING_FOUNDATIONAL' // Find highly cited older papers related to focus
-  | 'FIND_OPPOSING_EVIDENCE' // Find contradicting papers
-  | 'CLEANUP_LAYOUT'         // Run deterministic layout cleanup
-  | 'REMOVE_NODES'           // Delete specific nodes
+  | 'LITERATURE_SEARCH'      // Advanced search with filters
+  | 'CITATION_SEARCH'        // Fetch papers citing or cited by target
+  | 'GENERATE_TEXT_NODES'    // Create notes, summaries, hypotheses, tables, questions
+  | 'PAPER_ANALYSIS'         // Server fetches abstracts and synthesizes them (e.g. Compare, Extract)
+  | 'CANVAS_LAYOUT'          // Layout algorithms
+  | 'MANIPULATE_NODES'       // Hide, highlight, color, group, remove
+  | 'MANIPULATE_EDGES'       // Connect nodes, label relationships
   | 'NO_OP';                 // Do nothing
 
 export interface ActionPlanStep {
   type: ActionType;
   sourceNodeIds?: string[];
   targetNodeIds?: string[];
-  query?: string; // For SEARCH_AND_ADD
+  
+  // For LITERATURE_SEARCH
+  query?: string; 
   filters?: {
     yearFrom?: number;
     yearTo?: number;
     limit?: number;
+    author?: string;
+    hasCode?: boolean;
+    citationMin?: number;
   };
+  
+  // For CITATION_SEARCH
+  citationDirection?: 'cites' | 'cited_by';
+  
+  // For GENERATE_TEXT_NODES
+  generatedNodes?: {
+    title: string;
+    content: string;
+    type: 'note' | 'hypothesis' | 'question' | 'task' | 'table';
+  }[];
+
+  // For PAPER_ANALYSIS
+  analysisTask?: string; // e.g., "Summarize", "Compare methodologies", "Extract limitations", "Find gaps"
+  
+  // For CANVAS_LAYOUT
+  layoutType?: 'theme' | 'timeline' | 'hierarchy' | 'grid' | 'cleanup';
+  
+  // For MANIPULATE_NODES
+  nodeOperation?: 'remove' | 'highlight' | 'hide' | 'group' | 'color';
+  style?: { color?: string; label?: string };
+  
+  // For MANIPULATE_EDGES
+  edgeOperation?: 'add' | 'remove';
+  edgeLabel?: string;
+  edgeType?: string; // 'supports', 'contradicts', 'references', etc.
+
   reason: string;
   confidence: number;
 }

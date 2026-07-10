@@ -11,7 +11,7 @@ export class OpenAlexAPIError extends Error {
   }
 }
 
-function decodeAbstract(abstractInvertedIndex: any): string {
+export function decodeAbstract(abstractInvertedIndex: any): string {
   if (!abstractInvertedIndex) return '';
   try {
     const entries = Object.entries(abstractInvertedIndex) as [string, number[]][];
@@ -174,4 +174,48 @@ export async function searchPapers(
   const papers = scoredWorks.slice(0, 20).map(({ _score, ...paper }: any) => paper);
 
   return { papers, totalResults };
+}
+
+export async function fetchCitations(openAlexId: string, limit: number = 10): Promise<Paper[]> {
+  const cleanId = openAlexId.replace('https://openalex.org/', '');
+  const url = `https://api.openalex.org/works?filter=cites:${cleanId}&sort=cited_by_count:desc&per-page=${limit}`;
+  const response = await fetch(url, { headers: { 'User-Agent': 'Nagi/1.0' } });
+  if (!response.ok) return [];
+  const data = await response.json();
+  return (data.results || []).map((work: any) => ({
+    id: work.id.replace('https://openalex.org/', ''),
+    title: work.title || 'Untitled',
+    abstract: decodeAbstract(work.abstract_inverted_index),
+    authors: (work.authorships || []).map((a: any) => a.author?.display_name).filter(Boolean),
+    publicationYear: work.publication_year,
+    citationCount: work.cited_by_count || 0,
+    openAlexId: work.id,
+    type: work.type
+  }));
+}
+
+export async function fetchReferences(openAlexId: string, limit: number = 10): Promise<Paper[]> {
+  const cleanId = openAlexId.replace('https://openalex.org/', '');
+  const url = `https://api.openalex.org/works/${cleanId}?select=referenced_works`;
+  const response = await fetch(url, { headers: { 'User-Agent': 'Nagi/1.0' } });
+  if (!response.ok) return [];
+  const data = await response.json();
+  const refIds = (data.referenced_works || []).slice(0, limit).map((id: string) => id.replace('https://openalex.org/', ''));
+  if (!refIds.length) return [];
+  
+  const filterStr = refIds.map((id: string) => `openalex:${id}`).join('|');
+  const refsUrl = `https://api.openalex.org/works?filter=openalex_id:${filterStr}&per-page=${limit}`;
+  const refsResponse = await fetch(refsUrl, { headers: { 'User-Agent': 'Nagi/1.0' } });
+  if (!refsResponse.ok) return [];
+  const refsData = await refsResponse.json();
+  return (refsData.results || []).map((work: any) => ({
+    id: work.id.replace('https://openalex.org/', ''),
+    title: work.title || 'Untitled',
+    abstract: decodeAbstract(work.abstract_inverted_index),
+    authors: (work.authorships || []).map((a: any) => a.author?.display_name).filter(Boolean),
+    publicationYear: work.publication_year,
+    citationCount: work.cited_by_count || 0,
+    openAlexId: work.id,
+    type: work.type
+  }));
 }
