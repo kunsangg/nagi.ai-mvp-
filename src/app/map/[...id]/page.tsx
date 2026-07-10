@@ -399,6 +399,7 @@ export default function MapPage() {
   const executeAICommand = async (userMsg: string) => {
     if (!userMsg.trim() || isProcessingAI) return;
     
+    setChatMessages(prev => [...prev, { role: "user", text: userMsg }]);
     setIsProcessingAI(true);
     setAiStatus('Initializing...');
     const oldNodeIds = new Set(stateRef.current.nodes.map(n => n.id));
@@ -434,13 +435,16 @@ export default function MapPage() {
       const decoder = new TextDecoder();
       
       let done = false;
+      let buffer = '';
+      let currentEvent = '';
       while (!done) {
         const { value, done: streamDone } = await reader.read();
         done = streamDone;
         if (value) {
-          const chunk = decoder.decode(value);
-          const lines = chunk.split('\n');
-          let currentEvent = '';
+          buffer += decoder.decode(value, { stream: true });
+          const lines = buffer.split('\n');
+          buffer = lines.pop() || '';
+          
           for (const line of lines) {
             if (line.startsWith('event: ')) {
               currentEvent = line.substring(7).trim();
@@ -453,6 +457,10 @@ export default function MapPage() {
                   setAiStatus(data.message);
                 } else if (currentEvent === 'complete') {
                   applyCanvasOperations(data.operations);
+                  
+                  if (data.message) {
+                    setChatMessages(prev => [...prev, { role: "ai", text: data.message }]);
+                  }
                   
                   // Mark newly added nodes as generated
                   setNodes(prev => prev.map(n => oldNodeIds.has(n.id) ? n : { ...n, isGenerated: true }));
