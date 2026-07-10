@@ -48,33 +48,44 @@ Return a JSON object with this EXACT structure (no markdown, no preamble):
 
 If any category is not mentioned in the abstract, return an empty array for it. Be highly precise, extracting exactly what is written rather than inventing plausible data. Keep the descriptions concise and focused on the evidence.`;
 
+  const maxTokens = 3000;
+
+  const initialMessages = [
+    {
+      role: "system" as const,
+      content: "You are an expert empirical research assistant. Respond ONLY with a valid JSON object.",
+    },
+    { role: "user" as const, content: prompt },
+  ];
+
   try {
     const aiResponse = await callAI(provider as AIProvider, {
-      messages: [
-        {
-          role: "system",
-          content: "You are an expert empirical research assistant. Respond ONLY with a valid JSON object.",
-        },
-        { role: "user", content: prompt },
-      ],
-      maxTokens: 2000,
+      messages: initialMessages,
+      maxTokens,
       jsonMode: true,
     });
 
+    let jsonText = aiResponse.content.replace(/```json/gi, '').replace(/```/g, '').trim();
+    let parsed: any;
     try {
-      const parsed = JSON.parse(aiResponse.content);
-      return NextResponse.json({ evidence: parsed });
-    } catch {
-      return NextResponse.json({ error: "Failed to parse AI response" }, { status: 500 });
+      parsed = JSON.parse(jsonText);
+    } catch (e: any) {
+      const brokenOutput = aiResponse.content.substring(0, 2000);
+      const repairPrompt = `Your previous output was invalid JSON: ${e.message}. Here is the broken output:\n\n${brokenOutput}\n\nReturn ONLY a valid JSON object matching the original schema, no markdown, no prose.`;
+      const repairResponse = await callAI(provider as AIProvider, {
+        messages: [
+          ...initialMessages,
+          { role: "system" as const, content: repairPrompt }
+        ],
+        maxTokens,
+        jsonMode: true,
+      });
+      jsonText = repairResponse.content.replace(/```json/gi, '').replace(/```/g, '').trim();
+      parsed = JSON.parse(jsonText);
     }
+    
+    return NextResponse.json({ evidence: parsed });
   } catch (error: any) {
-    return NextResponse.json({
-      evidence: {
-        verdict: `AI Evidence Analysis Error: ${error?.message || 'Unknown error'}`,
-        dataSources: [],
-        keyMetrics: [],
-        claims: []
-      }
-    });
+    return NextResponse.json({ error: error?.message || 'Unknown error' }, { status: 500 });
   }
 }

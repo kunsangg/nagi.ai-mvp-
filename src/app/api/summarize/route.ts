@@ -13,32 +13,47 @@ export async function POST(req: Request) {
 Title: ${title}
 Abstract: ${abstract}`;
 
+  const maxTokens = 600;
+
+  const initialMessages = [
+    {
+      role: 'system' as const,
+      content: 'You are a research assistant. Respond ONLY with a valid JSON object, no markdown, no backticks, no preamble, no explanation.',
+    },
+    {
+      role: 'user' as const,
+      content: prompt,
+    },
+  ];
+
   try {
     const aiResponse = await callAI(provider as AIProvider, {
-      messages: [
-        {
-          role: 'system',
-          content: 'You are a research assistant. Respond ONLY with a valid JSON object, no markdown, no backticks, no preamble, no explanation.',
-        },
-        {
-          role: 'user',
-          content: prompt,
-        },
-      ],
-      maxTokens: 600,
+      messages: initialMessages,
+      maxTokens,
       jsonMode: true,
     });
 
+    let jsonText = aiResponse.content.replace(/```json/gi, '').replace(/```/g, '').trim();
+    let parsed: any;
     try {
-      const parsed = JSON.parse(aiResponse.content);
-      return NextResponse.json(parsed);
-    } catch {
-      return NextResponse.json({ summary: aiResponse.content, keyFindings: [] });
+      parsed = JSON.parse(jsonText);
+    } catch (e: any) {
+      const brokenOutput = aiResponse.content.substring(0, 2000);
+      const repairPrompt = `Your previous output was invalid JSON: ${e.message}. Here is the broken output:\n\n${brokenOutput}\n\nReturn ONLY a valid JSON object matching the original schema, no markdown, no prose.`;
+      const repairResponse = await callAI(provider as AIProvider, {
+        messages: [
+          ...initialMessages,
+          { role: "system" as const, content: repairPrompt }
+        ],
+        maxTokens,
+        jsonMode: true,
+      });
+      jsonText = repairResponse.content.replace(/```json/gi, '').replace(/```/g, '').trim();
+      parsed = JSON.parse(jsonText);
     }
+    
+    return NextResponse.json(parsed);
   } catch (error: any) {
-    return NextResponse.json({
-      summary: `AI Summarization Error: ${error?.message || 'Unknown error'}`,
-      keyFindings: ["Please check your API key or usage limits."]
-    });
+    return NextResponse.json({ error: error?.message || 'Unknown error' }, { status: 500 });
   }
 }

@@ -37,35 +37,44 @@ Return a JSON object with this EXACT shape (no markdown, no backticks, just vali
 
 Use 2-4 themes. Always cite papers by number in square brackets. Write in formal academic prose.`;
 
+  const maxTokens = Math.min(6000, 2500 + Math.max(0, papers.length - 3) * 400);
+
+  const initialMessages = [
+    {
+      role: "system" as const,
+      content: "You are an expert academic research assistant. Respond ONLY with a valid JSON object, no markdown, no backticks, no preamble.",
+    },
+    { role: "user" as const, content: prompt },
+  ];
+
   try {
     const aiResponse = await callAI(provider as AIProvider, {
-      messages: [
-        {
-          role: "system",
-          content: "You are an expert academic research assistant. Respond ONLY with a valid JSON object, no markdown, no backticks, no preamble.",
-        },
-        { role: "user", content: prompt },
-      ],
-      maxTokens: 2500,
+      messages: initialMessages,
+      maxTokens,
       jsonMode: true,
     });
 
     let jsonText = aiResponse.content.replace(/```json/gi, '').replace(/```/g, '').trim();
+    let parsed: any;
     try {
-      const parsed = JSON.parse(jsonText);
-      return NextResponse.json({ review: parsed });
-    } catch {
-      return NextResponse.json({ error: "Failed to parse AI response" }, { status: 500 });
+      parsed = JSON.parse(jsonText);
+    } catch (e: any) {
+      const brokenOutput = aiResponse.content.substring(0, 2000);
+      const repairPrompt = `Your previous output was invalid JSON: ${e.message}. Here is the broken output:\n\n${brokenOutput}\n\nReturn ONLY a valid JSON object matching the original schema, no markdown, no prose.`;
+      const repairResponse = await callAI(provider as AIProvider, {
+        messages: [
+          ...initialMessages,
+          { role: "system" as const, content: repairPrompt }
+        ],
+        maxTokens,
+        jsonMode: true,
+      });
+      jsonText = repairResponse.content.replace(/```json/gi, '').replace(/```/g, '').trim();
+      parsed = JSON.parse(jsonText);
     }
+    
+    return NextResponse.json({ review: parsed });
   } catch (error: any) {
-    return NextResponse.json({
-      review: {
-        introduction: `AI Literature Review Error: ${error?.message || 'Unknown error'}`,
-        themes: [],
-        keyFindings: [],
-        researchGaps: [],
-        conclusion: "",
-      },
-    });
+    return NextResponse.json({ error: error?.message || 'Unknown error' }, { status: 500 });
   }
 }

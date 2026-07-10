@@ -65,32 +65,44 @@ Return a JSON object with this EXACT structure (no markdown, no preamble):
 Ensure that the keys inside 'papers' in the matrix and 'paperDetails' in the dimensions EXACTLY match the IDs provided: ${papers.map(p => `"${p.id}"`).join(", ")}.
 If a paper doesn't explicitly state something, say "Not explicitly stated" or infer reasonably from the abstract. Be highly analytical, precise, and academic.`;
 
+  const maxTokens = Math.min(6000, 3000 + Math.max(0, papers.length - 2) * 500);
+
+  const initialMessages = [
+    {
+      role: "system" as const,
+      content: "You are an expert academic research assistant. Respond ONLY with a valid JSON object.",
+    },
+    { role: "user" as const, content: prompt },
+  ];
+
   try {
     const aiResponse = await callAI(provider as AIProvider, {
-      messages: [
-        {
-          role: "system",
-          content: "You are an expert academic research assistant. Respond ONLY with a valid JSON object.",
-        },
-        { role: "user", content: prompt },
-      ],
-      maxTokens: 3000,
+      messages: initialMessages,
+      maxTokens,
       jsonMode: true,
     });
 
     let jsonText = aiResponse.content.replace(/```json/gi, '').replace(/```/g, '').trim();
+    let parsed: any;
     try {
-      const parsed = JSON.parse(jsonText);
-      return NextResponse.json({ comparison: parsed });
-    } catch {
-      return NextResponse.json({ error: "Failed to parse AI response" }, { status: 500 });
+      parsed = JSON.parse(jsonText);
+    } catch (e: any) {
+      const brokenOutput = aiResponse.content.substring(0, 2000);
+      const repairPrompt = `Your previous output was invalid JSON: ${e.message}. Here is the broken output:\n\n${brokenOutput}\n\nReturn ONLY a valid JSON object matching the original schema, no markdown, no prose.`;
+      const repairResponse = await callAI(provider as AIProvider, {
+        messages: [
+          ...initialMessages,
+          { role: "system" as const, content: repairPrompt }
+        ],
+        maxTokens,
+        jsonMode: true,
+      });
+      jsonText = repairResponse.content.replace(/```json/gi, '').replace(/```/g, '').trim();
+      parsed = JSON.parse(jsonText);
     }
+    
+    return NextResponse.json({ comparison: parsed });
   } catch (error: any) {
-    return NextResponse.json({
-      comparison: {
-        summary: `AI Comparison Error: ${error?.message || 'Unknown error'}`,
-        dimensions: []
-      }
-    });
+    return NextResponse.json({ error: error?.message || 'Unknown error' }, { status: 500 });
   }
 }

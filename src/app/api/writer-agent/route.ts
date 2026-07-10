@@ -31,16 +31,37 @@ Only return valid JSON matching this schema. Never return markdown blocks enclos
 
     const userMessage = `Current Text:\n"""\n${currentText || "(empty)"}\n"""\n\nCommand:\n${command}`;
 
+    const maxTokens = 2000;
+
+    const initialMessages = [
+      { role: "system" as const, content: systemPrompt },
+      { role: "user" as const, content: userMessage }
+    ];
+
     const aiResponse = await callAI(provider as AIProvider, {
-      messages: [
-        { role: "system", content: systemPrompt },
-        { role: "user", content: userMessage }
-      ],
+      messages: initialMessages,
+      maxTokens,
       jsonMode: true,
     });
 
     let jsonText = aiResponse.content.replace(/```json/gi, '').replace(/```/g, '').trim();
-    const parsed = JSON.parse(jsonText);
+    let parsed: any;
+    try {
+      parsed = JSON.parse(jsonText);
+    } catch (e: any) {
+      const brokenOutput = aiResponse.content.substring(0, 2000);
+      const repairPrompt = `Your previous output was invalid JSON: ${e.message}. Here is the broken output:\n\n${brokenOutput}\n\nReturn ONLY a valid JSON object matching the original schema, no markdown, no prose.`;
+      const repairResponse = await callAI(provider as AIProvider, {
+        messages: [
+          ...initialMessages,
+          { role: "system" as const, content: repairPrompt }
+        ],
+        maxTokens,
+        jsonMode: true,
+      });
+      jsonText = repairResponse.content.replace(/```json/gi, '').replace(/```/g, '').trim();
+      parsed = JSON.parse(jsonText);
+    }
 
     return NextResponse.json({
       updatedText: parsed.updatedText || currentText,
