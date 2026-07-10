@@ -76,7 +76,48 @@ interface MapEdge {
 }
 
 export const getNodeW = (n: MapNode) => n.width !== undefined ? n.width : (n.type === "frame" ? 1100 : n.type === "center" ? 440 : n.type === "timeline" ? 500 : n.type === "question" ? 420 : n.type === "note" ? 380 : n.type === "comment" ? 400 : n.type === "image" ? 320 : ["paper", "reference", "citing", "related", "custom", "shape"].includes(n.type) ? 420 : 340);
-export const getNodeH = (n: MapNode) => n.height !== undefined ? n.height : (n.type === "frame" ? 800 : n.type === "center" ? 150 : n.type === "timeline" ? 130 : n.type === "question" ? 150 : n.type === "note" ? 250 : n.type === "comment" ? 200 : n.type === "image" ? 240 : ["paper", "reference", "citing", "related", "custom", "shape"].includes(n.type) ? 200 : 130);
+export const getNodeH = (n: MapNode) => {
+  if (n.height !== undefined) return n.height;
+
+  // Static sizes for certain types
+  if (n.type === "frame") return 800;
+  if (n.type === "center") return 150;
+  if (n.type === "timeline") return 130;
+  if (n.type === "question") return 150;
+  if (n.type === "image") return 240;
+
+  let baseHeight = 130;
+  const width = getNodeW(n);
+  const textWidth = width - 40; // ~20px padding on each side
+
+  if (["paper", "reference", "citing", "related", "custom", "shape", "note", "comment"].includes(n.type)) {
+    baseHeight = 60; // Top padding + action bar space + bottom padding
+
+    // Title
+    const title = n.title || "";
+    const titleLines = Math.ceil((title.length * 8.5) / textWidth) || 1;
+    baseHeight += titleLines * 24;
+
+    // Authors / Year
+    if (n.author || n.year) {
+      baseHeight += 32; 
+    }
+
+    // Details / Abstract
+    const details = n.metadata?.abstract || n.properties?.content || n.note || "";
+    if (details) {
+      const detailLines = Math.ceil((details.length * 7) / textWidth) || 1;
+      baseHeight += 24 + (detailLines * 21); // Heading + text lines
+    }
+
+    // Minimums
+    if (n.type === "note") return Math.max(250, baseHeight);
+    if (n.type === "comment") return Math.max(200, baseHeight);
+    return Math.max(200, baseHeight);
+  }
+
+  return 130;
+};
 export const getNodeRx = (n: MapNode) => n.borderRadius !== undefined ? n.borderRadius : (n.type === "frame" ? 0 : 12);
 
 const NODE_W = 240;
@@ -1059,7 +1100,7 @@ export default function MapPage() {
             ${d.metadata?.abstract || d.properties?.content || d.note ? `
               <div style="display:flex; flex-direction:column; gap:4px; flex:1; overflow:hidden;">
                 <span style="font-size:10px; font-weight:700; color:#8e8e93; text-transform:uppercase; letter-spacing:0.5px;">Details</span>
-                <span style="font-size:13px; font-weight:400; color:#a1a1aa; line-height:1.6; display:-webkit-box; -webkit-line-clamp:3; -webkit-box-orient:vertical; overflow:hidden;">
+                <span style="font-size:13px; font-weight:400; color:#a1a1aa; line-height:1.6;">
                   ${d.metadata?.abstract || d.properties?.content || d.note}
                 </span>
               </div>
