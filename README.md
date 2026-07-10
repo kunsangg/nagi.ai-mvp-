@@ -22,7 +22,7 @@ By abandoning linear chat interfaces in favor of an infinite spatial canvas, Nag
 ### 🔗 Links
 *   **Main Website:** [nagi-functionalities-bmiz.vercel.app](https://nagi-functionalities-bmiz.vercel.app)
 *   **Waitlist Page:** [nagiai.vercel.app](https://nagiai.vercel.app)
-*   **Live App:** *(Deployment in progress...)*
+*   **Live App:** *[(Deployment in progress...)*](https://nagi-ai-mvp.vercel.app)
 
 ---
 
