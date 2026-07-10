@@ -20,7 +20,7 @@ function getOpenAlexUrl(basePath: string, queryParams: Record<string, string> = 
 async function fetchWork(id: string) {
   const cleanId = id.replace('https://openalex.org/', '');
   const url = getOpenAlexUrl(`/works/https://openalex.org/${cleanId}`, {
-    select: 'id,title,cited_by_count,publication_year,topics,referenced_works,related_works,authorships,open_access'
+    select: 'id,title,cited_by_count,publication_year,topics,referenced_works,related_works,authorships,open_access,abstract_inverted_index'
   });
   const res = await fetch(url, { headers: { 'User-Agent': 'Nagi/1.0' } });
   if (!res.ok) return null;
@@ -116,6 +116,7 @@ Available Action Types:
 - CANVAS_LAYOUT: Layout algorithms. Set \`layoutType\` to 'theme', 'timeline', 'hierarchy', 'grid', or 'cleanup'.
 - MANIPULATE_NODES: Hide, highlight, color, group, or remove specific nodes. Set \`nodeOperation\`. To delete ALL nodes, set \`nodeOperation\`="remove" and \`targetNodeIds\`=["all"].
 - MANIPULATE_EDGES: Connect nodes or label relationships. Set \`edgeOperation\`="add"|"remove", \`edgeLabel\`, and \`edgeType\`.
+- EDIT_NODE_CONTENT: Update the text content or title of an existing text node (note, hypothesis, task, etc). Set \`targetNodeIds\` (must be text nodes), \`title\`, and \`content\`. Use this when the user asks to add text, summarize into an existing node, or modify a node.
 - NO_OP: Do nothing.
 
 Current Canvas State:
@@ -141,6 +142,8 @@ Respond ONLY with a JSON object matching this schema:
       "style": { "color": "#ff0000" },
       "edgeOperation": "add",
       "edgeLabel": "supports",
+      "title": "New Title",
+      "content": "New Content",
       "reason": "Why this specific action",
       "confidence": 0.95
     }
@@ -355,11 +358,32 @@ Respond ONLY with a JSON object matching this schema:
                mutations.push({ type: 'add_edges', edges });
             }
           }
+          else if (action.type === 'EDIT_NODE_CONTENT') {
+            sendEvent('status', { message: 'Editing node content...' });
+            let ids = action.targetNodeIds || [];
+            if (ids.length === 0 && selectedIds.length > 0) {
+              ids = selectedIds;
+            }
+            if (ids.length > 0) {
+              // Only allow updating title/content
+              const updates = ids.map((id: string) => {
+                const changes: any = {};
+                if (action.title) changes.title = action.title;
+                if (action.content) changes.content = action.content;
+                return { id, changes };
+              });
+              mutations.push({ type: 'update_nodes', updates });
+            }
+          }
           else if (action.type === 'PAPER_ANALYSIS' && action.analysisTask) {
              sendEvent('status', { message: 'Analyzing papers...' });
              const targetNodes = action.targetNodeIds?.length ? nodes.filter((n:any) => action.targetNodeIds!.includes(n.id)) : (selectedIds.length ? nodes.filter((n:any) => selectedIds.includes(n.id)) : nodes);
              const abstracts = [];
              for (const n of targetNodes) {
+               if (n.type === 'note' || n.type === 'hypothesis' || n.type === 'task' || n.type === 'question') {
+                 abstracts.push({ title: n.title, content: n.content || '' });
+                 continue;
+               }
                const work = await fetchWork(n.id);
                if (work && work.abstract_inverted_index) {
                  abstracts.push({ title: n.title, content: Object.keys(work.abstract_inverted_index).join(' ') }); 

@@ -308,9 +308,9 @@ function assignPositions(nodes: any[], centerId: string, W: number, H: number): 
 
 const MODEL_CONFIG: Record<string, { provider: 'groq' | 'fireworks', id: string }> = {
   'Llama 3.3 70B (Groq)': { provider: 'groq', id: 'llama-3.3-70b-versatile' },
-  'Llama 3.1 70B (Fireworks)': { provider: 'fireworks', id: 'accounts/fireworks/models/llama-v3p1-70b-instruct' },
-  'Mixtral 8x22B (Fireworks)': { provider: 'fireworks', id: 'accounts/fireworks/models/mixtral-8x22b-instruct' },
-  'Gemma 2 9B (Fireworks)': { provider: 'fireworks', id: 'accounts/fireworks/models/gemma2-9b-it' }
+  'Llama 3.1 8B (Groq)': { provider: 'groq', id: 'llama-3.1-8b-instant' },
+  'Mixtral 8x7B (Groq)': { provider: 'groq', id: 'mixtral-8x7b-32768' },
+  'Gemma 2 9B (Groq)': { provider: 'groq', id: 'gemma2-9b-it' }
 };
 
 export default function MapPage() {
