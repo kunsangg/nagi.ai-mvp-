@@ -32,6 +32,7 @@ export type ActionType =
   | 'CANVAS_LAYOUT'          // Layout algorithms
   | 'MANIPULATE_NODES'       // Hide, highlight, color, group, remove
   | 'MANIPULATE_EDGES'       // Connect nodes, label relationships
+  | 'EDIT_NODE_CONTENT'      // Update text/title of existing nodes
   | 'NO_OP';                 // Do nothing
 
 export interface ActionPlanStep {
@@ -74,6 +75,10 @@ export interface ActionPlanStep {
   edgeOperation?: 'add' | 'remove';
   edgeLabel?: string;
   edgeType?: string; // 'supports', 'contradicts', 'references', etc.
+
+  // For EDIT_NODE_CONTENT
+  title?: string;
+  content?: string;
 
   reason: string;
   confidence: number;
