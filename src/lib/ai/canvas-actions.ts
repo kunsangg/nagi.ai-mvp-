@@ -100,3 +100,34 @@ export interface CanvasMutationOp {
   nodeIds?: string[];
   edgeIds?: string[];
 }
+
+export function pruneContextNodes(nodes: CanvasContextNode[], selectedIds: string[], cap: number = 40): CanvasContextNode[] {
+  if (nodes.length <= cap) return nodes;
+  
+  let center = { x: 0, y: 0 };
+  let referenceNodes = nodes;
+  
+  if (selectedIds && selectedIds.length > 0) {
+    referenceNodes = nodes.filter(n => selectedIds.includes(n.id));
+  }
+  
+  if (referenceNodes.length > 0) {
+    const sumX = referenceNodes.reduce((sum, n) => sum + n.x, 0);
+    const sumY = referenceNodes.reduce((sum, n) => sum + n.y, 0);
+    center = { x: sumX / referenceNodes.length, y: sumY / referenceNodes.length };
+  } else {
+    // If no nodes or no selection, use the average of all nodes
+    const sumX = nodes.reduce((sum, n) => sum + n.x, 0);
+    const sumY = nodes.reduce((sum, n) => sum + n.y, 0);
+    center = { x: sumX / nodes.length, y: sumY / nodes.length };
+  }
+  
+  const nodesWithDist = nodes.map(n => ({
+    node: n,
+    dist: Math.hypot(n.x - center.x, n.y - center.y)
+  }));
+  
+  nodesWithDist.sort((a, b) => a.dist - b.dist);
+  
+  return nodesWithDist.slice(0, cap).map(n => n.node);
+}

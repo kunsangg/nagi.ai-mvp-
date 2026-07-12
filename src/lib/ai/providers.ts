@@ -10,7 +10,7 @@ export const PROVIDER_CONFIG: Record<AIProvider, ProviderConfig> = {
   groq: {
     baseUrl: "https://api.groq.com/openai/v1/chat/completions",
     envKey: "GROQ_API_KEY",
-    defaultModel: "llama-3.3-70b-versatile",
+    defaultModel: "openai/gpt-oss-120b",
   },
   fireworks: {
     baseUrl: "https://api.fireworks.ai/inference/v1/chat/completions",

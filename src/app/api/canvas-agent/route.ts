@@ -1,7 +1,7 @@
 import { NextResponse } from 'next/server';
 import { callAI } from '@/lib/ai/providers';
 import { AIProvider } from '@/lib/ai/types';
-import { ActionPlan, CanvasMutationOp } from '@/lib/ai/canvas-actions';
+import { ActionPlan, CanvasMutationOp, pruneContextNodes } from '@/lib/ai/canvas-actions';
 import { searchPapers, decodeAbstract, fetchCitations, fetchReferences } from '@/lib/providers/openalex';
 import { radialExpansion, chronologicalTimeline, cleanupLayout, thematicClustering } from '@/lib/utils/layout';
 
@@ -82,7 +82,7 @@ export async function POST(req: Request) {
         sendEvent('status', { message: 'Understanding request...' });
 
         // Build context
-        const contextNodes = nodes.map((n: any) => ({
+        const rawContextNodes = nodes.map((n: any) => ({
           id: n.id,
           openAlexId: n.id.startsWith('W') ? n.id : undefined,
           title: n.title,
@@ -96,6 +96,19 @@ export async function POST(req: Request) {
           width: n.width,
           height: n.height
         }));
+
+        let contextNodes: any[] = pruneContextNodes(rawContextNodes, selectedIds, 40);
+        let omittedCount = nodes.length - contextNodes.length;
+
+        // Trim fields for nodes that aren't candidates (not selected)
+        if (selectedIds && selectedIds.length > 0) {
+            contextNodes = contextNodes.map((n: any) => {
+                if (!selectedIds.includes(n.id)) {
+                    return { ...n, field: undefined, citations: undefined, type: undefined };
+                }
+                return n;
+            });
+        }
         
         const systemPrompt = `You are Nagi Canvas Agent, an AI operator inside a visual academic research workspace. Your job is not to chat. Your job is to understand the user's research intent, inspect the supplied canvas state, and produce the smallest high-value structured plan that transforms the workspace toward the user's goal. Note that node context includes their physical x,y position and width/height dimensions, use these to understand spatial relationships and plan layouts.
 
@@ -107,6 +120,7 @@ CRITICAL RULES:
 - Never fabricate research content.
 - Never duplicate an existing paper.
 - Make the smallest set of changes that fully satisfies the request.
+- If the user's command contains multiple distinct requests (e.g. 'find 5 papers on X and also summarize what's selected'), return multiple actions in the actions array — do not only satisfy the first request.
 
 Available Action Types:
 - LITERATURE_SEARCH: Advanced search with filters (query, yearFrom, yearTo, limit, author, citationMin). Use to find specific papers.
@@ -119,8 +133,20 @@ Available Action Types:
 - EDIT_NODE_CONTENT: Update the text content or title of an existing text node (note, hypothesis, task, etc). Set \`targetNodeIds\` (must be text nodes), \`title\`, and \`content\`. Use this when the user asks to add text, summarize into an existing node, or modify a node.
 - NO_OP: Do nothing.
 
+Examples:
+- "Find 5 recent papers on transformer efficiency" -> [{"type":"LITERATURE_SEARCH", "query":"transformer efficiency", "filters":{"limit":5}}]
+- "Show me what papers cite this one" -> [{"type":"CITATION_SEARCH", "citationDirection":"cites", "targetNodeIds":["node1"]}]
+- "Create a note summarizing why this matters" -> [{"type":"GENERATE_TEXT_NODES", "generatedNodes":[{"title":"Summary", "content":"...", "type":"note"}]}]
+- "Compare the methodologies of the selected papers" -> [{"type":"PAPER_ANALYSIS", "analysisTask":"Compare the methodologies", "targetNodeIds":["node1","node2"]}]
+- "Clean up this layout" -> [{"type":"CANVAS_LAYOUT", "layoutType":"cleanup"}]
+- "Delete all the unselected nodes" -> [{"type":"MANIPULATE_NODES", "nodeOperation":"remove", "targetNodeIds":["node3"]}]
+- "Connect these two papers and label 'contradicts'" -> [{"type":"MANIPULATE_EDGES", "edgeOperation":"add", "sourceNodeIds":["node1"], "targetNodeIds":["node2"], "edgeType":"contradicts", "edgeLabel":"contradicts"}]
+- "Update the title of this task node" -> [{"type":"EDIT_NODE_CONTENT", "targetNodeIds":["node1"], "title":"New Title"}]
+- "Thanks, that's helpful" -> [{"type":"NO_OP"}]
+
 Current Canvas State:
 ${JSON.stringify({ nodes: contextNodes, selectedIds }, null, 2)}
+${omittedCount > 0 ? `...and ${omittedCount} more nodes not shown.` : ''}
 
 Respond ONLY with a JSON object matching this schema:
 {
@@ -158,12 +184,16 @@ Respond ONLY with a JSON object matching this schema:
           ],
           model,
           jsonMode: true,
+          maxTokens: 1500,
         });
 
         let jsonText = aiResponse.content.replace(/```json/gi, '').replace(/```/g, '').trim();
         let plan: ActionPlan;
         try {
           plan = JSON.parse(jsonText);
+          if (!plan.actions || !Array.isArray(plan.actions)) {
+            throw new Error("plan.actions must be an array");
+          }
         } catch (e: any) {
           // Retry with repair
           const repairPrompt = `Your previous output was invalid JSON: ${e.message}. Return ONLY a valid JSON object matching the schema, no markdown, no prose.`;
@@ -176,9 +206,13 @@ Respond ONLY with a JSON object matching this schema:
             ],
             model,
             jsonMode: true,
+            maxTokens: 1500,
           });
           jsonText = repairResponse.content.replace(/```json/gi, '').replace(/```/g, '').trim();
           plan = JSON.parse(jsonText); // if this fails, we throw to the outer catch
+          if (!plan.actions || !Array.isArray(plan.actions)) {
+            throw new Error("plan.actions must be an array");
+          }
         }
 
         sendEvent('status', { message: plan.intent || 'Executing plan...' });
@@ -391,7 +425,7 @@ Respond ONLY with a JSON object matching this schema:
              }
              if (abstracts.length > 0) {
                const analysisPrompt = `You are a research assistant. Synthesize the following papers based on this task: "${action.analysisTask}". Return ONLY a JSON object: { "title": "Node title", "content": "Analysis content" }. Papers: ${JSON.stringify(abstracts)}`;
-               const analysisRes = await callAI(provider as AIProvider, { messages: [{ role: "system", content: analysisPrompt }], model, jsonMode: true });
+               const analysisRes = await callAI(provider as AIProvider, { messages: [{ role: "system", content: analysisPrompt }], model, jsonMode: true, maxTokens: 500 });
                try {
                  const parsed = JSON.parse(analysisRes.content.replace(/```json/gi, '').replace(/```/g, '').trim());
                  let cx = 500, cy = 500;
