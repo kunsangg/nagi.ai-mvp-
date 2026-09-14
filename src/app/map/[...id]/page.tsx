@@ -307,10 +307,10 @@ function assignPositions(nodes: any[], centerId: string, W: number, H: number): 
 }
 
 const MODEL_CONFIG: Record<string, { provider: 'groq' | 'fireworks', id: string }> = {
-  'GPT-OSS 120B (Groq, default)': { provider: 'groq', id: 'openai/gpt-oss-120b' },
-  'GPT-OSS 20B (Groq, fast)':     { provider: 'groq', id: 'openai/gpt-oss-20b' },
-  'Qwen 3.6 27B (Groq)':          { provider: 'groq', id: 'qwen/qwen3.6-27b' },
-  'DeepSeek V4 Pro (Fireworks)':  { provider: 'fireworks', id: 'accounts/fireworks/models/deepseek-v4-pro' },
+  'Llama 3.1 70B (Groq, default)': { provider: 'groq', id: 'llama-3.1-70b-versatile' },
+  'Llama 3.1 8B (Groq, fast)':     { provider: 'groq', id: 'llama-3.1-8b-instant' },
+  'Mixtral 8x7b (Groq)':           { provider: 'groq', id: 'mixtral-8x7b-32768' },
+  'Llama 3.1 70B (Fireworks)':     { provider: 'fireworks', id: 'accounts/fireworks/models/llama-v3p1-70b-instruct' },
 };
 
 export default function MapPage() {
@@ -356,7 +356,7 @@ export default function MapPage() {
   const [isAIFocused,    setIsAIFocused]    = useState(false);
   const [isProcessingAI, setIsProcessingAI] = useState(false);
   const [aiStatus,       setAiStatus]       = useState("");
-  const [selectedModel, setSelectedModel] = useState("GPT-OSS 120B (Groq, default)");
+  const [selectedModel, setSelectedModel] = useState("Llama 3.1 70B (Groq, default)");
   const [isContextAdded, setIsContextAdded] = useState(false);
   const [showModelDropdown, setShowModelDropdown] = useState(false);
   const [chatMessages, setChatMessages] = useState<{role: "user" | "ai", text: string}[]>([
@@ -450,7 +450,7 @@ export default function MapPage() {
     const oldNodeIds = new Set(stateRef.current.nodes.map(n => n.id));
     
     try {
-      const config = MODEL_CONFIG[selectedModel] || MODEL_CONFIG['GPT-OSS 120B (Groq, default)'];
+      const config = MODEL_CONFIG[selectedModel] || MODEL_CONFIG['Llama 3.1 70B (Groq, default)'];
       
       const chatHistory = chatMessages.slice(-4).map(msg => ({
         role: msg.role === 'ai' ? 'assistant' : 'user',
