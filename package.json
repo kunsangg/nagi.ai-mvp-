@@ -6,7 +6,8 @@
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
-    "lint": "eslint"
+    "lint": "eslint",
+    "eval:search": "node --no-warnings scripts/eval-search.mjs"
   },
   "dependencies": {
     "@react-three/drei": "^10.7.7",

@@ -1,4 +1,4 @@
-import { Paper, SearchFilters } from '@/types/paper';
+import type { Paper, SearchFilters } from '@/types/paper';
 
 export class OpenAlexAPIError extends Error {
   public status: number;
@@ -65,7 +65,82 @@ function computeRelevanceScore(work: any, queryTerms: string[]): number {
   return score;
 }
 
+const fold = (s: string) =>
+  s.normalize('NFKD').replace(/[\u0300-\u036f]/g, '').toLowerCase();
+
+const titleKey = (title: string) =>
+  fold(title).replace(/[^\p{L}\p{N}]+/gu, ' ').trim();
+
+// "Gupta, Rahul" / "Rahul Gupta" -> "gupta"
+const surname = (name: string) => {
+  const n = fold(name);
+  const last = n.includes(',') ? n.split(',')[0] : n.trim().split(/\s+/).pop() || '';
+  return last.replace(/[^\p{L}]/gu, '');
+};
+
+const isPreprint = (p: Paper) =>
+  p.type === 'preprint' || /^10\.48550\/arxiv/i.test(p.doi || '');
+
+// "10.48550/arxiv.2107.03760", "arxiv.org/pdf/2107.03760v2" -> "2107.03760"
+export const arxivIdOf = (url?: string | null) =>
+  url?.match(/(?:10\.48550\/arxiv\.|arxiv\.org\/(?:abs|pdf)\/)([a-z-]+(?:\.[a-z]{2})?\/\d{7}|\d{4}\.\d{4,5})/i)?.[1].toLowerCase();
+
+const idKeys = (p: Paper) =>
+  [p.doi && `doi:${p.doi.toLowerCase()}`, p.arxivId && `arxiv:${p.arxivId}`].filter((k): k is string => !!k);
+
+// Merge versions of a work (preprint + published). Shared DOI or arXiv ID first,
+// then same title + shared author unless their arXiv IDs differ.
+export function dedupeVersions(papers: Paper[]): Paper[] {
+  const clusters: Paper[][] = [];
+  const byId = new Map<string, Paper[]>();
+  const byTitle = new Map<string, Paper[][]>();
+
+  for (const paper of papers) {
+    const ids = idKeys(paper);
+    const key = titleKey(paper.title);
+    const names = new Set(paper.authors.map(surname).filter(Boolean));
+    const candidates = byTitle.get(key) || [];
+    const match =
+      ids.map(id => byId.get(id)).find(Boolean) ||
+      candidates.find(c =>
+        !c.some(p => p.arxivId && paper.arxivId && p.arxivId !== paper.arxivId) &&
+        c.some(p => p.authors.some(a => names.has(surname(a))))
+      );
+    const cluster = match || [];
+    if (!match) clusters.push(cluster);
+    cluster.push(paper);
+    for (const id of ids) if (!byId.has(id)) byId.set(id, cluster);
+    if (!candidates.includes(cluster)) byTitle.set(key, [...candidates, cluster]);
+  }
+
+  return clusters.map(versions => {
+    if (versions.length === 1) return versions[0];
+    // Prefer published, then most cited
+    const best = [...versions].sort(
+      (a, b) => Number(isPreprint(a)) - Number(isPreprint(b)) || b.citationCount - a.citationCount
+    )[0];
+    const others = versions.filter(p => p !== best);
+    return {
+      ...best,
+      relevanceScore: versions[0].relevanceScore,
+      citationCount: Math.max(...versions.map(p => p.citationCount)),
+      pdfUrl: best.pdfUrl || others.find(p => p.pdfUrl)?.pdfUrl,
+      isOpenAccess: versions.some(p => p.isOpenAccess),
+      versions: others.map(p => p.id),
+    };
+  });
+}
+
 export async function searchPapers(
+  query: string,
+  filters?: SearchFilters
+): Promise<{ papers: Paper[]; totalResults: number }> {
+  const { papers, totalResults } = await fetchRankedPapers(query, filters);
+  return { papers: dedupeVersions(papers).slice(0, 20), totalResults };
+}
+
+// Ranked, not deduped or truncated
+export async function fetchRankedPapers(
   query: string,
   filters?: SearchFilters
 ): Promise<{ papers: Paper[]; totalResults: number }> {
@@ -82,7 +157,7 @@ export async function searchPapers(
   url.searchParams.set('sort', 'relevance_score:desc');
   url.searchParams.set(
     'select',
-    'id,title,abstract_inverted_index,authorships,publication_year,cited_by_count,doi,primary_location,open_access,best_oa_location,type,language,referenced_works_count,related_works,topics,relevance_score'
+    'id,title,abstract_inverted_index,authorships,publication_year,cited_by_count,doi,primary_location,open_access,best_oa_location,type,language,referenced_works_count,related_works,topics,relevance_score,locations'
   );
 
   // Build filters
@@ -135,6 +210,8 @@ export async function searchPapers(
       publicationYear: work.publication_year,
       citationCount: work.cited_by_count || 0,
       doi: work.doi?.replace('https://doi.org/', ''),
+      arxivId: [work.doi, ...(work.locations || []).flatMap((l: any) => [l.landing_page_url, l.pdf_url])]
+        .map(arxivIdOf).find(Boolean),
       journal: work.primary_location?.source?.display_name,
       openAlexId: work.id,
       pdfUrl: work.open_access?.oa_url || work.best_oa_location?.pdf_url,
@@ -170,8 +247,7 @@ export async function searchPapers(
   // Re-rank by our composite score
   scoredWorks.sort((a: any, b: any) => b._score - a._score);
 
-  // Return top 20 after re-ranking
-  const papers = scoredWorks.slice(0, 20).map(({ _score, ...paper }: any) => paper);
+  const papers = scoredWorks.map(({ _score, ...paper }: any) => paper);
 
   return { papers, totalResults };
 }

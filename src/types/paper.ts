@@ -15,6 +15,7 @@ export interface Paper {
   publicationYear: number
   citationCount: number
   doi?: string
+  arxivId?: string
   journal?: string
   openAlexId: string
   pdfUrl?: string
@@ -30,6 +31,8 @@ export interface Paper {
   domain?: string
   totalResults?: number
   relevanceScore?: number
+  // Ids of merged versions, e.g. the arXiv preprint
+  versions?: string[]
 }
 
 export interface SearchFilters {
